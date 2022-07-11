@@ -2,4 +2,4 @@
 
 cd ./src/qsplib/build
 emcmake cmake ..  
-make
+emmake make
