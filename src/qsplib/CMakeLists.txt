@@ -2,6 +2,7 @@ project (qsplib-wasm)
 cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_BUILD_TYPE Release)
+set(BUILD_TEST OFF CACHE BOOL "")
 
 configure_file(CMakeLists-qsp.txt.in qsp-download/CMakeLists.txt)
 execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/qsp-download")
@@ -14,7 +15,6 @@ add_subdirectory("${CMAKE_BINARY_DIR}/qsp-src"
 )
 
 file(GLOB SOURCES src/*.c)
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/public")
 
 add_executable(qsp-wasm ${SOURCES})
@@ -27,7 +27,6 @@ set_target_properties(qsp-wasm PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -Wcast-align \
     -Wover-aligned \
     -O3 \
-    -g \
     -s ASSERTIONS=1 \
     -s WASM=1 \
     -s RESERVED_FUNCTION_POINTERS=20 \

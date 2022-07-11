@@ -15,7 +15,7 @@ export interface QspModule extends EmscriptenModule {
 
   _freeString(string: CharsPtr): void;
   _freeItemsList(items: Ptr): void;
-  _freeSaveBuffer(buffer: Prt): void;
+  _freeSaveBuffer(buffer: Ptr): void;
 
   // libqsp
   _init(): void;
@@ -53,7 +53,7 @@ export interface QspModule extends EmscriptenModule {
   _getLastErrorData(errorNum: IntPtr, errorLoc: StringPtr, errorActIndex: IntPtr, errorLine: IntPtr): void;
   _getErrorDesc(ptr: Ptr, errorNum: number): void;
 
-  _getVarStringValue(name: CharsPrt, index: number, result: Ptr): void;
+  _getVarStringValue(name: CharsPtr, index: number, result: Ptr): void;
   _getVarNumValue(name: CharsPtr, index: number): number;
 
   _initCallBacks(): void;

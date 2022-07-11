@@ -13,6 +13,7 @@
   "author": "Sergii Kostyrko",
   "license": "MIT",
   "devDependencies": {
+    "@types/emscripten": "^1.39.6",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
     "eslint": "^8.19.0",
