@@ -120,3 +120,9 @@ export function readListItems(module: QspModule, listPtr: Ptr, count: number): Q
   }
   return list;
 }
+
+export function asAsync(module: QspModule, callback: (done: (result?: number) => void) => void) {
+  return module.Asyncify.handleSleep((wakeUp) => {
+    callback((result) => wakeUp(result || 0));
+  });
+}

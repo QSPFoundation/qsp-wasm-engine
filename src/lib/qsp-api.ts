@@ -9,6 +9,7 @@ import {
 import { Ptr, QspCallType, QspPanel, Bool, StringPtr } from '../qsplib/public/types';
 
 import {
+  asAsync,
   readListItems,
   readString,
   withBufferRead,
@@ -240,45 +241,29 @@ export class QspAPIImpl implements QspAPI {
 
   onMenu = (listPtr: Ptr, count: number): void => {
     const items = readListItems(this.module, listPtr, count);
-
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      const onSelect = (index: number): void => {
-        wakeUp(index);
-      };
-      this.emit('menu', items, onSelect);
-    });
+    return asAsync(this.module, (done) => this.emit('menu', items, done));
   };
 
   onMsg = (textPtr: StringPtr): void => {
     this.onRefresh(false);
     const text = readString(this.module, textPtr);
-
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      const closed = (): void => {
-        wakeUp(0);
-      };
-      this.emit('msg', text, closed);
-    });
+    return asAsync(this.module, (done) => this.emit('msg', text, done));
   };
 
   onInput = (textPtr: StringPtr, retPtr: Ptr, maxSize: number): void => {
     this.onRefresh(false);
     const text = readString(this.module, textPtr);
-
-    return this.module.Asyncify.handleSleep((wakeUp) => {
+    return asAsync(this.module, (done) => {
       const onInput = (inputText: string): void => {
         this.module.stringToUTF32(inputText, retPtr, maxSize);
-        wakeUp(0);
+        done();
       };
       this.emit('input', text, onInput);
     });
   };
 
   onWait = (ms: number): void => {
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      const onWait = (): void => wakeUp(0);
-      this.emit('wait', ms, onWait);
-    });
+    return asAsync(this.module, (done) => this.emit('wait', ms, done));
   };
 
   onSetTimer = (ms: number): void => {
@@ -313,64 +298,34 @@ export class QspAPIImpl implements QspAPI {
 
   onOpenGame = (pathPtr: StringPtr, isNewGame: boolean): void => {
     const path = readString(this.module, pathPtr);
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      const onOpened = (): void => {
-        wakeUp(0);
-      };
-      this.emit('open_game', path, isNewGame, onOpened);
-    });
+    return asAsync(this.module, (done) => this.emit('open_game', path, isNewGame, done));
   };
 
   onOpenGameStatus = (pathPtr: StringPtr): void => {
     const path = readString(this.module, pathPtr);
-
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      const onLoaded = (): void => {
-        wakeUp(0);
-      };
-      this.emit('load_save', path, onLoaded);
-    });
+    return asAsync(this.module, (done) => this.emit('load_save', path, done));
   };
 
   onSaveGameStatus = (pathPtr: StringPtr): void => {
     const path = readString(this.module, pathPtr);
-
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      const onSaved = (): void => {
-        wakeUp(0);
-      };
-      this.emit('save_game', path, onSaved);
-    });
+    return asAsync(this.module, (done) => this.emit('save_game', path, done));
   };
 
   onIsPlay = (filePtr: StringPtr): void => {
     const file = readString(this.module, filePtr);
-
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      this.emit('is_play', file, (result) => wakeUp(result ? 1 : 0));
-    });
+    return asAsync(this.module, (done) =>
+      this.emit('is_play', file, (result) => done(result ? 1 : 0))
+    );
   };
 
   onPlayFile = (filePtr: StringPtr, volume: number): void => {
     const file = readString(this.module, filePtr);
-
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      const onReady = (): void => {
-        wakeUp(0);
-      };
-      this.emit('play_file', file, volume, onReady);
-    });
+    return asAsync(this.module, (done) => this.emit('play_file', file, volume, done));
   };
 
   onCloseFile = (filePtr: StringPtr): void => {
     const file = readString(this.module, filePtr);
-
-    return this.module.Asyncify.handleSleep((wakeUp) => {
-      const onReady = (): void => {
-        wakeUp(0);
-      };
-      this.emit('close_file', file, onReady);
-    });
+    return asAsync(this.module, (done) => this.emit('close_file', file, done));
   };
 
   private reportVariables() {
@@ -399,17 +354,12 @@ export class QspAPIImpl implements QspAPI {
   private readError(): QspErrorData | null {
     const code = this.module._getLastErrorNum();
     if (!code) return null;
-    const description = withStringRead(this.module, (ptr) => this.module._getErrorDesc(ptr, code));
-    const location = withStringRead(this.module, (ptr) => this.module._getLastErrorLoc(ptr));
-    const actionIndex = this.module._getLastErrorActIndex();
-    const line = this.module._getLastErrorLine();
-
     return {
       code,
-      location,
-      description,
-      actionIndex,
-      line,
+      location: withStringRead(this.module, (ptr) => this.module._getLastErrorLoc(ptr)),
+      description: withStringRead(this.module, (ptr) => this.module._getErrorDesc(ptr, code)),
+      actionIndex: this.module._getLastErrorActIndex(),
+      line: this.module._getLastErrorLine(),
     };
   }
 
