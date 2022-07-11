@@ -2,13 +2,12 @@ import {
   QspAPI,
   QspErrorData,
   QspEvents,
-  LayoutSettings,
   QspEventKeys,
   QspEventListeners,
   QspModule,
 } from './contracts';
 import { Ptr, QspCallType, QspPanel, Bool, StringPtr } from '../qsplib/public/types';
-import { shallowEqual } from './helpers';
+
 import {
   readListItems,
   readString,
@@ -22,9 +21,14 @@ import {
 
 export class QspAPIImpl implements QspAPI {
   private listeners = new Map<QspEventKeys, QspEventListeners[]>();
+  private variableWatchers = new Set<{
+    variables: string[];
+    callback: (data: Record<string, string | number>) => void;
+  }>();
+  private variableValues = new Map<string, string | number>();
 
   private time: number = Date.now();
-  private layout: LayoutSettings | null = null;
+
   private staticStrings: Map<string, Ptr> = new Map();
 
   constructor(private module: QspModule) {
@@ -47,13 +51,31 @@ export class QspAPIImpl implements QspAPI {
     }
   }
 
+  watchVariables(
+    variables: string[],
+    callback: (data: Record<string, string | number>) => void
+  ): () => void {
+    variables = variables.map((v) => v.toLocaleUpperCase());
+    const watcher = {
+      variables,
+      callback,
+    };
+    this.variableWatchers.add(watcher);
+    const data = this.readVariables(variables);
+    callback(data);
+    return () => {
+      this.variableWatchers.delete(watcher);
+      for (const variable of variables) {
+        this.variableValues.delete(variable);
+      }
+    };
+  }
+
   private emit<E extends keyof QspEvents, CB extends QspEvents[E] = QspEvents[E]>(
     event: E,
     ...args: Parameters<CB>
   ): void {
-    if (event !== 'refresh') {
-      console.log({ event, args });
-    }
+    console.log({ event, args });
     const list = this.listeners.get(event) ?? [];
     for (const listener of list) {
       // eslint-disable-next-line prefer-spread
@@ -189,7 +211,7 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onRefresh = (isRedraw: boolean): void => {
-    this.updateLayout();
+    this.reportVariables();
 
     if (isRedraw || this.module._isMainDescChanged()) {
       const mainDesc = withStringRead(this.module, (ptr) => this.module._getMainDesc(ptr));
@@ -210,8 +232,6 @@ export class QspAPIImpl implements QspAPI {
       const objects = withListRead(this.module, (ptr) => this.module._getObjects(ptr));
       this.emit('objects_changed', objects);
     }
-
-    this.emit('refresh');
   };
 
   onShowWindow = (type: QspPanel, isShown: boolean): void => {
@@ -353,31 +373,27 @@ export class QspAPIImpl implements QspAPI {
     });
   };
 
-  private updateLayout(): void {
-    const useHtml = Boolean(this.readVariableNumber('USEHTML'));
-    const nosave = Boolean(this.readVariableNumber('NOSAVE'));
-    const backgroundColor = this.readVariableNumber('BCOLOR');
-    const color = this.readVariableNumber('FCOLOR');
-    const linkColor = this.readVariableNumber('LCOLOR');
-    const fontSize = this.readVariableNumber('FSIZE');
-    const fontName = this.readVariableString('$FNAME');
-    const backgroundImage = this.readVariableString('$BACKIMAGE');
-
-    const layout = {
-      nosave,
-      useHtml,
-      backgroundColor,
-      backgroundImage,
-      color,
-      linkColor,
-      fontSize,
-      fontName,
-    };
-
-    if (!this.layout || !shallowEqual(this.layout, layout)) {
-      this.layout = layout;
-      this.emit('layout', this.layout);
+  private reportVariables() {
+    for (const { variables, callback } of this.variableWatchers.values()) {
+      const data = this.readVariables(variables);
+      if (Object.keys(data).length > 0) {
+        callback(data);
+      }
     }
+  }
+
+  private readVariables(variables: string[]): Record<string, string | number> {
+    const result = {};
+    for (const variable of variables) {
+      const value = variable.startsWith('$')
+        ? this.readVariableString(variable)
+        : this.readVariableNumber(variable);
+      if (this.variableValues.get(variable) !== value) {
+        result[variable] = value;
+      }
+      this.variableValues.set(variable, value);
+    }
+    return result;
   }
 
   private readError(): QspErrorData | null {
