@@ -36,6 +36,9 @@ export type QspEvents = {
   system_cmd: (cmd: string) => void;
 };
 
+export type QspEventKeys = keyof QspEvents;
+export type QspEventListeners = QspEvents[QspEventKeys];
+
 export interface QspAPI {
   on<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
   off<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;

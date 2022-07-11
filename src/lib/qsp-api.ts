@@ -1,5 +1,4 @@
-import EventEmitter from 'eventemitter3';
-import { QspAPI, QspErrorData, QspEvents, QspListItem, LayoutSettings } from './contracts';
+import { QspAPI, QspErrorData, QspEvents, QspListItem, LayoutSettings, QspEventKeys, QspEventListeners } from './contracts';
 import { QspModule } from '../qsplib/public/qsp-wasm';
 import { Ptr, QspCallType, QspPanel, Bool, StringPtr, CharsPtr } from '../qsplib/public/types';
 import { shallowEqual } from './helpers';
@@ -7,7 +6,8 @@ import { shallowEqual } from './helpers';
 const POINTER_SIZE = 4; // pointers are 4 bytes in C
 
 export class QspAPIImpl implements QspAPI {
-  private events = new EventEmitter();
+  private listeners = new Map<QspEventKeys, QspEventListeners[]>();
+
   private time: number = Date.now();
   private layout: LayoutSettings | null = null;
   private staticStrings: Map<string, Ptr> = new Map();
@@ -18,11 +18,33 @@ export class QspAPIImpl implements QspAPI {
   }
 
   on<E extends keyof QspEvents>(event: E, listener: QspEvents[E]): void {
-    this.events.on(event, listener);
+    const list = this.listeners.get(event) ?? []
+    list.push(listener);
+    this.listeners.set(event, list);
   }
 
   off<E extends keyof QspEvents>(event: E, listener: QspEvents[E]): void {
-    this.events.off(event, listener);
+    let list = this.listeners.get(event) ?? []
+    list = list.filter(l => l !== listener);
+    if (list.length) {
+      this.listeners.set(event, list);
+    } else {
+      this.listeners.delete(event);
+    }
+  }
+
+  private emit<E extends keyof QspEvents, CB extends QspEvents[E] = QspEvents[E]>(
+    event: E,
+    ...args: Parameters<CB>
+  ): void {
+    if (event !== 'refresh') {
+      console.log({ event, args });
+    }
+    const list = this.listeners.get(event) ?? [];
+    for (const listener of list) {
+      // eslint-disable-next-line prefer-spread
+      listener.apply(null, args);
+    }
   }
 
   openGame(data: ArrayBuffer, isNewGame: boolean): void {
@@ -213,15 +235,7 @@ export class QspAPIImpl implements QspAPI {
     this.module._setCallBack(QspCallType.SYSTEM, onSystemCmd);
   }
 
-  private emit<E extends keyof QspEvents, CB extends QspEvents[E] = QspEvents[E]>(
-    event: E,
-    ...args: Parameters<CB>
-  ): void {
-    if (event !== 'refresh') {
-      console.log({ event, args });
-    }
-    this.events.emit(event, ...args);
-  }
+  
 
   onError = (): void => {
     const errorData = this.readError();
