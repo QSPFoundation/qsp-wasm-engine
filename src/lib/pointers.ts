@@ -1,17 +1,17 @@
-import { CharsPtr, Ptr, StringPtr } from '../qsplib/public/types';
-import { QspListItem, QspModule } from './contracts';
+import { QspListItem } from '../contracts/common';
+import { CharsPtr, Ptr, QspWasmModule, StringPtr } from '../contracts/wasm-module';
 
 export const POINTER_SIZE = 4; // pointers are 4 bytes in C
 
-export function allocStringPointer(module: QspModule): Ptr {
+export function allocStringPointer(module: QspWasmModule): Ptr {
   return module._malloc(POINTER_SIZE * 2);
 }
 
-export function allocPointer(module: QspModule): Ptr {
+export function allocPointer(module: QspWasmModule): Ptr {
   return module._malloc(POINTER_SIZE);
 }
 
-export function derefPointer(module: QspModule, ptr: Ptr): Ptr {
+export function derefPointer(module: QspWasmModule, ptr: Ptr): Ptr {
   return module.getValue(ptr, 'i32');
 }
 
@@ -19,15 +19,15 @@ export function movePointer(ptr: Ptr, times = 1): Ptr {
   return ptr + POINTER_SIZE * times;
 }
 
-export function freePointer(module: QspModule, ptr: Ptr): void {
+export function freePointer(module: QspWasmModule, ptr: Ptr): void {
   module._free(ptr);
 }
 
-export function readInt(module: QspModule, ptr: Ptr): number {
+export function readInt(module: QspWasmModule, ptr: Ptr): number {
   return module.getValue(ptr, 'i32');
 }
 
-export function readString(module: QspModule, ptr: StringPtr): string {
+export function readString(module: QspWasmModule, ptr: StringPtr): string {
   const start = derefPointer(module, ptr);
   if (!start) {
     return '';
@@ -36,14 +36,14 @@ export function readString(module: QspModule, ptr: StringPtr): string {
   return module.UTF32ToString(start, end - start);
 }
 
-export function writeString(module: QspModule, value: string): CharsPtr {
+export function writeString(module: QspWasmModule, value: string): CharsPtr {
   const length = module.lengthBytesUTF32(value);
   const ptr = module._malloc(length + 4);
   module.stringToUTF32(value, ptr, length + 4);
   return ptr;
 }
 
-export function withStringRead(module: QspModule, callback: (ptr: Ptr) => void): string {
+export function withStringRead(module: QspWasmModule, callback: (ptr: Ptr) => void): string {
   const ptr = allocStringPointer(module);
   callback(ptr);
   const result = this.readString(ptr);
@@ -52,7 +52,7 @@ export function withStringRead(module: QspModule, callback: (ptr: Ptr) => void):
 }
 
 export function withStringWrite(
-  module: QspModule,
+  module: QspWasmModule,
   value: string,
   callback: (ptr: Ptr) => void
 ): void {
@@ -61,7 +61,7 @@ export function withStringWrite(
   module._free(ptr);
 }
 
-export function withListRead(module: QspModule, callback: (ptr: Ptr) => Ptr): QspListItem[] {
+export function withListRead(module: QspWasmModule, callback: (ptr: Ptr) => Ptr): QspListItem[] {
   const countPtr = allocPointer(module);
 
   const listPtr = callback(countPtr);
@@ -75,7 +75,7 @@ export function withListRead(module: QspModule, callback: (ptr: Ptr) => Ptr): Qs
 }
 
 export function withBufferWrite(
-  module: QspModule,
+  module: QspWasmModule,
   data: ArrayBuffer,
   callback: (ptr: Ptr, size: number) => void
 ): void {
@@ -86,7 +86,10 @@ export function withBufferWrite(
   module._free(ptr);
 }
 
-export function withBufferRead(module: QspModule, callback: (ptr: Ptr) => Ptr): ArrayBuffer | null {
+export function withBufferRead(
+  module: QspWasmModule,
+  callback: (ptr: Ptr) => Ptr
+): ArrayBuffer | null {
   const sizePtr = allocPointer(module);
   const bufferPtr = callback(sizePtr);
   const size = module.getValue(sizePtr, 'i32');
@@ -103,7 +106,7 @@ export function withBufferRead(module: QspModule, callback: (ptr: Ptr) => Ptr): 
   return data.buffer;
 }
 
-export function readListItems(module: QspModule, listPtr: Ptr, count: number): QspListItem[] {
+export function readListItems(module: QspWasmModule, listPtr: Ptr, count: number): QspListItem[] {
   const list: QspListItem[] = [];
   let ptr = listPtr;
   for (let i = 0; i < count; i++) {
@@ -121,7 +124,10 @@ export function readListItems(module: QspModule, listPtr: Ptr, count: number): Q
   return list;
 }
 
-export function asAsync(module: QspModule, callback: (done: (result?: number) => void) => void) {
+export function asAsync(
+  module: QspWasmModule,
+  callback: (done: (result?: number) => void) => void
+) {
   return module.Asyncify.handleSleep((wakeUp) => {
     callback((result) => wakeUp(result || 0));
   });

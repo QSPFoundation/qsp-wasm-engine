@@ -1,5 +1,5 @@
 /// <reference types="emscripten" />
-import { QspModule } from '../../lib/contracts';
+import { QspWasmModule } from '../../contracts/wasm-module';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function Module(emscriptenArgs: any): Promise<QspModule>;
+export default function Module(emscriptenArgs: any): Promise<QspWasmModule>;

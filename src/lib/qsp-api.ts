@@ -1,13 +1,8 @@
-import {
-  QspAPI,
-  QspErrorData,
-  QspEvents,
-  QspEventKeys,
-  QspEventListeners,
-  QspModule,
-} from './contracts';
-import { Ptr, QspCallType, QspPanel, Bool, StringPtr } from '../qsplib/public/types';
 
+import { QspAPI } from '../contracts/api';
+import { QspErrorData, QspPanel } from '../contracts/common';
+import { QspEventKeys, QspEventListeners, QspEvents } from '../contracts/events';
+import { Ptr, QspCallType, QspWasmModule, StringPtr } from '../contracts/wasm-module';
 import {
   asAsync,
   readListItems,
@@ -32,7 +27,7 @@ export class QspAPIImpl implements QspAPI {
 
   private staticStrings: Map<string, Ptr> = new Map();
 
-  constructor(private module: QspModule) {
+  constructor(private module: QspWasmModule) {
     this.init();
   }
 
@@ -86,7 +81,7 @@ export class QspAPIImpl implements QspAPI {
 
   openGame(data: ArrayBuffer, isNewGame: boolean): void {
     withBufferWrite(this.module, data, (ptr, size) =>
-      this.module._loadGameData(ptr, size, Number(isNewGame) as Bool)
+      this.module._loadGameData(ptr, size, isNewGame ? 1 : 0)
     );
   }
 

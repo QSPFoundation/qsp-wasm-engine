@@ -1,7 +1,7 @@
+import { QspAPI } from '../contracts/api';
 import qsp from '../qsplib/public/qsp-wasm';
 import qspModule from '../qsplib/public/qsp-wasm.wasm';
 
-import { QspAPI } from './contracts';
 import { QspAPIImpl } from './qsp-api';
 
 // Since webpack will change the name and potentially the path of the
