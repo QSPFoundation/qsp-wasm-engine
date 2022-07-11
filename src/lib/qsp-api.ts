@@ -6,8 +6,8 @@ import {
   LayoutSettings,
   QspEventKeys,
   QspEventListeners,
+  QspModule,
 } from './contracts';
-import { QspModule } from '../qsplib/public/qsp-wasm';
 import { Ptr, QspCallType, QspPanel, Bool, StringPtr, CharsPtr } from '../qsplib/public/types';
 import { shallowEqual } from './helpers';
 
