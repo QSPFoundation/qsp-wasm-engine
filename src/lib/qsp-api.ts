@@ -1,4 +1,12 @@
-import { QspAPI, QspErrorData, QspEvents, QspListItem, LayoutSettings, QspEventKeys, QspEventListeners } from './contracts';
+import {
+  QspAPI,
+  QspErrorData,
+  QspEvents,
+  QspListItem,
+  LayoutSettings,
+  QspEventKeys,
+  QspEventListeners,
+} from './contracts';
 import { QspModule } from '../qsplib/public/qsp-wasm';
 import { Ptr, QspCallType, QspPanel, Bool, StringPtr, CharsPtr } from '../qsplib/public/types';
 import { shallowEqual } from './helpers';
@@ -18,14 +26,14 @@ export class QspAPIImpl implements QspAPI {
   }
 
   on<E extends keyof QspEvents>(event: E, listener: QspEvents[E]): void {
-    const list = this.listeners.get(event) ?? []
+    const list = this.listeners.get(event) ?? [];
     list.push(listener);
     this.listeners.set(event, list);
   }
 
   off<E extends keyof QspEvents>(event: E, listener: QspEvents[E]): void {
-    let list = this.listeners.get(event) ?? []
-    list = list.filter(l => l !== listener);
+    let list = this.listeners.get(event) ?? [];
+    list = list.filter((l) => l !== listener);
     if (list.length) {
       this.listeners.set(event, list);
     } else {
@@ -123,8 +131,8 @@ export class QspAPIImpl implements QspAPI {
   readVariableString(name: string, index = 0): string {
     let namePtr = this.staticStrings.get(name);
     if (!namePtr) {
-      this.staticStrings.set(name, this.prepareString(name));
-      namePtr = this.staticStrings.get(name);
+      namePtr = this.prepareString(name);
+      this.staticStrings.set(name, namePtr);
     }
     const resultPtr = this.allocStrPtr();
 
@@ -177,65 +185,38 @@ export class QspAPIImpl implements QspAPI {
   }
 
   private registerCallbacks(): void {
-    const onError = this.module.addFunction(this.onError, 'i');
-    this.module._setErrorCallback(onError);
+    this.module._setErrorCallback(this.module.addFunction(this.onError, 'i'));
 
-    const onRefreshInt = this.module.addFunction(this.onRefresh, 'ii');
-    this.module._setCallBack(QspCallType.REFRESHINT, onRefreshInt);
+    const callbacks = [
+      [QspCallType.REFRESHINT, this.onRefresh, 'ii'],
+      [QspCallType.SHOWWINDOW, this.onShowWindow, 'iii'],
+      [QspCallType.SHOWMENU, this.onMenu, 'iii'],
+      [QspCallType.SHOWMSGSTR, this.onMsg, 'ii'],
+      [QspCallType.INPUTBOX, this.onInput, 'iiii'],
+      [QspCallType.SLEEP, this.onWait, 'ii'],
+      [QspCallType.SETTIMER, this.onSetTimer, 'ii'],
+      [QspCallType.SETINPUTSTRTEXT, this.onSetUserInput, 'ii'],
+      [QspCallType.SHOWIMAGE, this.onView, 'ii'],
+      [QspCallType.DEBUG, this.onDebug, 'ii'],
+      [QspCallType.GETMSCOUNT, this.onGetMS, 'i'],
+      [QspCallType.OPENGAME, this.onOpenGame, 'iii'],
+      [QspCallType.OPENGAMESTATUS, this.onOpenGameStatus, 'ii'],
+      [QspCallType.SAVEGAMESTATUS, this.onSaveGameStatus, 'ii'],
+      [QspCallType.ISPLAYINGFILE, this.onIsPlay, 'ii'],
+      [QspCallType.PLAYFILE, this.onPlayFile, 'iii'],
+      [QspCallType.CLOSEFILE, this.onCloseFile, 'ii'],
+      [QspCallType.SYSTEM, this.onSystemCmd, 'ii'],
+    ] as const;
 
-    const onShowWindow = this.module.addFunction(this.onShowWindow, 'iii');
-    this.module._setCallBack(QspCallType.SHOWWINDOW, onShowWindow);
-
-    const onMenu = this.module.addFunction(this.onMenu, 'iii');
-    this.module._setCallBack(QspCallType.SHOWMENU, onMenu);
-
-    const onMsg = this.module.addFunction(this.onMsg, 'ii');
-    this.module._setCallBack(QspCallType.SHOWMSGSTR, onMsg);
-
-    const onInput = this.module.addFunction(this.onInput, 'iiii');
-    this.module._setCallBack(QspCallType.INPUTBOX, onInput);
-
-    const onWait = this.module.addFunction(this.onWait, 'ii');
-    this.module._setCallBack(QspCallType.SLEEP, onWait);
-
-    const onSetTimer = this.module.addFunction(this.onSetTimer, 'ii');
-    this.module._setCallBack(QspCallType.SETTIMER, onSetTimer);
-
-    const onSetUserInput = this.module.addFunction(this.onSetUserInput, 'ii');
-    this.module._setCallBack(QspCallType.SETINPUTSTRTEXT, onSetUserInput);
-
-    const onView = this.module.addFunction(this.onView, 'ii');
-    this.module._setCallBack(QspCallType.SHOWIMAGE, onView);
-
-    const onDebug = this.module.addFunction(this.onDebug, 'ii');
-    this.module._setCallBack(QspCallType.DEBUG, onDebug);
-
-    const onGetMS = this.module.addFunction(this.onGetMS, 'i');
-    this.module._setCallBack(QspCallType.GETMSCOUNT, onGetMS);
-
-    const onOpenGame = this.module.addFunction(this.onOpenGame, 'iii');
-    this.module._setCallBack(QspCallType.OPENGAME, onOpenGame);
-
-    const onOpenGameStatus = this.module.addFunction(this.onOpenGameStatus, 'ii');
-    this.module._setCallBack(QspCallType.OPENGAMESTATUS, onOpenGameStatus);
-
-    const onSaveGameStatus = this.module.addFunction(this.onSaveGameStatus, 'ii');
-    this.module._setCallBack(QspCallType.SAVEGAMESTATUS, onSaveGameStatus);
-
-    const onIsPLay = this.module.addFunction(this.onIsPlay, 'ii');
-    this.module._setCallBack(QspCallType.ISPLAYINGFILE, onIsPLay);
-
-    const onPlayFile = this.module.addFunction(this.onPlayFile, 'iii');
-    this.module._setCallBack(QspCallType.PLAYFILE, onPlayFile);
-
-    const onCLoseFile = this.module.addFunction(this.onCloseFile, 'ii');
-    this.module._setCallBack(QspCallType.CLOSEFILE, onCLoseFile);
-
-    const onSystemCmd = this.module.addFunction(this.onSystemCmd, 'ii');
-    this.module._setCallBack(QspCallType.SYSTEM, onSystemCmd);
+    for (const [type, callback, signature] of callbacks) {
+      this.registerCallback(type, callback, signature);
+    }
   }
 
-  
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  private registerCallback(type: QspCallType, callback: Function, signature: string): void {
+    this.module._setCallBack(type, this.module.addFunction(callback, signature));
+  }
 
   onError = (): void => {
     const errorData = this.readError();
@@ -458,10 +439,6 @@ export class QspAPIImpl implements QspAPI {
       this.layout = layout;
       this.emit('layout', this.layout);
     }
-  }
-
-  private readChars(ptr: CharsPtr): string {
-    return this.module.UTF32ToString(ptr);
   }
 
   private readString(ptr: StringPtr): string {
