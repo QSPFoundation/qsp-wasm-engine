@@ -245,9 +245,27 @@ void execUserInput(QSP_CHAR *s)
 
 /* Errors */
 EMSCRIPTEN_KEEPALIVE
-void getLastErrorData(int *errorNum, QSPString *errorLoc, int *errorActIndex, int *errorLine)
+int getLastErrorNum() 
 {
-  return QSPGetLastErrorData(errorNum, errorLoc, errorActIndex, errorLine);
+  return qspErrorNum;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void getLastErrorLoc(QSPString *errorLoc)
+{
+  *errorLoc = (qspErrorLoc >= 0 && qspErrorLoc < qspLocsCount ? qspLocs[qspErrorLoc].Name : qspNullString);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int getLastErrorActIndex()
+{
+  return qspErrorActIndex;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int getLastErrorLine()
+{
+  return qspErrorLine;
 }
 
 EMSCRIPTEN_KEEPALIVE

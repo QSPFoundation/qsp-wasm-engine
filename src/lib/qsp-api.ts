@@ -10,9 +10,6 @@ import {
 import { Ptr, QspCallType, QspPanel, Bool, StringPtr } from '../qsplib/public/types';
 import { shallowEqual } from './helpers';
 import {
-  allocPointer,
-  freePointer,
-  readInt,
   readListItems,
   readString,
   withBufferRead,
@@ -184,7 +181,7 @@ export class QspAPIImpl implements QspAPI {
 
   onError = (): void => {
     const errorData = this.readError();
-    if (errorData.code > 0) {
+    if (errorData) {
       console.error(errorData);
       this.emit('error', errorData);
     }
@@ -383,27 +380,13 @@ export class QspAPIImpl implements QspAPI {
     }
   }
 
-  private readError(): QspErrorData {
-    const errorNumPtr = allocPointer(this.module);
-    const errorLocPtr = allocPointer(this.module);
-    const errorActIndexPtr = allocPointer(this.module);
-    const errorLinePtr = allocPointer(this.module);
-
-    this.module._getLastErrorData(errorNumPtr, errorLocPtr, errorActIndexPtr, errorLinePtr);
-
-    const code = readInt(this.module, errorNumPtr);
-    freePointer(this.module, errorNumPtr);
-
+  private readError(): QspErrorData | null {
+    const code = this.module._getLastErrorNum();
+    if (!code) return null;
     const description = withStringRead(this.module, (ptr) => this.module._getErrorDesc(ptr, code));
-
-    const location = readString(this.module, errorLocPtr);
-    freePointer(this.module, errorLocPtr);
-
-    const actionIndex = readInt(this.module, errorActIndexPtr);
-    freePointer(this.module, errorActIndexPtr);
-
-    const line = readInt(this.module, errorLinePtr);
-    freePointer(this.module, errorLinePtr);
+    const location = withStringRead(this.module, (ptr) => this.module._getLastErrorLoc(ptr));
+    const actionIndex = this.module._getLastErrorActIndex();
+    const line = this.module._getLastErrorLine();
 
     return {
       code,

@@ -1,5 +1,8 @@
 var Module = (() => {
-  var _scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
+  var _scriptDir =
+    typeof document !== 'undefined' && document.currentScript
+      ? document.currentScript.src
+      : undefined;
 
   return function (Module) {
     Module = Module || {};
@@ -442,20 +445,74 @@ var Module = (() => {
         },
       });
     }
-    if (!Object.getOwnPropertyDescriptor(Module['ready'], '_getLastErrorData')) {
-      Object.defineProperty(Module['ready'], '_getLastErrorData', {
+    if (!Object.getOwnPropertyDescriptor(Module['ready'], '_getLastErrorNum')) {
+      Object.defineProperty(Module['ready'], '_getLastErrorNum', {
         configurable: true,
         get: function () {
           abort(
-            'You are getting _getLastErrorData on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
+            'You are getting _getLastErrorNum on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
           );
         },
       });
-      Object.defineProperty(Module['ready'], '_getLastErrorData', {
+      Object.defineProperty(Module['ready'], '_getLastErrorNum', {
         configurable: true,
         set: function () {
           abort(
-            'You are setting _getLastErrorData on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
+            'You are setting _getLastErrorNum on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
+          );
+        },
+      });
+    }
+    if (!Object.getOwnPropertyDescriptor(Module['ready'], '_getLastErrorLoc')) {
+      Object.defineProperty(Module['ready'], '_getLastErrorLoc', {
+        configurable: true,
+        get: function () {
+          abort(
+            'You are getting _getLastErrorLoc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
+          );
+        },
+      });
+      Object.defineProperty(Module['ready'], '_getLastErrorLoc', {
+        configurable: true,
+        set: function () {
+          abort(
+            'You are setting _getLastErrorLoc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
+          );
+        },
+      });
+    }
+    if (!Object.getOwnPropertyDescriptor(Module['ready'], '_getLastErrorActIndex')) {
+      Object.defineProperty(Module['ready'], '_getLastErrorActIndex', {
+        configurable: true,
+        get: function () {
+          abort(
+            'You are getting _getLastErrorActIndex on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
+          );
+        },
+      });
+      Object.defineProperty(Module['ready'], '_getLastErrorActIndex', {
+        configurable: true,
+        set: function () {
+          abort(
+            'You are setting _getLastErrorActIndex on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
+          );
+        },
+      });
+    }
+    if (!Object.getOwnPropertyDescriptor(Module['ready'], '_getLastErrorLine')) {
+      Object.defineProperty(Module['ready'], '_getLastErrorLine', {
+        configurable: true,
+        get: function () {
+          abort(
+            'You are getting _getLastErrorLine on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
+          );
+        },
+      });
+      Object.defineProperty(Module['ready'], '_getLastErrorLine', {
+        configurable: true,
+        set: function () {
+          abort(
+            'You are setting _getLastErrorLine on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js'
           );
         },
       });
@@ -649,8 +706,11 @@ var Module = (() => {
     var ENVIRONMENT_IS_WEB = typeof window == 'object';
     var ENVIRONMENT_IS_WORKER = typeof importScripts == 'function';
     var ENVIRONMENT_IS_NODE =
-      typeof process == 'object' && typeof process.versions == 'object' && typeof process.versions.node == 'string';
-    var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
+      typeof process == 'object' &&
+      typeof process.versions == 'object' &&
+      typeof process.versions.node == 'string';
+    var ENVIRONMENT_IS_SHELL =
+      !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
     if (Module['ENVIRONMENT']) {
       throw new Error(
         'Module.ENVIRONMENT has been deprecated. To force the environment, use the ENVIRONMENT compile-time option (for example, -sENVIRONMENT=web or -sENVIRONMENT=node)'
@@ -724,7 +784,10 @@ var Module = (() => {
         scriptDirectory = _scriptDir;
       }
       if (scriptDirectory.indexOf('blob:') !== 0) {
-        scriptDirectory = scriptDirectory.substr(0, scriptDirectory.replace(/[?#].*/, '').lastIndexOf('/') + 1);
+        scriptDirectory = scriptDirectory.substr(
+          0,
+          scriptDirectory.replace(/[?#].*/, '').lastIndexOf('/') + 1
+        );
       } else {
         scriptDirectory = '';
       }
@@ -794,8 +857,14 @@ var Module = (() => {
       typeof Module['filePackagePrefixURL'] == 'undefined',
       'Module.filePackagePrefixURL option was removed, use Module.locateFile instead'
     );
-    assert(typeof Module['read'] == 'undefined', 'Module.read option was removed (modify read_ in JS)');
-    assert(typeof Module['readAsync'] == 'undefined', 'Module.readAsync option was removed (modify readAsync in JS)');
+    assert(
+      typeof Module['read'] == 'undefined',
+      'Module.read option was removed (modify read_ in JS)'
+    );
+    assert(
+      typeof Module['readAsync'] == 'undefined',
+      'Module.readAsync option was removed (modify readAsync in JS)'
+    );
     assert(
       typeof Module['readBinary'] == 'undefined',
       'Module.readBinary option was removed (modify readBinary in JS)'
@@ -804,7 +873,10 @@ var Module = (() => {
       typeof Module['setWindowTitle'] == 'undefined',
       'Module.setWindowTitle option was removed (modify setWindowTitle in JS)'
     );
-    assert(typeof Module['TOTAL_MEMORY'] == 'undefined', 'Module.TOTAL_MEMORY has been renamed Module.INITIAL_MEMORY');
+    assert(
+      typeof Module['TOTAL_MEMORY'] == 'undefined',
+      'Module.TOTAL_MEMORY has been renamed Module.INITIAL_MEMORY'
+    );
     legacyModuleProp('read', 'read_');
     legacyModuleProp('readAsync', 'readAsync');
     legacyModuleProp('readBinary', 'readBinary');
@@ -861,7 +933,10 @@ var Module = (() => {
       }
       typeSection = [1].concat(uleb128Encode(typeSection.length), typeSection);
       var bytes = new Uint8Array(
-        [0, 97, 115, 109, 1, 0, 0, 0].concat(typeSection, [2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0])
+        [0, 97, 115, 109, 1, 0, 0, 0].concat(
+          typeSection,
+          [2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0]
+        )
       );
       var module = new WebAssembly.Module(bytes);
       var instance = new WebAssembly.Instance(module, { e: { f: func } });
@@ -933,13 +1008,20 @@ var Module = (() => {
     }
     function ignoredModuleProp(prop) {
       if (Object.getOwnPropertyDescriptor(Module, prop)) {
-        abort('`Module.' + prop + '` was supplied but `' + prop + '` not included in INCOMING_MODULE_JS_API');
+        abort(
+          '`Module.' +
+            prop +
+            '` was supplied but `' +
+            prop +
+            '` not included in INCOMING_MODULE_JS_API'
+        );
       }
     }
     function unexportedMessage(sym, isFSSybol) {
       var msg = "'" + sym + "' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)";
       if (isFSSybol) {
-        msg += '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
+        msg +=
+          '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
       }
       return msg;
     }
@@ -1032,8 +1114,14 @@ var Module = (() => {
       runtimeKeepalivePush();
       var asyncMode = opts && opts.async;
       if (Asyncify.currData != previousAsync) {
-        assert(!(previousAsync && Asyncify.currData), 'We cannot start an async operation when one is already flight');
-        assert(!(previousAsync && !Asyncify.currData), 'We cannot stop an async operation in flight');
+        assert(
+          !(previousAsync && Asyncify.currData),
+          'We cannot start an async operation when one is already flight'
+        );
+        assert(
+          !(previousAsync && !Asyncify.currData),
+          'We cannot stop an async operation in flight'
+        );
         assert(
           asyncMode,
           'The call to ' +
@@ -1147,7 +1235,8 @@ var Module = (() => {
       var len = 0;
       for (var i = 0; i < str.length; ++i) {
         var u = str.charCodeAt(i);
-        if (u >= 55296 && u <= 57343) u = (65536 + ((u & 1023) << 10)) | (str.charCodeAt(++i) & 1023);
+        if (u >= 55296 && u <= 57343)
+          u = (65536 + ((u & 1023) << 10)) | (str.charCodeAt(++i) & 1023);
         if (u <= 127) ++len;
         else if (u <= 2047) len += 2;
         else if (u <= 65535) len += 3;
@@ -1208,7 +1297,10 @@ var Module = (() => {
       return len;
     }
     function writeArrayToMemory(array, buffer) {
-      assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)');
+      assert(
+        array.length >= 0,
+        'writeArrayToMemory array must have a length (should be an array or typed array)'
+      );
       HEAP8.set(array, buffer);
     }
     function writeAsciiToMemory(str, buffer, dontAddNull) {
@@ -1232,12 +1324,19 @@ var Module = (() => {
     }
     var TOTAL_STACK = 5242880;
     if (Module['TOTAL_STACK'])
-      assert(TOTAL_STACK === Module['TOTAL_STACK'], 'the stack size can no longer be determined at runtime');
+      assert(
+        TOTAL_STACK === Module['TOTAL_STACK'],
+        'the stack size can no longer be determined at runtime'
+      );
     var INITIAL_MEMORY = Module['INITIAL_MEMORY'] || 268435456;
     legacyModuleProp('INITIAL_MEMORY', 'INITIAL_MEMORY');
     assert(
       INITIAL_MEMORY >= TOTAL_STACK,
-      'INITIAL_MEMORY should be larger than TOTAL_STACK, was ' + INITIAL_MEMORY + '! (TOTAL_STACK=' + TOTAL_STACK + ')'
+      'INITIAL_MEMORY should be larger than TOTAL_STACK, was ' +
+        INITIAL_MEMORY +
+        '! (TOTAL_STACK=' +
+        TOTAL_STACK +
+        ')'
     );
     assert(
       typeof Int32Array != 'undefined' &&
@@ -1471,7 +1570,10 @@ var Module = (() => {
         if (!fixedasm) {
           asm = Module['asm'];
         }
-        assert(runtimeInitialized, 'native function `' + displayName + '` called before runtime initialization');
+        assert(
+          runtimeInitialized,
+          'native function `' + displayName + '` called before runtime initialization'
+        );
         if (!asm[name]) {
           assert(asm[name], 'exported native function `' + displayName + '` not found');
         }
@@ -1641,7 +1743,10 @@ var Module = (() => {
         if (funcPtr >= wasmTableMirror.length) wasmTableMirror.length = funcPtr + 1;
         wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
       }
-      assert(wasmTable.get(funcPtr) == func, 'JavaScript-side Wasm function table mirror is out of date!');
+      assert(
+        wasmTable.get(funcPtr) == func,
+        'JavaScript-side Wasm function table mirror is out of date!'
+      );
       return func;
     }
     function handleException(e) {
@@ -1724,13 +1829,22 @@ var Module = (() => {
       for (var cutDown = 1; cutDown <= 4; cutDown *= 2) {
         var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown);
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296);
-        var newSize = Math.min(maxHeapSize, alignUp(Math.max(requestedSize, overGrownHeapSize), 65536));
+        var newSize = Math.min(
+          maxHeapSize,
+          alignUp(Math.max(requestedSize, overGrownHeapSize), 65536)
+        );
         var replacement = emscripten_realloc_buffer(newSize);
         if (replacement) {
           return true;
         }
       }
-      err('Failed to grow the heap from ' + oldSize + ' bytes to ' + newSize + ' bytes, not enough memory!');
+      err(
+        'Failed to grow the heap from ' +
+          oldSize +
+          ' bytes to ' +
+          newSize +
+          ' bytes, not enough memory!'
+      );
       return false;
     }
     var ENV = {};
@@ -1740,8 +1854,10 @@ var Module = (() => {
     function getEnvStrings() {
       if (!getEnvStrings.strings) {
         var lang =
-          ((typeof navigator == 'object' && navigator.languages && navigator.languages[0]) || 'C').replace('-', '_') +
-          '.UTF-8';
+          (
+            (typeof navigator == 'object' && navigator.languages && navigator.languages[0]) ||
+            'C'
+          ).replace('-', '_') + '.UTF-8';
         var env = {
           USER: 'web_user',
           LOGNAME: 'web_user',
@@ -1901,14 +2017,16 @@ var Module = (() => {
             var original = imports[x];
             var sig = original.sig;
             if (typeof original == 'function') {
-              var isAsyncifyImport = ASYNCIFY_IMPORTS.indexOf(x) >= 0 || x.startsWith('__asyncjs__');
+              var isAsyncifyImport =
+                ASYNCIFY_IMPORTS.indexOf(x) >= 0 || x.startsWith('__asyncjs__');
               imports[x] = function () {
                 var originalAsyncifyState = Asyncify.state;
                 try {
                   return original.apply(null, arguments);
                 } finally {
                   var changedToDisabled =
-                    originalAsyncifyState === Asyncify.State.Normal && Asyncify.state === Asyncify.State.Disabled;
+                    originalAsyncifyState === Asyncify.State.Normal &&
+                    Asyncify.state === Asyncify.State.Disabled;
                   var ignoredInvoke = x.startsWith('invoke_') && true;
                   if (
                     Asyncify.state !== originalAsyncifyState &&
@@ -1916,7 +2034,9 @@ var Module = (() => {
                     !changedToDisabled &&
                     !ignoredInvoke
                   ) {
-                    throw new Error('import ' + x + ' was not in ASYNCIFY_IMPORTS, but changed the state');
+                    throw new Error(
+                      'import ' + x + ' was not in ASYNCIFY_IMPORTS, but changed the state'
+                    );
                   }
                 }
               };
@@ -1950,7 +2070,11 @@ var Module = (() => {
         return ret;
       },
       maybeStopUnwind: function () {
-        if (Asyncify.currData && Asyncify.state === Asyncify.State.Unwinding && Asyncify.exportCallStack.length === 0) {
+        if (
+          Asyncify.currData &&
+          Asyncify.state === Asyncify.State.Unwinding &&
+          Asyncify.exportCallStack.length === 0
+        ) {
           Asyncify.state = Asyncify.State.Normal;
           runAndAbortIfError(Module['_asyncify_stop_unwind']);
           if (typeof Fibers != 'undefined') {
@@ -1960,7 +2084,10 @@ var Module = (() => {
       },
       whenDone: function () {
         assert(Asyncify.currData, 'Tried to wait for an async operation when none is in progress.');
-        assert(!Asyncify.asyncPromiseHandlers, 'Cannot have multiple async operations in flight at once');
+        assert(
+          !Asyncify.asyncPromiseHandlers,
+          'Cannot have multiple async operations in flight at once'
+        );
         return new Promise((resolve, reject) => {
           Asyncify.asyncPromiseHandlers = { resolve: resolve, reject: reject };
         });
@@ -1991,7 +2118,10 @@ var Module = (() => {
         return start();
       },
       handleSleep: function (startAsync) {
-        assert(Asyncify.state !== Asyncify.State.Disabled, 'Asyncify cannot be done during or after the runtime exits');
+        assert(
+          Asyncify.state !== Asyncify.State.Disabled,
+          'Asyncify cannot be done during or after the runtime exits'
+        );
         if (ABORT) return;
         if (Asyncify.state === Asyncify.State.Normal) {
           var reachedCallback = false;
@@ -2030,7 +2160,9 @@ var Module = (() => {
               var asyncPromiseHandlers = Asyncify.asyncPromiseHandlers;
               if (asyncPromiseHandlers) {
                 Asyncify.asyncPromiseHandlers = null;
-                (isError ? asyncPromiseHandlers.reject : asyncPromiseHandlers.resolve)(asyncWasmReturnValue);
+                (isError ? asyncPromiseHandlers.reject : asyncPromiseHandlers.resolve)(
+                  asyncWasmReturnValue
+                );
                 handled = true;
               }
             }
@@ -2080,15 +2212,18 @@ var Module = (() => {
     };
     Asyncify.instrumentWasmImports(asmLibraryArg);
     var asm = createWasm();
-    var ___wasm_call_ctors = (Module['___wasm_call_ctors'] = createExportWrapper('__wasm_call_ctors'));
+    var ___wasm_call_ctors = (Module['___wasm_call_ctors'] =
+      createExportWrapper('__wasm_call_ctors'));
     var _init = (Module['_init'] = createExportWrapper('init'));
     var _dispose = (Module['_dispose'] = createExportWrapper('dispose'));
     var _getVersion = (Module['_getVersion'] = createExportWrapper('getVersion'));
     var _setErrorCallback = (Module['_setErrorCallback'] = createExportWrapper('setErrorCallback'));
     var _getMainDesc = (Module['_getMainDesc'] = createExportWrapper('getMainDesc'));
-    var _isMainDescChanged = (Module['_isMainDescChanged'] = createExportWrapper('isMainDescChanged'));
+    var _isMainDescChanged = (Module['_isMainDescChanged'] =
+      createExportWrapper('isMainDescChanged'));
     var _getVarsDesc = (Module['_getVarsDesc'] = createExportWrapper('getVarsDesc'));
-    var _isVarsDescChanged = (Module['_isVarsDescChanged'] = createExportWrapper('isVarsDescChanged'));
+    var _isVarsDescChanged = (Module['_isVarsDescChanged'] =
+      createExportWrapper('isVarsDescChanged'));
     var _getActions = (Module['_getActions'] = createExportWrapper('getActions'));
     var _malloc = (Module['_malloc'] = createExportWrapper('malloc'));
     var _selectAction = (Module['_selectAction'] = createExportWrapper('selectAction'));
@@ -2101,14 +2236,20 @@ var Module = (() => {
     var _restartGame = (Module['_restartGame'] = createExportWrapper('restartGame'));
     var _saveGameData = (Module['_saveGameData'] = createExportWrapper('saveGameData'));
     var _free = (Module['_free'] = createExportWrapper('free'));
-    var _loadSavedGameData = (Module['_loadSavedGameData'] = createExportWrapper('loadSavedGameData'));
+    var _loadSavedGameData = (Module['_loadSavedGameData'] =
+      createExportWrapper('loadSavedGameData'));
     var _execString = (Module['_execString'] = createExportWrapper('execString'));
     var _execCounter = (Module['_execCounter'] = createExportWrapper('execCounter'));
     var _execLoc = (Module['_execLoc'] = createExportWrapper('execLoc'));
     var _execUserInput = (Module['_execUserInput'] = createExportWrapper('execUserInput'));
-    var _getLastErrorData = (Module['_getLastErrorData'] = createExportWrapper('getLastErrorData'));
+    var _getLastErrorNum = (Module['_getLastErrorNum'] = createExportWrapper('getLastErrorNum'));
+    var _getLastErrorLoc = (Module['_getLastErrorLoc'] = createExportWrapper('getLastErrorLoc'));
+    var _getLastErrorActIndex = (Module['_getLastErrorActIndex'] =
+      createExportWrapper('getLastErrorActIndex'));
+    var _getLastErrorLine = (Module['_getLastErrorLine'] = createExportWrapper('getLastErrorLine'));
     var _getErrorDesc = (Module['_getErrorDesc'] = createExportWrapper('getErrorDesc'));
-    var _getVarStringValue = (Module['_getVarStringValue'] = createExportWrapper('getVarStringValue'));
+    var _getVarStringValue = (Module['_getVarStringValue'] =
+      createExportWrapper('getVarStringValue'));
     var _getVarNumValue = (Module['_getVarNumValue'] = createExportWrapper('getVarNumValue'));
     var _initCallBacks = (Module['_initCallBacks'] = createExportWrapper('initCallBacks'));
     var _setCallBack = (Module['_setCallBack'] = createExportWrapper('setCallBack'));
@@ -2119,10 +2260,8 @@ var Module = (() => {
     var _setThrew = (Module['_setThrew'] = createExportWrapper('setThrew'));
     var _saveSetjmp = (Module['_saveSetjmp'] = createExportWrapper('saveSetjmp'));
     var _emscripten_stack_init = (Module['_emscripten_stack_init'] = function () {
-      return (_emscripten_stack_init = Module['_emscripten_stack_init'] = Module['asm']['emscripten_stack_init']).apply(
-        null,
-        arguments
-      );
+      return (_emscripten_stack_init = Module['_emscripten_stack_init'] =
+        Module['asm']['emscripten_stack_init']).apply(null, arguments);
     });
     var _emscripten_stack_set_limits = (Module['_emscripten_stack_set_limits'] = function () {
       return (_emscripten_stack_set_limits = Module['_emscripten_stack_set_limits'] =
@@ -2143,7 +2282,8 @@ var Module = (() => {
     var stackSave = (Module['stackSave'] = createExportWrapper('stackSave'));
     var stackRestore = (Module['stackRestore'] = createExportWrapper('stackRestore'));
     var stackAlloc = (Module['stackAlloc'] = createExportWrapper('stackAlloc'));
-    var ___set_stack_limits = (Module['___set_stack_limits'] = createExportWrapper('__set_stack_limits'));
+    var ___set_stack_limits = (Module['___set_stack_limits'] =
+      createExportWrapper('__set_stack_limits'));
     var dynCall_iii = (Module['dynCall_iii'] = createExportWrapper('dynCall_iii'));
     var dynCall_viii = (Module['dynCall_viii'] = createExportWrapper('dynCall_viii'));
     var dynCall_iiiii = (Module['dynCall_iiiii'] = createExportWrapper('dynCall_iiiii'));
@@ -2154,10 +2294,14 @@ var Module = (() => {
     var dynCall_jiji = (Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji'));
     var dynCall_iidiiii = (Module['dynCall_iidiiii'] = createExportWrapper('dynCall_iidiiii'));
     var dynCall_vii = (Module['dynCall_vii'] = createExportWrapper('dynCall_vii'));
-    var _asyncify_start_unwind = (Module['_asyncify_start_unwind'] = createExportWrapper('asyncify_start_unwind'));
-    var _asyncify_stop_unwind = (Module['_asyncify_stop_unwind'] = createExportWrapper('asyncify_stop_unwind'));
-    var _asyncify_start_rewind = (Module['_asyncify_start_rewind'] = createExportWrapper('asyncify_start_rewind'));
-    var _asyncify_stop_rewind = (Module['_asyncify_stop_rewind'] = createExportWrapper('asyncify_stop_rewind'));
+    var _asyncify_start_unwind = (Module['_asyncify_start_unwind'] =
+      createExportWrapper('asyncify_start_unwind'));
+    var _asyncify_stop_unwind = (Module['_asyncify_stop_unwind'] =
+      createExportWrapper('asyncify_stop_unwind'));
+    var _asyncify_start_rewind = (Module['_asyncify_start_rewind'] =
+      createExportWrapper('asyncify_start_rewind'));
+    var _asyncify_stop_rewind = (Module['_asyncify_stop_rewind'] =
+      createExportWrapper('asyncify_stop_rewind'));
     unexportedRuntimeFunction('ccall', false);
     Module['cwrap'] = cwrap;
     unexportedRuntimeFunction('allocate', false);
