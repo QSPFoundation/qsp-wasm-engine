@@ -12,7 +12,7 @@ export function allocPointer(module: QspWasmModule): Ptr {
 }
 
 export function derefPointer(module: QspWasmModule, ptr: Ptr): Ptr {
-  return module.getValue(ptr, 'i32');
+  return readI32Value(module, ptr);
 }
 
 export function movePointer(ptr: Ptr, times = 1): Ptr {
@@ -24,7 +24,7 @@ export function freePointer(module: QspWasmModule, ptr: Ptr): void {
 }
 
 export function readInt(module: QspWasmModule, ptr: Ptr): number {
-  return module.getValue(ptr, 'i32');
+  return readI32Value(module, ptr);
 }
 
 export function readString(module: QspWasmModule, ptr: StringPtr): string {
@@ -33,20 +33,20 @@ export function readString(module: QspWasmModule, ptr: StringPtr): string {
     return '';
   }
   const end = derefPointer(module, movePointer(ptr));
-  return module.UTF32ToString(start, end - start);
+  return readUTF32String(module, start, end - start);
 }
 
 export function writeString(module: QspWasmModule, value: string): CharsPtr {
-  const length = module.lengthBytesUTF32(value);
+  const length = lengthBytesUTF32(value);
   const ptr = module._malloc(length + 4);
-  module.stringToUTF32(value, ptr, length + 4);
+  writeUTF32String(module, value, ptr, length + 4);
   return ptr;
 }
 
 export function withStringRead(module: QspWasmModule, callback: (ptr: Ptr) => void): string {
   const ptr = allocStringPointer(module);
   callback(ptr);
-  const result = this.readString(ptr);
+  const result = readString(module, ptr);
   freePointer(module, ptr);
   return result;
 }
@@ -68,8 +68,8 @@ export function withListRead(module: QspWasmModule, callback: (ptr: Ptr) => Ptr)
   const count = readInt(module, countPtr);
   const list = readListItems(module, listPtr, count);
 
-  this.module._freeItemsList(listPtr);
-  this.freePtr(countPtr);
+  module._freeItemsList(listPtr);
+  freePointer(module, countPtr);
 
   return list;
 }
@@ -92,16 +92,16 @@ export function withBufferRead(
 ): ArrayBuffer | null {
   const sizePtr = allocPointer(module);
   const bufferPtr = callback(sizePtr);
-  const size = module.getValue(sizePtr, 'i32');
+  const size = readI32Value(module, sizePtr);
   if (!size) {
-    this.freePtr(sizePtr);
+    freePointer(module, sizePtr);
     return null;
   }
 
-  const data = this.module.HEAPU8.slice(bufferPtr, bufferPtr + size);
+  const data = module.HEAPU8.slice(bufferPtr, bufferPtr + size);
 
-  this.module._freeSaveBuffer(bufferPtr);
-  this.freePtr(sizePtr);
+  module._freeSaveBuffer(bufferPtr);
+  freePointer(module, sizePtr);
 
   return data.buffer;
 }
@@ -131,4 +131,58 @@ export function asAsync(
   return module.Asyncify.handleSleep((wakeUp) => {
     callback((result) => wakeUp(result || 0));
   });
+}
+
+function readI32Value(module: QspWasmModule, ptr: Ptr): number {
+  return module.HEAP32[ptr >> 2];
+}
+
+function lengthBytesUTF32(str: string): number {
+  let len = 0;
+  for (let i = 0; i < str.length; ++i) {
+    const codeUnit = str.charCodeAt(i);
+    if (codeUnit >= 55296 && codeUnit <= 57343) ++i;
+    len += 4;
+  }
+  return len;
+}
+
+export function writeUTF32String(
+  module: QspWasmModule,
+  str: string,
+  outPtr: Ptr,
+  maxBytesToWrite = 2147483647
+): number {
+  if (maxBytesToWrite < 4) return 0;
+  const startPtr = outPtr;
+  const endPtr = startPtr + maxBytesToWrite - 4;
+  for (let i = 0; i < str.length; ++i) {
+    let codeUnit = str.charCodeAt(i);
+    if (codeUnit >= 55296 && codeUnit <= 57343) {
+      const trailSurrogate = str.charCodeAt(++i);
+      codeUnit = (65536 + ((codeUnit & 1023) << 10)) | (trailSurrogate & 1023);
+    }
+    module.HEAP32[outPtr >> 2] = codeUnit;
+    outPtr += 4;
+    if (outPtr + 4 > endPtr) break;
+  }
+  module.HEAP32[outPtr >> 2] = 0;
+  return outPtr - startPtr;
+}
+
+function readUTF32String(module: QspWasmModule, ptr: Ptr, maxBytesToRead: number): string {
+  let i = 0;
+  const str: string[] = [];
+  while (!(i >= maxBytesToRead / 4)) {
+    const utf32 = module.HEAP32[(ptr + i * 4) >> 2];
+    if (utf32 == 0) break;
+    ++i;
+    if (utf32 >= 65536) {
+      const ch = utf32 - 65536;
+      str.push(String.fromCharCode(55296 | (ch >> 10), 56320 | (ch & 1023)));
+    } else {
+      str.push(String.fromCharCode(utf32));
+    }
+  }
+  return str.join('');
 }

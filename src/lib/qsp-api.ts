@@ -13,6 +13,7 @@ import {
   withStringRead,
   withStringWrite,
   writeString,
+  writeUTF32String
 } from './pointers';
 
 export class QspAPIImpl implements QspAPI {
@@ -74,8 +75,9 @@ export class QspAPIImpl implements QspAPI {
     console.log({ event, args });
     const list = this.listeners.get(event) ?? [];
     for (const listener of list) {
-      // eslint-disable-next-line prefer-spread
-      listener.apply(null, args);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      listener(...args);
     }
   }
 
@@ -250,7 +252,7 @@ export class QspAPIImpl implements QspAPI {
     const text = readString(this.module, textPtr);
     return asAsync(this.module, (done) => {
       const onInput = (inputText: string): void => {
-        this.module.stringToUTF32(inputText, retPtr, maxSize);
+        writeUTF32String(this.module, inputText, retPtr, maxSize);
         done();
       };
       this.emit('input', text, onInput);
@@ -309,7 +311,7 @@ export class QspAPIImpl implements QspAPI {
   onIsPlay = (filePtr: StringPtr): void => {
     const file = readString(this.module, filePtr);
     return asAsync(this.module, (done) =>
-      this.emit('is_play', file, (result) => done(result ? 1 : 0))
+      this.emit('is_play', file, (result: boolean) => done(result ? 1 : 0))
     );
   };
 
@@ -333,7 +335,7 @@ export class QspAPIImpl implements QspAPI {
   }
 
   private readVariables(variables: string[]): Record<string, string | number> {
-    const result = {};
+    const result: Record<string, string | number> = {};
     for (const variable of variables) {
       const value = variable.startsWith('$')
         ? this.readVariableString(variable)

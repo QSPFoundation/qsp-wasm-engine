@@ -1,3 +1,4 @@
 node_modules
 /src/qsplib/build/*
 !/src/qsplib/build/.gitkeep
+dist

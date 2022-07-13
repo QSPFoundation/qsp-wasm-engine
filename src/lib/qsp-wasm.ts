@@ -3,10 +3,10 @@ import createQspModule from '../qsplib/public/qsp-wasm';
 
 import { QspAPIImpl } from './qsp-api';
 
-export function init(wasm: ArrayBufferView | ArrayBuffer): Promise<QspAPI> {
+export function init(wasmBinary: ArrayBufferView | ArrayBuffer): Promise<QspAPI> {
   return new Promise((resolve) => {
     createQspModule({
-      wasm,
+      wasmBinary,
     }).then((moduleWasm) => {
       resolve(new QspAPIImpl(moduleWasm));
     });

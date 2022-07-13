@@ -1,9 +1,19 @@
 {
   "name": "@qsp/wasm-engine",
-  "version": "1.0.0",
+  "version": "0.9.0",
+  "type": "module",
   "description": "QSP code in WASM",
-  "main": "index.js",
+  "main": "./dist/node/wasm-engine.cjs",        
+  "module": "./dist/node/wasm-engine.esm.js",
+  "exports": {
+		".": "./dist/node/wasm-engine.esm.js",
+		"./web": "./dist/web/wasm-engine.modern.js" 
+	},
   "scripts": {
+    "prebuild": "rimraf ./dist && mkdir dist && cp ./src/qsplib/public/qsp-wasm.wasm ./dist/qsp-wasm.wasm",
+    "build": "npm run build:node && npm run build:web",
+    "build:node": "microbundle --target=node -i src/qsp-wasm-node.ts -o dist/node --format=esm,cjs",
+    "build:web": "microbundle --target=web -i src/qsp-wasm-browser.ts -o dist/web --format=modern",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -18,6 +28,9 @@
     "@typescript-eslint/parser": "^5.30.5",
     "eslint": "^8.19.0",
     "eslint-config-prettier": "^8.5.0",
-    "prettier": "2.7.1"
+    "microbundle": "^0.15.0",
+    "prettier": "2.7.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.7.4"
   }
 }

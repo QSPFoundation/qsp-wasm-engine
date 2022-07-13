@@ -31,14 +31,13 @@ set_target_properties(qsp-wasm PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -s WASM=1 \
     -s RESERVED_FUNCTION_POINTERS=20 \
     -s ASYNCIFY \
-    -s EXPORTED_RUNTIME_METHODS='[getValue, UTF32ToString, stringToUTF32, lengthBytesUTF32, addFunction, Asyncify]' \
+    -s EXPORTED_RUNTIME_METHODS='[addFunction, Asyncify]' \
     -s ENVIRONMENT='web,worker,webview' \
     -s MODULARIZE=1 \
     -s INVOKE_RUN=0 \
     -s WARN_UNALIGNED=1 \
     -s STACK_OVERFLOW_CHECK=2 \
     -s ALLOW_MEMORY_GROWTH=1 \
-    -s MINIMAL_RUNTIME=2 \
     -s FILESYSTEM=0 \
     -s EXPORT_NAME=createQspModule \
     -s DYNAMIC_EXECUTION=0")
