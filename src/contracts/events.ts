@@ -11,6 +11,7 @@ export type QspEvents = {
   menu: (items: QspListItem[], select: (index: number) => void) => void;
   msg: (text: string, closed: () => void) => void;
   input: (text: string, onInput: (text: string) => void) => void;
+  version: (param: string, onVersion: (text: string) => void) => void;
   wait: (ms: number, onComplete: () => void) => void;
   timer: (ms: number) => void;
   view: (path: string) => void;

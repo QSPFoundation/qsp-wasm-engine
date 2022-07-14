@@ -27,6 +27,7 @@ export enum QspCallType {
   SLEEP /* void func(int msecs) */,
   GETMSCOUNT /* int func() */,
   INPUTBOX /* void func(QSPString text, QSP_CHAR *buffer, int maxLen) */,
+  VERSION, /* void func(QSPString param, QSP_CHAR *buffer, int maxLen) */
   DUMMY,
 }
 

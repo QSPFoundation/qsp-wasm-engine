@@ -187,6 +187,7 @@ export class QspAPIImpl implements QspAPI {
       [QspCallType.PLAYFILE, this.onPlayFile, 'iii'],
       [QspCallType.CLOSEFILE, this.onCloseFile, 'ii'],
       [QspCallType.SYSTEM, this.onSystemCmd, 'ii'],
+      [QspCallType.VERSION, this.onVersion, 'iiii']
     ] as const;
 
     for (const [type, callback, signature] of callbacks) {
@@ -256,6 +257,17 @@ export class QspAPIImpl implements QspAPI {
         done();
       };
       this.emit('input', text, onInput);
+    });
+  };
+
+  onVersion = (textPtr: StringPtr, retPtr: Ptr, maxSize: number): void => {
+    const params = readString(this.module, textPtr);
+    return asAsync(this.module, (done) => {
+      const onVersion = (versionText: string): void => {
+        writeUTF32String(this.module, versionText, retPtr, maxSize);
+        done();
+      };
+      this.emit('version', params, onVersion);
     });
   };
 
