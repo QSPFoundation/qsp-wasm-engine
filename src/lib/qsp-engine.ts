@@ -1,5 +1,5 @@
 import { QspAPI } from '../contracts/api';
-import createQspModule from '../qsplib/public/qsp-wasm';
+import createQspModule from '../qsplib/public/qsp-engine';
 
 import { QspAPIImpl } from './qsp-api';
 

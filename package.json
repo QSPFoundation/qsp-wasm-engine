@@ -10,10 +10,10 @@
 		"./web": "./dist/web/wasm-engine.modern.js" 
 	},
   "scripts": {
-    "prebuild": "rimraf ./dist && mkdir dist && cp ./src/qsplib/public/qsp-wasm.wasm ./dist/qsp-wasm.wasm",
+    "prebuild": "rimraf ./dist && mkdir dist && cp ./src/qsplib/public/qsp-engine.wasm ./dist/qsp-engine.wasm",
     "build": "npm run build:node && npm run build:web",
-    "build:node": "microbundle --target=node -i src/qsp-wasm-node.ts -o dist/node --format=esm,cjs",
-    "build:web": "microbundle --target=web -i src/qsp-wasm-browser.ts -o dist/web --format=modern",
+    "build:node": "microbundle --target=node -i src/qsp-engine-node.ts -o dist/node --format=esm,cjs",
+    "build:web": "microbundle --target=web -i src/qsp-engine-browser.ts -o dist/web --format=modern",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

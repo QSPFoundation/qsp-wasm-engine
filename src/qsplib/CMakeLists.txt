@@ -17,11 +17,11 @@ add_subdirectory("${CMAKE_BINARY_DIR}/qsp-src"
 file(GLOB SOURCES src/*.c)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/public")
 
-add_executable(qsp-wasm ${SOURCES})
-target_include_directories(qsp-wasm PRIVATE "${CMAKE_BINARY_DIR}/qsp-src" "${CMAKE_BINARY_DIR}/oniguruma-src")
-target_link_libraries(qsp-wasm PRIVATE qsp onig)
+add_executable(qsp-engine ${SOURCES})
+target_include_directories(qsp-engine PRIVATE "${CMAKE_BINARY_DIR}/qsp-src" "${CMAKE_BINARY_DIR}/oniguruma-src")
+target_link_libraries(qsp-engine PRIVATE qsp onig)
 
-set_target_properties(qsp-wasm PROPERTIES LINK_FLAGS "-Wno-parentheses \
+set_target_properties(qsp-engine PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -Wno-empty-body \
     -Wno-unsequenced \
     -Wcast-align \

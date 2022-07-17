@@ -361,12 +361,12 @@ var createQspModule = (() => {
     }
     var wasmBinaryFile;
     if (Module['locateFile']) {
-      wasmBinaryFile = 'qsp-wasm.wasm';
+      wasmBinaryFile = 'qsp-engine.wasm';
       if (!isDataURI(wasmBinaryFile)) {
         wasmBinaryFile = locateFile(wasmBinaryFile);
       }
     } else {
-      wasmBinaryFile = new URL('qsp-wasm.wasm', import.meta.url).toString();
+      wasmBinaryFile = new URL('qsp-engine.wasm', import.meta.url).toString();
     }
     function getBinary(file) {
       try {

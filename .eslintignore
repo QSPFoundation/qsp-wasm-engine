@@ -1,2 +1,1 @@
-src/qsplib/public/qsp-wasm.js
-src/qsplib/public/qsp-wasm-node.js
+src/qsplib/public/qsp-engine.js
