@@ -14,7 +14,7 @@
     "build": "npm run build:node && npm run build:web",
     "build:node": "microbundle --target=node -i src/qsp-engine-node.ts -o dist/node --format=esm,cjs",
     "build:web": "microbundle --target=web -i src/qsp-engine-browser.ts -o dist/web --format=modern",
-    "test": "jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest"
   },
   "keywords": [
     "qsp",
@@ -23,6 +23,7 @@
   "author": "Sergii Kostyrko",
   "license": "MIT",
   "devDependencies": {
+    "@qsp/converters": "^1.0.1",
     "@types/emscripten": "^1.39.6",
     "@types/jest": "^28.1.6",
     "@typescript-eslint/eslint-plugin": "^5.30.5",

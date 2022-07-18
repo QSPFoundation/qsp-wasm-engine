@@ -1,6 +1,13 @@
 export default {
-  transform: {'^.+\\.ts?$': 'ts-jest'},
+  preset: 'ts-jest',
   testEnvironment: 'node',
-  testRegex: '/tests/.*\\.(test|spec)?\\.ts$',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
+  extensionsToTreatAsEsm: ['.ts'],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
 };
