@@ -1,4 +1,3 @@
-
 import { QspAPI } from '../contracts/api';
 import { QspErrorData, QspPanel } from '../contracts/common';
 import { QspEventKeys, QspEventListeners, QspEvents } from '../contracts/events';
@@ -13,7 +12,7 @@ import {
   withStringRead,
   withStringWrite,
   writeString,
-  writeUTF32String
+  writeUTF32String,
 } from './pointers';
 
 export class QspAPIImpl implements QspAPI {
@@ -187,7 +186,7 @@ export class QspAPIImpl implements QspAPI {
       [QspCallType.PLAYFILE, this.onPlayFile, 'iii'],
       [QspCallType.CLOSEFILE, this.onCloseFile, 'ii'],
       [QspCallType.SYSTEM, this.onSystemCmd, 'ii'],
-      [QspCallType.VERSION, this.onVersion, 'iiii']
+      [QspCallType.VERSION, this.onVersion, 'iiii'],
     ] as const;
 
     for (const [type, callback, signature] of callbacks) {

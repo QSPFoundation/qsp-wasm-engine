@@ -14,7 +14,7 @@
     "build": "npm run build:node && npm run build:web",
     "build:node": "microbundle --target=node -i src/qsp-engine-node.ts -o dist/node --format=esm,cjs",
     "build:web": "microbundle --target=web -i src/qsp-engine-browser.ts -o dist/web --format=modern",
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --no-cache"
   },
   "keywords": [
     "qsp",
