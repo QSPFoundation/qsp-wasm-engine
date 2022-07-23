@@ -17,4 +17,8 @@ export interface QspAPI {
   execCounter(): void;
   execUserInput(code: string): void;
   execLoc(name: string): void;
+  watchVariables(
+    variables: string[],
+    callback: (data: Record<string, string | number>) => void
+  ): () => void
 }

@@ -51,7 +51,6 @@ export class QspAPIImpl implements QspAPI {
     variables: string[],
     callback: (data: Record<string, string | number>) => void
   ): () => void {
-    variables = variables.map((v) => v.toLocaleUpperCase());
     const watcher = {
       variables,
       callback,
@@ -130,12 +129,12 @@ export class QspAPIImpl implements QspAPI {
   }
 
   readVariableNumber(name: string, index = 0): number {
-    const namePtr = this.getStaticStringPointer(name);
+    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
     return this.module._getVarNumValue(namePtr, index);
   }
 
   readVariableString(name: string, index = 0): string {
-    const namePtr = this.getStaticStringPointer(name);
+    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
     return withStringRead(this.module, (ptr) =>
       this.module._getVarStringValue(namePtr, index, ptr)
     );

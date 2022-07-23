@@ -14,7 +14,7 @@ export async function prepareApi() {
 export function runTestFile(api: QspAPI, src: string) {
   const binary = writeQsp(readQsps(prepareTest(src)));
   api.openGame(binary, true);
-  api.execCode('gt "test"');
+  api.execLoc('test');
 }
 
 export function prepareTest(textData: string): string {

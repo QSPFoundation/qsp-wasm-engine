@@ -96,7 +96,6 @@ describe('Main panel', () => {
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('123\r\n\r\n45678\r\n');
-    // TODO uncomment when variable is fixed
-    // expect(api.readVariableString('$txt')).toBe('1')
+    expect(api.readVariableString('$txt')).toBe('1')
   })
 });
