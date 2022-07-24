@@ -16,51 +16,34 @@ describe('Main panel', () => {
   });
 
   test('*p should print text without line break', async () => {
-    runTestFile(
-      api,
-      `*p 'works'`
-    );
+    runTestFile(api, `*p 'works'`);
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
   });
 
   test('*pl should print text with line break', async () => {
-    runTestFile(
-      api,
-      `*pl 'works'`
-    );
+    runTestFile(api, `*pl 'works'`);
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works\r\n');
   });
 
   test('*nl should print text with line break in front', async () => {
-    runTestFile(
-      api,
-      `*nl 'works'`
-    );
+    runTestFile(api, `*nl 'works'`);
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('\r\nworks');
   });
 
   test('$MAINTXT should return text from main panel', async () => {
-    const statsChanged = jest.fn();
-    api.on('stats_changed', statsChanged);
-    runTestFile(
-      api,
-      `*p 'works' & p $MAINTXT`
-    );
+    runTestFile(api, `*p 'works' & $text = $MAINTXT`);
     expect(error).not.toHaveBeenCalled();
-    expect(statsChanged).toHaveBeenCalledWith('works');
+    expect(api.readVariableString('$text')).toBe('works');
   });
 
   test('*CLEAR should clear main description', async () => {
-    runTestFile(
-      api,
-      `*p 'works'`
-    );
+    runTestFile(api, `*p 'works'`);
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
@@ -71,10 +54,7 @@ describe('Main panel', () => {
   });
 
   test('*CLR should clear main description', async () => {
-    runTestFile(
-      api,
-      `*p 'works'`
-    );
+    runTestFile(api, `*p 'works'`);
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
@@ -96,6 +76,6 @@ describe('Main panel', () => {
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('123\r\n\r\n45678\r\n');
-    expect(api.readVariableString('$txt')).toBe('1')
-  })
+    expect(api.readVariableString('$txt')).toBe('1');
+  });
 });
