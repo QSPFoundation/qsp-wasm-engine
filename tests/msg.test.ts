@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
-describe('Main panel', () => {
+describe('MSG', () => {
   let api: QspAPI;
   let error: Mock;
   let msg: Mock;

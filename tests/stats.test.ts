@@ -4,7 +4,7 @@ import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 import { QspPanel } from '../src';
 
-describe('Main panel', () => {
+describe('stats panel', () => {
   let api: QspAPI;
   let error: Mock;
   let statsChanged: Mock;
