@@ -19,7 +19,7 @@ export type QspEvents = {
   save_game: (path: string, onSaved: () => void) => void;
   load_save: (path: string, onLoaded: () => void) => void;
   is_play: (file: string, onResult: (result: boolean) => void) => void;
-  play_file: (path: string, volume: number, onReady: () => void) => Promise<void>;
+  play_file: (path: string, volume: number, onReady: () => void) => void;
   close_file: (path: string, onReady: () => void) => void;
   system_cmd: (cmd: string) => void;
 };
