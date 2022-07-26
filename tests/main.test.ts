@@ -39,7 +39,7 @@ describe('Main panel', () => {
   test('$MAINTXT should return text from main panel', async () => {
     runTestFile(api, `*p 'works' & $text = $MAINTXT`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$text')).toBe('works');
+    expect(api.readVariable('$text')).toBe('works');
   });
 
   test('*CLEAR should clear main description', async () => {
@@ -76,6 +76,6 @@ describe('Main panel', () => {
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('123\r\n\r\n45678\r\n');
-    expect(api.readVariableString('$txt')).toBe('1');
+    expect(api.readVariable('$txt')).toBe('1');
   });
 });

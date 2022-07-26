@@ -202,30 +202,30 @@ describe('objects', () => {
     expect(error).not.toHaveBeenCalled();
     api.selectObject(1);
     api.execCode('$selected = $SELOBJ');
-    expect(api.readVariableString('$selected')).toBe('second');
+    expect(api.readVariable('$selected')).toBe('second');
   });
 
   test('COUNTOBJ should return number of object', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & count = COUNTOBJ`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableNumber('count')).toBe(2);
+    expect(api.readVariable('count')).toBe(2);
   });
 
   test('$GETOBJ should return object name in position', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & $first = $GETOBJ(1)`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$first')).toBe('first');
+    expect(api.readVariable('$first')).toBe('first');
   });
 
   test('reading last object in list', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & $last = $GETOBJ(COUNTOBJ)`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$last')).toBe('second');
+    expect(api.readVariable('$last')).toBe('second');
   });
 
   test('$GETOBJ should return empty string if no object position', () => {
     runTestFile(api, `$first = $GETOBJ(1)`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$first')).toBe('');
+    expect(api.readVariable('$first')).toBe('');
   });
 });

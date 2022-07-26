@@ -82,6 +82,9 @@ export interface QspWasmModule extends EmscriptenModule {
 
   _getVarStringValue(name: CharsPtr, index: number, result: Ptr): void;
   _getVarNumValue(name: CharsPtr, index: number): number;
+  _getVarStringValueByKey(name: CharsPtr, key: CharsPtr, result: Ptr): void;
+  _getVarNumValueByKey(name: CharsPtr, key: CharsPtr): number;
+  _getVarSize(name: CharsPtr): number;
 
   _initCallBacks(): void;
   _setCallBack(type: QspCallType, fnPtr: FunctionPtr): void;

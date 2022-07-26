@@ -118,7 +118,7 @@ $acts = $CURACTS
 `
     );
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$acts')).toEqual(
+    expect(api.readVariable('$acts')).toEqual(
       `ACT '1': P 1\r\nACT '2':\r\nP 2\r\nP 3\r\nEND\r\n`
     );
   });
@@ -127,7 +127,7 @@ $acts = $CURACTS
     runTestFile(api, `act '1': p 1`);
     api.selectAction(0);
     api.execCode('$selected = $SELACT');
-    expect(api.readVariableString('$selected')).toBe('1');
+    expect(api.readVariable('$selected')).toBe('1');
   });
 
   test('CLA should clear list of actions', () => {

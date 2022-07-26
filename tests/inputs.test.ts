@@ -25,14 +25,14 @@ describe('Main panel', () => {
     api.execUserInput('works');
     runTestFile(api, `$text = USER_TEXT`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$text')).toBe('works');
+    expect(api.readVariable('$text')).toBe('works');
   });
 
   test('USRTXT should return text from user cmd', () => {
     api.execUserInput('works');
     runTestFile(api, `$text = USRTXT`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$text')).toBe('works');
+    expect(api.readVariable('$text')).toBe('works');
   });
 
   test('CMDCLEAR should return text from user cmd', () => {
@@ -42,8 +42,8 @@ describe('Main panel', () => {
     runTestFile(api, `$textBefore = USRTXT & CMDCLEAR & $textAfter = USRTXT`);
     expect(error).not.toHaveBeenCalled();
     expect(userInput).toHaveBeenCalledWith('');
-    expect(api.readVariableString('$textBefore')).toBe('works');
-    expect(api.readVariableString('$textAfter')).toBe('');
+    expect(api.readVariable('$textBefore')).toBe('works');
+    expect(api.readVariable('$textAfter')).toBe('');
   });
 
   test('CMDCLR should return text from user cmd', () => {
@@ -53,8 +53,8 @@ describe('Main panel', () => {
     runTestFile(api, `$textBefore = USRTXT & CMDCLR & $textAfter = USRTXT`);
     expect(error).not.toHaveBeenCalled();
     expect(userInput).toHaveBeenCalledWith('');
-    expect(api.readVariableString('$textBefore')).toBe('works');
-    expect(api.readVariableString('$textAfter')).toBe('');
+    expect(api.readVariable('$textBefore')).toBe('works');
+    expect(api.readVariable('$textAfter')).toBe('');
   });
 
   test('INPUT should interrupt execution flow and recieve entered text', () => {
@@ -65,6 +65,6 @@ describe('Main panel', () => {
     expect(onInput).toHaveBeenCalledWith('Question?', expect.any(Function));
     // eslint-disable-next-line @typescript-eslint/ban-types
     (onInput.mock.calls[0][1] as Function)('Answer');
-    expect(api.readVariableString('$text')).toBe('Answer');
+    expect(api.readVariable('$text')).toBe('Answer');
   });
 });

@@ -1,4 +1,4 @@
-import { QspAPI } from '../contracts/api';
+import { QspAPI, QspVaribleType } from '../contracts/api';
 import { QspErrorData, QspPanel } from '../contracts/common';
 import { QspEventKeys, QspEventListeners, QspEvents } from '../contracts/events';
 import { Ptr, QspCallType, QspWasmModule, StringPtr } from '../contracts/wasm-module';
@@ -128,9 +128,29 @@ export class QspAPIImpl implements QspAPI {
     return newPtr;
   }
 
+  readVariable<Name extends string>(name: Name, index?: number): QspVaribleType<Name> {
+    if (name.startsWith('$')) {
+      return this.readVariableString(name, index) as QspVaribleType<Name>;
+    }
+    return this.readVariableNumber(name, index) as QspVaribleType<Name>;
+  }
+
+  readVariableByKey<Name extends string>(name: Name, key: string): QspVaribleType<Name> {
+    if (name.startsWith('$')) {
+      return this.readVariableStringByKey(name, key) as QspVaribleType<Name>;
+    }
+    return this.readVariableNumberByKey(name, key) as QspVaribleType<Name>;
+  }
+
   readVariableNumber(name: string, index = 0): number {
     const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
     return this.module._getVarNumValue(namePtr, index);
+  }
+
+  readVariableNumberByKey(name: string, key: string): number {
+    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
+    const keyPtr = this.getStaticStringPointer(key.toLocaleUpperCase());
+    return this.module._getVarNumValueByKey(namePtr, keyPtr);
   }
 
   readVariableString(name: string, index = 0): string {
@@ -138,6 +158,19 @@ export class QspAPIImpl implements QspAPI {
     return withStringRead(this.module, (ptr) =>
       this.module._getVarStringValue(namePtr, index, ptr)
     );
+  }
+
+  readVariableStringByKey(name: string, key: string): string {
+    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
+    const keyPtr = this.getStaticStringPointer(key.toLocaleUpperCase());
+    return withStringRead(this.module, (ptr) =>
+      this.module._getVarStringValueByKey(namePtr, keyPtr, ptr)
+    );
+  }
+
+  readVariableSize(name: string): number {
+    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
+    return this.module._getVarSize(namePtr);
   }
 
   execCode(code: string): void {

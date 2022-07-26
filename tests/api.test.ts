@@ -14,36 +14,65 @@ describe('api', () => {
   it('should read numeric variable', async () => {
     runTestFile(api, `test = 254`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableNumber('test')).toBe(254);
+    expect(api.readVariable('test')).toBe(254);
   });
   it('should read numeric variable by index', async () => {
     runTestFile(api, `test[2] = 254`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableNumber('test', 2)).toBe(254);
+    expect(api.readVariable('test', 2)).toBe(254);
+  });
+  it('should read numeric variable by key', () => {
+    runTestFile(api, `test[0] = 11 & test['test'] = 254`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariableByKey('test', 'test')).toBe(254);
+  });
+
+  it('should read numeric variable by cyrillic key', () => {
+    runTestFile(api, `test[0] = 11 & test['тест'] = 254`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariableByKey('test', 'тест')).toBe(254);
   });
 
   it('should read numeric variable in cyrilic', async () => {
     runTestFile(api, `тест = 254`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableNumber('тест')).toBe(254);
+    expect(api.readVariable('тест')).toBe(254);
   });
 
   it('should read string variable', async () => {
     runTestFile(api, `$test = '254'`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$test')).toBe('254');
+    expect(api.readVariable('$test')).toBe('254');
   });
-  it('should read numeric variable by index', async () => {
+  it('should read string variable by index', async () => {
     runTestFile(api, `$test[2] = '254'`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$test', 2)).toBe('254');
+    expect(api.readVariable('$test', 2)).toBe('254');
   });
 
-  it('should read numeric variable in cyrilic', async () => {
+  it('should read string variable by key', async () => {
+    runTestFile(api, `$test['s'] = '254' & $test['test'] = '252'`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariableByKey('$test', 'test')).toBe('252');
+  });
+
+  it('should read string variable by cyrillic key', async () => {
+    runTestFile(api, `$test['dd'] = '254' & $test['тест'] = '252'`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariableByKey('$test', 'тест')).toBe('252');
+  });
+
+  it('should read string variable in cyrilic', async () => {
     runTestFile(api, `$тест = '254'`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$тест')).toBe('254');
+    expect(api.readVariable('$тест')).toBe('254');
   });
+
+  it('should read varible size', () => {
+    runTestFile(api, `test[100] = 1`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariableSize('test')).toBe(101);
+  })
 
   it('should exec code', () => {
     const statsChanged = jest.fn();
@@ -55,7 +84,7 @@ describe('api', () => {
   });
 
   it('should read version', () => {
-    expect(api.version()).toEqual('5.8.0')
+    expect(api.version()).toEqual('5.8.0');
   });
 
   it('should watch variables', () => {
@@ -63,11 +92,11 @@ describe('api', () => {
     const watchVariables = jest.fn();
     api.watchVariables(['test'], watchVariables);
     expect(watchVariables).toHaveBeenCalledWith({
-      test: 0
+      test: 0,
     });
     api.execCode(`test = 123`);
     expect(watchVariables).toHaveBeenCalledWith({
-      test: 123
+      test: 123,
     });
-  })
+  });
 });

@@ -298,6 +298,56 @@ int getVarNumValue(QSP_CHAR *name, int ind)
   return 0;
 }
 
+EMSCRIPTEN_KEEPALIVE
+void getVarStringValueByKey(QSP_CHAR *name, QSP_CHAR *key, QSPString *strVal)
+{
+  QSPString varName = qspStringFromC(name);
+  QSPVar *var;
+  var = qspVarReference(varName, QSP_FALSE);
+  if (!var)
+  {
+    *strVal = qspNullString;
+    return;
+  }
+  int ind = qspGetVarTextIndex(var, qspStringFromC(key), QSP_FALSE);
+  int numVal;
+
+  if (!QSPGetVarValues(varName, ind, &numVal, strVal))
+  {
+    *strVal = qspNullString;
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE
+int getVarNumValueByKey(QSP_CHAR *name, QSP_CHAR *key)
+{
+  QSPString varName = qspStringFromC(name);
+  QSPVar *var;
+  var = qspVarReference(varName, QSP_FALSE);
+  if (!var)
+  {
+    return 0;
+  }
+  int ind = qspGetVarTextIndex(var, qspStringFromC(key), QSP_FALSE);
+  QSPString strVal;
+  int numVal = 0;
+
+  if (QSPGetVarValues(varName, ind, &numVal, &strVal))
+  {
+    return numVal;
+  }
+  return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int getVarSize(QSP_CHAR *name)
+{
+  int numVal = 0;
+  QSPGetVarValuesCount(qspStringFromC(name), &numVal);
+  return numVal;
+}
+
+
 /* callbacks */
 EMSCRIPTEN_KEEPALIVE
 void initCallBacks()

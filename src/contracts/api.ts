@@ -1,4 +1,6 @@
-import { QspEvents } from "./events";
+import { QspEvents } from './events';
+
+export type QspVaribleType<Name extends string> = Name extends `${infer A}` ? string : number;
 
 export interface QspAPI {
   on<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
@@ -11,8 +13,9 @@ export interface QspAPI {
   selectAction(index: number): void;
   executeSelAction(): void;
   selectObject(index: number): void;
-  readVariableNumber(name: string, index?: number): number;
-  readVariableString(name: string, index?: number): string;
+  readVariable<Name extends string>(name: Name, index?: number): QspVaribleType<Name>;
+  readVariableByKey<Name extends string>(name: Name, key: string): QspVaribleType<Name>;
+  readVariableSize(name: string): number;
   execCode(code: string): void;
   execCounter(): void;
   execUserInput(code: string): void;
@@ -20,5 +23,5 @@ export interface QspAPI {
   watchVariables(
     variables: string[],
     callback: (data: Record<string, string | number>) => void
-  ): () => void
+  ): () => void;
 }

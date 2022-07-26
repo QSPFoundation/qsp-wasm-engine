@@ -62,7 +62,7 @@ describe('stats panel', () => {
   test('$STATTXT should return text from main panel', async () => {
     runTestFile(api, `p 'works' & $text =  $STATTXT`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableString('$text')).toBe('works');
+    expect(api.readVariable('$text')).toBe('works');
   });
 
   test('SHOWSTAT should change panel visibility', () => {

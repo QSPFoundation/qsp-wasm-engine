@@ -49,7 +49,7 @@ describe('sound', () => {
     // eslint-disable-next-line @typescript-eslint/ban-types
     (onIsPlay.mock.calls[0][1] as Function)(1);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableNumber('playing')).toBe(1);
+    expect(api.readVariable('playing')).toBe(1);
   });
 
   test('CLOSE should trigger stopiing file', () => {
