@@ -3,6 +3,7 @@ import { jest } from '@jest/globals';
 import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
+// TODO add save/load test
 describe('api', () => {
   let api: QspAPI;
   let error: Mock;
