@@ -419,10 +419,10 @@ var createQspModule = (() => {
         var exports = instance.exports;
         exports = Asyncify.instrumentWasmExports(exports);
         Module['asm'] = exports;
-        wasmMemory = Module['asm']['h'];
+        wasmMemory = Module['asm']['g'];
         updateGlobalBufferAndViews(wasmMemory.buffer);
-        wasmTable = Module['asm']['W'];
-        addOnInit(Module['asm']['i']);
+        wasmTable = Module['asm']['V'];
+        addOnInit(Module['asm']['h']);
         removeRunDependency('wasm-instantiate');
       }
       addRunDependency('wasm-instantiate');
@@ -611,30 +611,6 @@ var createQspModule = (() => {
         bufSize += string.length + 1;
       });
       HEAPU32[penviron_buf_size >> 2] = bufSize;
-      return 0;
-    }
-    var printCharBuffers = [null, [], []];
-    function printChar(stream, curr) {
-      var buffer = printCharBuffers[stream];
-      if (curr === 0 || curr === 10) {
-        (stream === 1 ? out : err)(UTF8ArrayToString(buffer, 0));
-        buffer.length = 0;
-      } else {
-        buffer.push(curr);
-      }
-    }
-    function _fd_write(fd, iov, iovcnt, pnum) {
-      var num = 0;
-      for (var i = 0; i < iovcnt; i++) {
-        var ptr = HEAPU32[iov >> 2];
-        var len = HEAPU32[(iov + 4) >> 2];
-        iov += 8;
-        for (var j = 0; j < len; j++) {
-          printChar(fd, HEAPU8[ptr + j]);
-        }
-        num += len;
-      }
-      HEAPU32[pnum >> 2] = num;
       return 0;
     }
     function runAndAbortIfError(func) {
@@ -848,230 +824,229 @@ var createQspModule = (() => {
     };
     var asmLibraryArg = {
       a: ___handle_stack_overflow,
-      f: __emscripten_date_now,
-      g: _emscripten_memcpy_big,
-      c: _emscripten_resize_heap,
-      d: _environ_get,
-      e: _environ_sizes_get,
-      b: _fd_write,
+      e: __emscripten_date_now,
+      f: _emscripten_memcpy_big,
+      b: _emscripten_resize_heap,
+      c: _environ_get,
+      d: _environ_sizes_get,
     };
     var asm = createWasm();
     var ___wasm_call_ctors = (Module['___wasm_call_ctors'] = function () {
-      return (___wasm_call_ctors = Module['___wasm_call_ctors'] = Module['asm']['i']).apply(
+      return (___wasm_call_ctors = Module['___wasm_call_ctors'] = Module['asm']['h']).apply(
         null,
         arguments
       );
     });
     var _init = (Module['_init'] = function () {
-      return (_init = Module['_init'] = Module['asm']['j']).apply(null, arguments);
+      return (_init = Module['_init'] = Module['asm']['i']).apply(null, arguments);
     });
     var _dispose = (Module['_dispose'] = function () {
-      return (_dispose = Module['_dispose'] = Module['asm']['k']).apply(null, arguments);
+      return (_dispose = Module['_dispose'] = Module['asm']['j']).apply(null, arguments);
     });
     var _getVersion = (Module['_getVersion'] = function () {
-      return (_getVersion = Module['_getVersion'] = Module['asm']['l']).apply(null, arguments);
+      return (_getVersion = Module['_getVersion'] = Module['asm']['k']).apply(null, arguments);
     });
     var _setErrorCallback = (Module['_setErrorCallback'] = function () {
-      return (_setErrorCallback = Module['_setErrorCallback'] = Module['asm']['m']).apply(
+      return (_setErrorCallback = Module['_setErrorCallback'] = Module['asm']['l']).apply(
         null,
         arguments
       );
     });
     var _getMainDesc = (Module['_getMainDesc'] = function () {
-      return (_getMainDesc = Module['_getMainDesc'] = Module['asm']['n']).apply(null, arguments);
+      return (_getMainDesc = Module['_getMainDesc'] = Module['asm']['m']).apply(null, arguments);
     });
     var _isMainDescChanged = (Module['_isMainDescChanged'] = function () {
-      return (_isMainDescChanged = Module['_isMainDescChanged'] = Module['asm']['o']).apply(
+      return (_isMainDescChanged = Module['_isMainDescChanged'] = Module['asm']['n']).apply(
         null,
         arguments
       );
     });
     var _getVarsDesc = (Module['_getVarsDesc'] = function () {
-      return (_getVarsDesc = Module['_getVarsDesc'] = Module['asm']['p']).apply(null, arguments);
+      return (_getVarsDesc = Module['_getVarsDesc'] = Module['asm']['o']).apply(null, arguments);
     });
     var _isVarsDescChanged = (Module['_isVarsDescChanged'] = function () {
-      return (_isVarsDescChanged = Module['_isVarsDescChanged'] = Module['asm']['q']).apply(
+      return (_isVarsDescChanged = Module['_isVarsDescChanged'] = Module['asm']['p']).apply(
         null,
         arguments
       );
     });
     var _getActions = (Module['_getActions'] = function () {
-      return (_getActions = Module['_getActions'] = Module['asm']['r']).apply(null, arguments);
+      return (_getActions = Module['_getActions'] = Module['asm']['q']).apply(null, arguments);
     });
     var _malloc = (Module['_malloc'] = function () {
-      return (_malloc = Module['_malloc'] = Module['asm']['s']).apply(null, arguments);
+      return (_malloc = Module['_malloc'] = Module['asm']['r']).apply(null, arguments);
     });
     var _selectAction = (Module['_selectAction'] = function () {
-      return (_selectAction = Module['_selectAction'] = Module['asm']['t']).apply(null, arguments);
+      return (_selectAction = Module['_selectAction'] = Module['asm']['s']).apply(null, arguments);
     });
     var _executeSelAction = (Module['_executeSelAction'] = function () {
-      return (_executeSelAction = Module['_executeSelAction'] = Module['asm']['u']).apply(
+      return (_executeSelAction = Module['_executeSelAction'] = Module['asm']['t']).apply(
         null,
         arguments
       );
     });
     var _isActionsChanged = (Module['_isActionsChanged'] = function () {
-      return (_isActionsChanged = Module['_isActionsChanged'] = Module['asm']['v']).apply(
+      return (_isActionsChanged = Module['_isActionsChanged'] = Module['asm']['u']).apply(
         null,
         arguments
       );
     });
     var _getObjects = (Module['_getObjects'] = function () {
-      return (_getObjects = Module['_getObjects'] = Module['asm']['w']).apply(null, arguments);
+      return (_getObjects = Module['_getObjects'] = Module['asm']['v']).apply(null, arguments);
     });
     var _selectObject = (Module['_selectObject'] = function () {
-      return (_selectObject = Module['_selectObject'] = Module['asm']['x']).apply(null, arguments);
+      return (_selectObject = Module['_selectObject'] = Module['asm']['w']).apply(null, arguments);
     });
     var _isObjectsChanged = (Module['_isObjectsChanged'] = function () {
-      return (_isObjectsChanged = Module['_isObjectsChanged'] = Module['asm']['y']).apply(
+      return (_isObjectsChanged = Module['_isObjectsChanged'] = Module['asm']['x']).apply(
         null,
         arguments
       );
     });
     var _loadGameData = (Module['_loadGameData'] = function () {
-      return (_loadGameData = Module['_loadGameData'] = Module['asm']['z']).apply(null, arguments);
+      return (_loadGameData = Module['_loadGameData'] = Module['asm']['y']).apply(null, arguments);
     });
     var _restartGame = (Module['_restartGame'] = function () {
-      return (_restartGame = Module['_restartGame'] = Module['asm']['A']).apply(null, arguments);
+      return (_restartGame = Module['_restartGame'] = Module['asm']['z']).apply(null, arguments);
     });
     var _saveGameData = (Module['_saveGameData'] = function () {
-      return (_saveGameData = Module['_saveGameData'] = Module['asm']['B']).apply(null, arguments);
+      return (_saveGameData = Module['_saveGameData'] = Module['asm']['A']).apply(null, arguments);
     });
     var _free = (Module['_free'] = function () {
-      return (_free = Module['_free'] = Module['asm']['C']).apply(null, arguments);
+      return (_free = Module['_free'] = Module['asm']['B']).apply(null, arguments);
     });
     var _loadSavedGameData = (Module['_loadSavedGameData'] = function () {
-      return (_loadSavedGameData = Module['_loadSavedGameData'] = Module['asm']['D']).apply(
+      return (_loadSavedGameData = Module['_loadSavedGameData'] = Module['asm']['C']).apply(
         null,
         arguments
       );
     });
     var _execString = (Module['_execString'] = function () {
-      return (_execString = Module['_execString'] = Module['asm']['E']).apply(null, arguments);
+      return (_execString = Module['_execString'] = Module['asm']['D']).apply(null, arguments);
     });
     var _execCounter = (Module['_execCounter'] = function () {
-      return (_execCounter = Module['_execCounter'] = Module['asm']['F']).apply(null, arguments);
+      return (_execCounter = Module['_execCounter'] = Module['asm']['E']).apply(null, arguments);
     });
     var _execLoc = (Module['_execLoc'] = function () {
-      return (_execLoc = Module['_execLoc'] = Module['asm']['G']).apply(null, arguments);
+      return (_execLoc = Module['_execLoc'] = Module['asm']['F']).apply(null, arguments);
     });
     var _execUserInput = (Module['_execUserInput'] = function () {
-      return (_execUserInput = Module['_execUserInput'] = Module['asm']['H']).apply(
+      return (_execUserInput = Module['_execUserInput'] = Module['asm']['G']).apply(
         null,
         arguments
       );
     });
     var _getLastErrorNum = (Module['_getLastErrorNum'] = function () {
-      return (_getLastErrorNum = Module['_getLastErrorNum'] = Module['asm']['I']).apply(
+      return (_getLastErrorNum = Module['_getLastErrorNum'] = Module['asm']['H']).apply(
         null,
         arguments
       );
     });
     var _getLastErrorLoc = (Module['_getLastErrorLoc'] = function () {
-      return (_getLastErrorLoc = Module['_getLastErrorLoc'] = Module['asm']['J']).apply(
+      return (_getLastErrorLoc = Module['_getLastErrorLoc'] = Module['asm']['I']).apply(
         null,
         arguments
       );
     });
     var _getLastErrorActIndex = (Module['_getLastErrorActIndex'] = function () {
-      return (_getLastErrorActIndex = Module['_getLastErrorActIndex'] = Module['asm']['K']).apply(
+      return (_getLastErrorActIndex = Module['_getLastErrorActIndex'] = Module['asm']['J']).apply(
         null,
         arguments
       );
     });
     var _getLastErrorLine = (Module['_getLastErrorLine'] = function () {
-      return (_getLastErrorLine = Module['_getLastErrorLine'] = Module['asm']['L']).apply(
+      return (_getLastErrorLine = Module['_getLastErrorLine'] = Module['asm']['K']).apply(
         null,
         arguments
       );
     });
     var _getErrorDesc = (Module['_getErrorDesc'] = function () {
-      return (_getErrorDesc = Module['_getErrorDesc'] = Module['asm']['M']).apply(null, arguments);
+      return (_getErrorDesc = Module['_getErrorDesc'] = Module['asm']['L']).apply(null, arguments);
     });
     var _getVarStringValue = (Module['_getVarStringValue'] = function () {
-      return (_getVarStringValue = Module['_getVarStringValue'] = Module['asm']['N']).apply(
+      return (_getVarStringValue = Module['_getVarStringValue'] = Module['asm']['M']).apply(
         null,
         arguments
       );
     });
     var _getVarNumValue = (Module['_getVarNumValue'] = function () {
-      return (_getVarNumValue = Module['_getVarNumValue'] = Module['asm']['O']).apply(
+      return (_getVarNumValue = Module['_getVarNumValue'] = Module['asm']['N']).apply(
         null,
         arguments
       );
     });
     var _getVarStringValueByKey = (Module['_getVarStringValueByKey'] = function () {
       return (_getVarStringValueByKey = Module['_getVarStringValueByKey'] =
-        Module['asm']['P']).apply(null, arguments);
+        Module['asm']['O']).apply(null, arguments);
     });
     var _getVarNumValueByKey = (Module['_getVarNumValueByKey'] = function () {
-      return (_getVarNumValueByKey = Module['_getVarNumValueByKey'] = Module['asm']['Q']).apply(
+      return (_getVarNumValueByKey = Module['_getVarNumValueByKey'] = Module['asm']['P']).apply(
         null,
         arguments
       );
     });
     var _getVarSize = (Module['_getVarSize'] = function () {
-      return (_getVarSize = Module['_getVarSize'] = Module['asm']['R']).apply(null, arguments);
+      return (_getVarSize = Module['_getVarSize'] = Module['asm']['Q']).apply(null, arguments);
     });
     var _initCallBacks = (Module['_initCallBacks'] = function () {
-      return (_initCallBacks = Module['_initCallBacks'] = Module['asm']['S']).apply(
+      return (_initCallBacks = Module['_initCallBacks'] = Module['asm']['R']).apply(
         null,
         arguments
       );
     });
     var _setCallBack = (Module['_setCallBack'] = function () {
-      return (_setCallBack = Module['_setCallBack'] = Module['asm']['T']).apply(null, arguments);
+      return (_setCallBack = Module['_setCallBack'] = Module['asm']['S']).apply(null, arguments);
     });
     var _freeItemsList = (Module['_freeItemsList'] = function () {
-      return (_freeItemsList = Module['_freeItemsList'] = Module['asm']['U']).apply(
+      return (_freeItemsList = Module['_freeItemsList'] = Module['asm']['T']).apply(
         null,
         arguments
       );
     });
     var _freeSaveBuffer = (Module['_freeSaveBuffer'] = function () {
-      return (_freeSaveBuffer = Module['_freeSaveBuffer'] = Module['asm']['V']).apply(
+      return (_freeSaveBuffer = Module['_freeSaveBuffer'] = Module['asm']['U']).apply(
         null,
         arguments
       );
     });
     var _emscripten_stack_init = (Module['_emscripten_stack_init'] = function () {
-      return (_emscripten_stack_init = Module['_emscripten_stack_init'] = Module['asm']['X']).apply(
+      return (_emscripten_stack_init = Module['_emscripten_stack_init'] = Module['asm']['W']).apply(
         null,
         arguments
       );
     });
     var _emscripten_stack_get_base = (Module['_emscripten_stack_get_base'] = function () {
       return (_emscripten_stack_get_base = Module['_emscripten_stack_get_base'] =
-        Module['asm']['Y']).apply(null, arguments);
+        Module['asm']['X']).apply(null, arguments);
     });
     var _emscripten_stack_get_end = (Module['_emscripten_stack_get_end'] = function () {
       return (_emscripten_stack_get_end = Module['_emscripten_stack_get_end'] =
-        Module['asm']['Z']).apply(null, arguments);
+        Module['asm']['Y']).apply(null, arguments);
     });
     var ___set_stack_limits = (Module['___set_stack_limits'] = function () {
-      return (___set_stack_limits = Module['___set_stack_limits'] = Module['asm']['_']).apply(
+      return (___set_stack_limits = Module['___set_stack_limits'] = Module['asm']['Z']).apply(
         null,
         arguments
       );
     });
     var _asyncify_start_unwind = (Module['_asyncify_start_unwind'] = function () {
-      return (_asyncify_start_unwind = Module['_asyncify_start_unwind'] = Module['asm']['$']).apply(
+      return (_asyncify_start_unwind = Module['_asyncify_start_unwind'] = Module['asm']['_']).apply(
         null,
         arguments
       );
     });
     var _asyncify_stop_unwind = (Module['_asyncify_stop_unwind'] = function () {
-      return (_asyncify_stop_unwind = Module['_asyncify_stop_unwind'] = Module['asm']['aa']).apply(
+      return (_asyncify_stop_unwind = Module['_asyncify_stop_unwind'] = Module['asm']['$']).apply(
         null,
         arguments
       );
     });
     var _asyncify_start_rewind = (Module['_asyncify_start_rewind'] = function () {
       return (_asyncify_start_rewind = Module['_asyncify_start_rewind'] =
-        Module['asm']['ba']).apply(null, arguments);
+        Module['asm']['aa']).apply(null, arguments);
     });
     var _asyncify_stop_rewind = (Module['_asyncify_stop_rewind'] = function () {
-      return (_asyncify_stop_rewind = Module['_asyncify_stop_rewind'] = Module['asm']['ca']).apply(
+      return (_asyncify_stop_rewind = Module['_asyncify_stop_rewind'] = Module['asm']['ba']).apply(
         null,
         arguments
       );
