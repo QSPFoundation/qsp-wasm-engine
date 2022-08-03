@@ -124,6 +124,28 @@ pl 'other'
     expect(api.readVariable('$cur')).toBe('other');
   });
 
+  test('$ONNEWLOC should recieve args on actual location', () => {
+    
+    runTestFile(
+      api,
+      `
+$ONNEWLOC = 'newloc' 
+gt 'other', 'test', 1
+---
+# newloc
+$args_0 = $args[0]
+args_1 = args[1]
+---
+# other
+  `
+    );
+
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('$args_0')).toBe('test');
+    expect(api.readVariable('args_1')).toBe(1);
+  });
+
+
   test('$ONACTSEL', () => {
     runTestFile(
       api,
