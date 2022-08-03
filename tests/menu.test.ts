@@ -177,4 +177,25 @@ p 'thrown'
     expect(error).not.toHaveBeenCalled();
     expect(statsChanged).toHaveBeenCalledWith('thrown');
   });
+
+  test('index(1 based) of selected item should be passed into processing loc', () => {
+    const statsChanged = jest.fn();
+    api.on('stats_changed', statsChanged);
+    runTestFile(
+      api,
+      `
+$stone[0]='Взять камень:stone'
+$stone[1]='Кинуть камень:stone'
+menu '$stone'
+---
+# stone
+r = args[0]
+`
+    );
+
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    (menu.mock.calls[0][1] as Function)(1);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('r')).toBe(2);
+  });
 });
