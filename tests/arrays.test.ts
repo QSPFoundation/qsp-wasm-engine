@@ -205,20 +205,26 @@ $a = $objs[]
   });
 
   test('arrcomp', () => {
-    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'c1' & r = arrcomp('$a', 'b\\d')`)
+    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'c1' & r = arrcomp('$a', 'b\\d')`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('r')).toBe(1);
-  })
+  });
 
   test('arrcomp not found', () => {
-    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'c1' & r = arrcomp('$a', 'f\\d')`)
+    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'c1' & r = arrcomp('$a', 'f\\d')`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('r')).toBe(-1);
-  })
+  });
 
   test('arrcomp skip', () => {
-    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'a1' & r = arrcomp('$a', 'a\\d', 1)`)
+    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'a1' & r = arrcomp('$a', 'a\\d', 1)`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('r')).toBe(2);
-  })
+  });
+
+  test('arritem', () => {
+    runTestFile(api, `arr[123]=256 & r = arritem('arr',123)`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('r')).toBe(256);
+  });
 });
