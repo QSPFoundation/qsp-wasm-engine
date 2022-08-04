@@ -227,4 +227,11 @@ $a = $objs[]
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('r')).toBe(256);
   });
+
+  test('negative index', () => {
+    runTestFile(api, `arr[0] = 123 & x = arr[-1] & arr[-1] = 234 & y = arr[0]`)
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('x')).toBe(0);
+    expect(api.readVariable('y')).toBe(123);
+  })
 });
