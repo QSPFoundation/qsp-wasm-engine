@@ -191,4 +191,26 @@ describe('acts', () => {
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('res')).toBe(0);
   });
+
+  test('OBJ priority', () => {
+    runTestFile(api, `res = OBJ '1' = OBJ '2'`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('res')).toBe(1);
+    api.execCode(`addobj '1' & res = OBJ '1' = OBJ '2'`)
+    expect(api.readVariable('res')).toBe(0);
+    api.execCode(`addobj '2' & res = OBJ '1' = OBJ '2'`)
+    expect(api.readVariable('res')).toBe(1);
+  })
+
+  test('LOC priority', () => {
+    runTestFile(api, `
+first = LOC 'other' = LOC 'another'
+second = LOC 'start' = LOC 'another'
+third = LOC 'start' = LOC 'test'
+`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('first')).toBe(1);
+    expect(api.readVariable('second')).toBe(0);
+    expect(api.readVariable('third')).toBe(1);
+  })
 });
