@@ -394,4 +394,44 @@ x = 2
 
     expect(api.readVariable('x')).toBe(1);
   });
+
+  test('GOTO arguments in actions', () => {
+    runTestFile(
+      api,
+      `
+gt 'target', 'test', 12
+---
+# target
+act '2':
+  $args_0 = $args[0]
+  args_1 = args[1]
+end
+    `
+    );
+    expect(error).not.toHaveBeenCalled();
+    api.selectAction(0);
+    api.executeSelAction();
+    expect(api.readVariable('$args_0')).toBe('test');
+    expect(api.readVariable('args_1')).toBe(12);
+  });
+
+  test('XGOTO arguments in actions', () => {
+    runTestFile(
+      api,
+      `
+xgt 'target', 'test', 12
+---
+# target
+act '2':
+  $args_0 = $args[0]
+  args_1 = args[1]
+end
+    `
+    );
+    expect(error).not.toHaveBeenCalled();
+    api.selectAction(0);
+    api.executeSelAction();
+    expect(api.readVariable('$args_0')).toBe('test');
+    expect(api.readVariable('args_1')).toBe(12);
+  });
 });
