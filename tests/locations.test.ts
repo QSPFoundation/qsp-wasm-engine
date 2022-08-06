@@ -434,4 +434,34 @@ end
     expect(api.readVariable('$args_0')).toBe('test');
     expect(api.readVariable('args_1')).toBe(12);
   });
+
+  test('user func shorthand', () => {
+    runTestFile(
+      api,
+      `
+@target(1, 'test')
+---
+# target
+first = args[0]
+$second = $args[1]
+    `
+    );
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('first')).toBe(1);
+    expect(api.readVariable('$second')).toBe('test');
+  });
+
+  test('user func shorthand RESULT', () => {
+    runTestFile(
+      api,
+      `
+x = @process
+---
+# process
+result = 5
+    `
+    );
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('x')).toBe(5);
+  });
 });
