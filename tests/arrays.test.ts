@@ -12,6 +12,32 @@ describe('api', () => {
     api.on('error', error);
   });
 
+  test('overriding string value with number', () => {
+    runTestFile(
+      api,
+      `
+$arr[1] = 'test'
+arr[1] = 1
+  `
+    );
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('$arr', 1)).toBe('');
+    expect(api.readVariable('arr', 1)).toBe(1);
+  });
+
+  test('overriding number value with string', () => {
+    runTestFile(
+      api,
+      `
+arr[1] = 1
+$arr[1] = 'test'
+  `
+    );
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('$arr', 1)).toBe('test');
+    expect(api.readVariable('arr', 1)).toBe(0);
+  });
+
   test('last element assignment', () => {
     runTestFile(
       api,
@@ -156,6 +182,12 @@ $a = $objs[]
     expect(api.readVariable('s')).toBe(3);
   });
 
+  test('arrsize mixed values', () => {
+    runTestFile(api, `a[] = 1 & $a[] = 2 & a[] = 3 & s = arrsize('$a')`);
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('s')).toBe(3);
+  });
+
   test('arrpos', () => {
     runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=4 & r = arrpos('mass',2)`);
     expect(error).not.toHaveBeenCalled();
@@ -229,9 +261,9 @@ $a = $objs[]
   });
 
   test('negative index', () => {
-    runTestFile(api, `arr[0] = 123 & x = arr[-1] & arr[-1] = 234 & y = arr[0]`)
+    runTestFile(api, `arr[0] = 123 & x = arr[-1] & arr[-1] = 234 & y = arr[0]`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(0);
     expect(api.readVariable('y')).toBe(123);
-  })
+  });
 });
