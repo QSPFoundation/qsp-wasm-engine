@@ -64,6 +64,19 @@ describe('Main panel', () => {
     expect(mainChanged).toHaveBeenCalledWith('');
   });
 
+  test('implicit output', async () => {
+    runTestFile(api, `
+'test'
+func('foo')    
+'test'
+---
+# foo
+`);
+    expect(error).not.toHaveBeenCalled();
+    expect(mainChanged).toHaveBeenCalledTimes(1);
+    expect(mainChanged).toHaveBeenCalledWith('test\r\ntest\r\n');
+  });
+
   test('complex example from wiki', () => {
     runTestFile(
       api,
