@@ -266,4 +266,57 @@ $a = $objs[]
     expect(api.readVariable('x')).toBe(0);
     expect(api.readVariable('y')).toBe(123);
   });
+
+  test('tuple index numbers', () => {
+    runTestFile(
+      api,
+      `
+$arr[1,3] = 'test'
+$res = $arr[1,3]
+    `
+    );
+
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('$res')).toBe('test');
+  });
+
+  test('tuple index strings', () => {
+    runTestFile(
+      api,
+      `
+$arr['first','second'] = 'test'
+$res = $arr['first','second']
+    `
+    );
+
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('$res')).toBe('test');
+  });
+
+  test('tuple index mixed', () => {
+    runTestFile(
+      api,
+      `
+$arr['first',2,'sss'] = 'test'
+$res = $arr['first',2,'sss']
+    `
+    );
+
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('$res')).toBe('test');
+  });
+  test('tuple index collision', () => {
+    runTestFile(
+      api,
+      `
+$arr[1,3] = 'test'
+$arr['1,3'] = 'test1'
+$res = $arr[1,3]
+    `
+    );
+
+    expect(error).not.toHaveBeenCalled();
+    expect(api.readVariable('$res')).toBe('test');
+  });
+  
 });
