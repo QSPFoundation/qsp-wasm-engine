@@ -107,7 +107,7 @@ export class QspAPIImpl implements QspAPI {
     this.module._selectAction(index);
   }
 
-  executeSelAction(): void {
+  execSelectedAction(): void {
     this.module._executeSelAction();
   }
 
@@ -185,7 +185,7 @@ export class QspAPIImpl implements QspAPI {
     withStringWrite(this.module, name, (ptr) => this.module._execLoc(ptr));
   }
 
-  execUserInput(code: string): void {
+  updateUserInput(code: string): void {
     withStringWrite(this.module, code, (ptr) => this.module._execUserInput(ptr));
   }
 

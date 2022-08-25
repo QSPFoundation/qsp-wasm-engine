@@ -22,14 +22,14 @@ describe('Main panel', () => {
   });
 
   test('USER_TEXT should return text from user cmd', () => {
-    api.execUserInput('works');
+    api.updateUserInput('works');
     runTestFile(api, `$text = USER_TEXT`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$text')).toBe('works');
   });
 
   test('USRTXT should return text from user cmd', () => {
-    api.execUserInput('works');
+    api.updateUserInput('works');
     runTestFile(api, `$text = USRTXT`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$text')).toBe('works');
@@ -38,7 +38,7 @@ describe('Main panel', () => {
   test('CMDCLEAR should return text from user cmd', () => {
     const userInput = jest.fn();
     api.on('user_input', userInput);
-    api.execUserInput('works');
+    api.updateUserInput('works');
     runTestFile(api, `$textBefore = USRTXT & CMDCLEAR & $textAfter = USRTXT`);
     expect(error).not.toHaveBeenCalled();
     expect(userInput).toHaveBeenCalledWith('');
@@ -49,7 +49,7 @@ describe('Main panel', () => {
   test('CMDCLR should return text from user cmd', () => {
     const userInput = jest.fn();
     api.on('user_input', userInput);
-    api.execUserInput('works');
+    api.updateUserInput('works');
     runTestFile(api, `$textBefore = USRTXT & CMDCLR & $textAfter = USRTXT`);
     expect(error).not.toHaveBeenCalled();
     expect(userInput).toHaveBeenCalledWith('');

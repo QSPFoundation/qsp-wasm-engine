@@ -177,7 +177,7 @@ $text = $user_text
     );
 
     expect(api.readVariable('x')).toBe(1);
-    api.execUserInput('test');
+    api.updateUserInput('test');
     expect(api.readVariable('x')).toBe(2);
     expect(api.readVariable('$text')).toBe('test');
   });
