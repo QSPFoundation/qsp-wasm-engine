@@ -88,94 +88,6 @@ var createQspModule = (() => {
     if (Module['arguments']) arguments_ = Module['arguments'];
     if (Module['thisProgram']) thisProgram = Module['thisProgram'];
     if (Module['quit']) quit_ = Module['quit'];
-    function uleb128Encode(n) {
-      if (n < 128) {
-        return [n];
-      }
-      return [n % 128 | 128, n >> 7];
-    }
-    function sigToWasmTypes(sig) {
-      var typeNames = { i: 'i32', j: 'i64', f: 'f32', d: 'f64', p: 'i32' };
-      var type = { parameters: [], results: sig[0] == 'v' ? [] : [typeNames[sig[0]]] };
-      for (var i = 1; i < sig.length; ++i) {
-        type.parameters.push(typeNames[sig[i]]);
-      }
-      return type;
-    }
-    function convertJsFunctionToWasm(func, sig) {
-      if (typeof WebAssembly.Function == 'function') {
-        return new WebAssembly.Function(sigToWasmTypes(sig), func);
-      }
-      var typeSection = [1, 96];
-      var sigRet = sig.slice(0, 1);
-      var sigParam = sig.slice(1);
-      var typeCodes = { i: 127, p: 127, j: 126, f: 125, d: 124 };
-      typeSection = typeSection.concat(uleb128Encode(sigParam.length));
-      for (var i = 0; i < sigParam.length; ++i) {
-        typeSection.push(typeCodes[sigParam[i]]);
-      }
-      if (sigRet == 'v') {
-        typeSection.push(0);
-      } else {
-        typeSection = typeSection.concat([1, typeCodes[sigRet]]);
-      }
-      typeSection = [1].concat(uleb128Encode(typeSection.length), typeSection);
-      var bytes = new Uint8Array(
-        [0, 97, 115, 109, 1, 0, 0, 0].concat(
-          typeSection,
-          [2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0]
-        )
-      );
-      var module = new WebAssembly.Module(bytes);
-      var instance = new WebAssembly.Instance(module, { e: { f: func } });
-      var wrappedFunc = instance.exports['f'];
-      return wrappedFunc;
-    }
-    var freeTableIndexes = [];
-    var functionsInTableMap;
-    function getEmptyTableSlot() {
-      if (freeTableIndexes.length) {
-        return freeTableIndexes.pop();
-      }
-      try {
-        wasmTable.grow(1);
-      } catch (err) {
-        if (!(err instanceof RangeError)) {
-          throw err;
-        }
-        throw 'Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.';
-      }
-      return wasmTable.length - 1;
-    }
-    function updateTableMap(offset, count) {
-      for (var i = offset; i < offset + count; i++) {
-        var item = getWasmTableEntry(i);
-        if (item) {
-          functionsInTableMap.set(item, i);
-        }
-      }
-    }
-    function addFunction(func, sig) {
-      if (!functionsInTableMap) {
-        functionsInTableMap = new WeakMap();
-        updateTableMap(0, wasmTable.length);
-      }
-      if (functionsInTableMap.has(func)) {
-        return functionsInTableMap.get(func);
-      }
-      var ret = getEmptyTableSlot();
-      try {
-        setWasmTableEntry(ret, func);
-      } catch (err) {
-        if (!(err instanceof TypeError)) {
-          throw err;
-        }
-        var wrapped = convertJsFunctionToWasm(func, sig);
-        setWasmTableEntry(ret, wrapped);
-      }
-      functionsInTableMap.set(func, ret);
-      return ret;
-    }
     var wasmBinary;
     if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
     var noExitRuntime = Module['noExitRuntime'] || true;
@@ -197,43 +109,36 @@ var createQspModule = (() => {
       while (heapOrArray[endPtr] && !(endPtr >= endIdx)) ++endPtr;
       if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
         return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
-      } else {
-        var str = '';
-        while (idx < endPtr) {
-          var u0 = heapOrArray[idx++];
-          if (!(u0 & 128)) {
-            str += String.fromCharCode(u0);
-            continue;
-          }
-          var u1 = heapOrArray[idx++] & 63;
-          if ((u0 & 224) == 192) {
-            str += String.fromCharCode(((u0 & 31) << 6) | u1);
-            continue;
-          }
-          var u2 = heapOrArray[idx++] & 63;
-          if ((u0 & 240) == 224) {
-            u0 = ((u0 & 15) << 12) | (u1 << 6) | u2;
-          } else {
-            u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
-          }
-          if (u0 < 65536) {
-            str += String.fromCharCode(u0);
-          } else {
-            var ch = u0 - 65536;
-            str += String.fromCharCode(55296 | (ch >> 10), 56320 | (ch & 1023));
-          }
+      }
+      var str = '';
+      while (idx < endPtr) {
+        var u0 = heapOrArray[idx++];
+        if (!(u0 & 128)) {
+          str += String.fromCharCode(u0);
+          continue;
+        }
+        var u1 = heapOrArray[idx++] & 63;
+        if ((u0 & 224) == 192) {
+          str += String.fromCharCode(((u0 & 31) << 6) | u1);
+          continue;
+        }
+        var u2 = heapOrArray[idx++] & 63;
+        if ((u0 & 240) == 224) {
+          u0 = ((u0 & 15) << 12) | (u1 << 6) | u2;
+        } else {
+          u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
+        }
+        if (u0 < 65536) {
+          str += String.fromCharCode(u0);
+        } else {
+          var ch = u0 - 65536;
+          str += String.fromCharCode(55296 | (ch >> 10), 56320 | (ch & 1023));
         }
       }
       return str;
     }
     function UTF8ToString(ptr, maxBytesToRead) {
       return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : '';
-    }
-    function writeAsciiToMemory(str, buffer, dontAddNull) {
-      for (var i = 0; i < str.length; ++i) {
-        HEAP8[buffer++ >> 0] = str.charCodeAt(i);
-      }
-      if (!dontAddNull) HEAP8[buffer >> 0] = 0;
     }
     var buffer, HEAP8, HEAPU8, HEAP16, HEAPU16, HEAP32, HEAPU32, HEAPF32, HEAPF64;
     function updateGlobalBufferAndViews(buf) {
@@ -251,8 +156,8 @@ var createQspModule = (() => {
     var wasmTable;
     function writeStackCookie() {
       var max = _emscripten_stack_get_end();
-      HEAP32[max >> 2] = 34821223;
-      HEAP32[(max + 4) >> 2] = 2310721022;
+      HEAPU32[max >> 2] = 34821223;
+      HEAPU32[(max + 4) >> 2] = 2310721022;
       HEAPU32[0] = 1668509029;
     }
     function checkStackCookie() {
@@ -375,9 +280,8 @@ var createQspModule = (() => {
         }
         if (readBinary) {
           return readBinary(file);
-        } else {
-          throw 'both async and sync fetching of the wasm failed';
         }
+        throw 'both async and sync fetching of the wasm failed';
       } catch (err) {
         abort(err);
       }
@@ -475,29 +379,21 @@ var createQspModule = (() => {
       instantiateAsync().catch(readyPromiseReject);
       return {};
     }
+    function ExitStatus(status) {
+      this.name = 'ExitStatus';
+      this.message = 'Program terminated with exit(' + status + ')';
+      this.status = status;
+    }
     function callRuntimeCallbacks(callbacks) {
       while (callbacks.length > 0) {
         callbacks.shift()(Module);
       }
-    }
-    var wasmTableMirror = [];
-    function getWasmTableEntry(funcPtr) {
-      var func = wasmTableMirror[funcPtr];
-      if (!func) {
-        if (funcPtr >= wasmTableMirror.length) wasmTableMirror.length = funcPtr + 1;
-        wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
-      }
-      return func;
     }
     function handleException(e) {
       if (e instanceof ExitStatus || e == 'unwind') {
         return EXITSTATUS;
       }
       quit_(1, e);
-    }
-    function setWasmTableEntry(idx, func) {
-      wasmTable.set(idx, func);
-      wasmTableMirror[idx] = wasmTable.get(idx);
     }
     function ___handle_stack_overflow(requested) {
       requested = requested >>> 0;
@@ -581,6 +477,12 @@ var createQspModule = (() => {
       }
       return getEnvStrings.strings;
     }
+    function writeAsciiToMemory(str, buffer, dontAddNull) {
+      for (var i = 0; i < str.length; ++i) {
+        HEAP8[buffer++ >> 0] = str.charCodeAt(i);
+      }
+      if (!dontAddNull) HEAP8[buffer >> 0] = 0;
+    }
     var SYSCALLS = {
       varargs: undefined,
       get: function () {
@@ -613,6 +515,107 @@ var createQspModule = (() => {
       HEAPU32[penviron_buf_size >> 2] = bufSize;
       return 0;
     }
+    function uleb128Encode(n, target) {
+      if (n < 128) {
+        target.push(n);
+      } else {
+        target.push(n % 128 | 128, n >> 7);
+      }
+    }
+    function sigToWasmTypes(sig) {
+      var typeNames = { i: 'i32', j: 'i64', f: 'f32', d: 'f64', p: 'i32' };
+      var type = { parameters: [], results: sig[0] == 'v' ? [] : [typeNames[sig[0]]] };
+      for (var i = 1; i < sig.length; ++i) {
+        type.parameters.push(typeNames[sig[i]]);
+      }
+      return type;
+    }
+    function convertJsFunctionToWasm(func, sig) {
+      if (typeof WebAssembly.Function == 'function') {
+        return new WebAssembly.Function(sigToWasmTypes(sig), func);
+      }
+      var typeSectionBody = [1, 96];
+      var sigRet = sig.slice(0, 1);
+      var sigParam = sig.slice(1);
+      var typeCodes = { i: 127, p: 127, j: 126, f: 125, d: 124 };
+      uleb128Encode(sigParam.length, typeSectionBody);
+      for (var i = 0; i < sigParam.length; ++i) {
+        typeSectionBody.push(typeCodes[sigParam[i]]);
+      }
+      if (sigRet == 'v') {
+        typeSectionBody.push(0);
+      } else {
+        typeSectionBody.push(1, typeCodes[sigRet]);
+      }
+      var bytes = [0, 97, 115, 109, 1, 0, 0, 0, 1];
+      uleb128Encode(typeSectionBody.length, bytes);
+      bytes.push.apply(bytes, typeSectionBody);
+      bytes.push(2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0);
+      var module = new WebAssembly.Module(new Uint8Array(bytes));
+      var instance = new WebAssembly.Instance(module, { e: { f: func } });
+      var wrappedFunc = instance.exports['f'];
+      return wrappedFunc;
+    }
+    var wasmTableMirror = [];
+    function getWasmTableEntry(funcPtr) {
+      var func = wasmTableMirror[funcPtr];
+      if (!func) {
+        if (funcPtr >= wasmTableMirror.length) wasmTableMirror.length = funcPtr + 1;
+        wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
+      }
+      return func;
+    }
+    function updateTableMap(offset, count) {
+      if (functionsInTableMap) {
+        for (var i = offset; i < offset + count; i++) {
+          var item = getWasmTableEntry(i);
+          if (item) {
+            functionsInTableMap.set(item, i);
+          }
+        }
+      }
+    }
+    var functionsInTableMap = undefined;
+    var freeTableIndexes = [];
+    function getEmptyTableSlot() {
+      if (freeTableIndexes.length) {
+        return freeTableIndexes.pop();
+      }
+      try {
+        wasmTable.grow(1);
+      } catch (err) {
+        if (!(err instanceof RangeError)) {
+          throw err;
+        }
+        throw 'Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.';
+      }
+      return wasmTable.length - 1;
+    }
+    function setWasmTableEntry(idx, func) {
+      wasmTable.set(idx, func);
+      wasmTableMirror[idx] = wasmTable.get(idx);
+    }
+    function addFunction(func, sig) {
+      if (!functionsInTableMap) {
+        functionsInTableMap = new WeakMap();
+        updateTableMap(0, wasmTable.length);
+      }
+      if (functionsInTableMap.has(func)) {
+        return functionsInTableMap.get(func);
+      }
+      var ret = getEmptyTableSlot();
+      try {
+        setWasmTableEntry(ret, func);
+      } catch (err) {
+        if (!(err instanceof TypeError)) {
+          throw err;
+        }
+        var wrapped = convertJsFunctionToWasm(func, sig);
+        setWasmTableEntry(ret, wrapped);
+      }
+      functionsInTableMap.set(func, ret);
+      return ret;
+    }
     function runAndAbortIfError(func) {
       try {
         return func();
@@ -620,12 +623,8 @@ var createQspModule = (() => {
         abort(e);
       }
     }
-    function callUserCallback(func, synchronous) {
+    function callUserCallback(func) {
       if (ABORT) {
-        return;
-      }
-      if (synchronous) {
-        func();
         return;
       }
       try {
@@ -720,7 +719,7 @@ var createQspModule = (() => {
           Asyncify.exportCallStack.length === 0
         ) {
           Asyncify.state = Asyncify.State.Normal;
-          runAndAbortIfError(Module['_asyncify_stop_unwind']);
+          runAndAbortIfError(_asyncify_stop_unwind);
           if (typeof Fibers != 'undefined') {
             Fibers.trampoline();
           }
@@ -769,7 +768,7 @@ var createQspModule = (() => {
               return;
             }
             Asyncify.state = Asyncify.State.Rewinding;
-            runAndAbortIfError(() => Module['_asyncify_start_rewind'](Asyncify.currData));
+            runAndAbortIfError(() => _asyncify_start_rewind(Asyncify.currData));
             if (typeof Browser != 'undefined' && Browser.mainLoop.func) {
               Browser.mainLoop.resume();
             }
@@ -803,11 +802,11 @@ var createQspModule = (() => {
             if (typeof Browser != 'undefined' && Browser.mainLoop.func) {
               Browser.mainLoop.pause();
             }
-            runAndAbortIfError(() => Module['_asyncify_start_unwind'](Asyncify.currData));
+            runAndAbortIfError(() => _asyncify_start_unwind(Asyncify.currData));
           }
         } else if (Asyncify.state === Asyncify.State.Rewinding) {
           Asyncify.state = Asyncify.State.Normal;
-          runAndAbortIfError(Module['_asyncify_stop_rewind']);
+          runAndAbortIfError(_asyncify_stop_rewind);
           _free(Asyncify.currData);
           Asyncify.currData = null;
           Asyncify.sleepCallbacks.forEach((func) => callUserCallback(func));
@@ -1052,15 +1051,8 @@ var createQspModule = (() => {
       );
     });
     Module['addFunction'] = addFunction;
-    Module['writeStackCookie'] = writeStackCookie;
-    Module['checkStackCookie'] = checkStackCookie;
     Module['Asyncify'] = Asyncify;
     var calledRun;
-    function ExitStatus(status) {
-      this.name = 'ExitStatus';
-      this.message = 'Program terminated with exit(' + status + ')';
-      this.status = status;
-    }
     dependenciesFulfilled = function runCaller() {
       if (!calledRun) run();
       if (!calledRun) dependenciesFulfilled = runCaller;
@@ -1102,7 +1094,6 @@ var createQspModule = (() => {
       }
       checkStackCookie();
     }
-    Module['run'] = run;
     if (Module['preInit']) {
       if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
       while (Module['preInit'].length > 0) {
