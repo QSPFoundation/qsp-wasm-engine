@@ -56,7 +56,7 @@ act '1': x = 1 & jump 'end'
     );
     expect(error).not.toHaveBeenCalled();
     api.selectAction(0);
-    api.executeSelAction();
+    api.execSelectedAction();
     expect(api.readVariable('x')).toBe(1);
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,

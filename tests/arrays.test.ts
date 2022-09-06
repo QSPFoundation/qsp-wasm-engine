@@ -203,7 +203,7 @@ $a = $objs[]
   test('arrpos search for 0', () => {
     runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=1 & r = arrpos('mass',0)`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariable('r')).toBe(3);
+    expect(api.readVariable('r')).toBe(-1);
   });
 
   test('arrpos skip', () => {
@@ -227,7 +227,7 @@ $a = $objs[]
   test('arrpos string search for empty string', () => {
     runTestFile(api, `$mass[0]='a' & $mass[1]='b' & $mass[2]='c' & r = arrpos('$mass','')`);
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariable('r')).toBe(3);
+    expect(api.readVariable('r')).toBe(-1);
   });
 
   test('arrpos string skip', () => {

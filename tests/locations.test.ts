@@ -410,7 +410,7 @@ end
     );
     expect(error).not.toHaveBeenCalled();
     api.selectAction(0);
-    api.executeSelAction();
+    api.execSelectedAction();
     expect(api.readVariable('$args_0')).toBe('test');
     expect(api.readVariable('args_1')).toBe(12);
   });
@@ -430,7 +430,7 @@ end
     );
     expect(error).not.toHaveBeenCalled();
     api.selectAction(0);
-    api.executeSelAction();
+    api.execSelectedAction();
     expect(api.readVariable('$args_0')).toBe('test');
     expect(api.readVariable('args_1')).toBe(12);
   });
