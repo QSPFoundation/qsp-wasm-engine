@@ -88,16 +88,21 @@ describe('api', () => {
     expect(api.version()).toEqual('5.8.0');
   });
 
-  it('should watch variables', () => {
+  it('should watch variable by index', () => {
     runTestFile(api, ``);
     const watchVariables = jest.fn();
-    api.watchVariables(['test'], watchVariables);
-    expect(watchVariables).toHaveBeenCalledWith({
-      test: 0,
-    });
-    api.execCode(`test = 123`);
-    expect(watchVariables).toHaveBeenCalledWith({
-      test: 123,
-    });
+    api.watchVariable('test', 1, watchVariables);
+    expect(watchVariables).toHaveBeenCalledWith(0);
+    api.execCode(`test[1] = 123`);
+    expect(watchVariables).toHaveBeenCalledWith(123);
+  });
+
+  it('should watch variable by key', () => {
+    runTestFile(api, ``);
+    const watchVariables = jest.fn();
+    api.watchVariableByKey('test', 'key', watchVariables);
+    expect(watchVariables).toHaveBeenCalledWith(0);
+    api.execCode(`test['key'] = 123`);
+    expect(watchVariables).toHaveBeenCalledWith(123);
   });
 });

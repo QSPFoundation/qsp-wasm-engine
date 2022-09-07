@@ -20,8 +20,14 @@ export interface QspAPI {
   execCounter(): void;
   updateUserInput(code: string): void;
   execLoc(name: string): void;
-  watchVariables(
-    variables: string[],
-    callback: (data: Record<string, string | number>) => void
+  watchVariable<Name extends string>(
+    name: Name,
+    index: number,
+    callback: (value: QspVaribleType<Name>) => void
+  ): () => void;
+  watchVariableByKey<Name extends string>(
+    name: Name,
+    key: string,
+    callback: (value: QspVaribleType<Name>) => void
   ): () => void;
 }

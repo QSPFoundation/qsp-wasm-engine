@@ -17,10 +17,7 @@ import {
 
 export class QspAPIImpl implements QspAPI {
   private listeners = new Map<QspEventKeys, QspEventListeners[]>();
-  private variableWatchers = new Set<{
-    variables: string[];
-    callback: (data: Record<string, string | number>) => void;
-  }>();
+  private variableWatchers = new Set<() => void>();
   private variableValues = new Map<string, string | number>();
 
   private time: number = Date.now();
@@ -47,22 +44,42 @@ export class QspAPIImpl implements QspAPI {
     }
   }
 
-  watchVariables(
-    variables: string[],
-    callback: (data: Record<string, string | number>) => void
+  watchVariable<Name extends string>(
+    name: Name,
+    index: number,
+    callback: (value: QspVaribleType<Name>) => void
   ): () => void {
-    const watcher = {
-      variables,
-      callback,
-    };
-    this.variableWatchers.add(watcher);
-    const data = this.readVariables(variables);
-    callback(data);
-    return () => {
-      this.variableWatchers.delete(watcher);
-      for (const variable of variables) {
-        this.variableValues.delete(variable);
+    let value: QspVaribleType<Name> = this.readVariable(name, index);
+    callback(value);
+    const updater = () => {
+      const newValue = this.readVariable(name, index);
+      if (value !== newValue) {
+        value = newValue;
+        callback(value);
       }
+    };
+    this.variableWatchers.add(updater);
+    return () => {
+      this.variableWatchers.delete(updater);
+    };
+  }
+  watchVariableByKey<Name extends string>(
+    name: Name,
+    key: string,
+    callback: (value: QspVaribleType<Name>) => void
+  ): () => void {
+    let value: QspVaribleType<Name> = this.readVariableByKey(name, key);
+    callback(value);
+    const updater = () => {
+      const newValue = this.readVariableByKey(name, key);
+      if (value !== newValue) {
+        value = newValue;
+        callback(value);
+      }
+    };
+    this.variableWatchers.add(updater);
+    return () => {
+      this.variableWatchers.delete(updater);
     };
   }
 
@@ -369,26 +386,9 @@ export class QspAPIImpl implements QspAPI {
   };
 
   private reportVariables() {
-    for (const { variables, callback } of this.variableWatchers.values()) {
-      const data = this.readVariables(variables);
-      if (Object.keys(data).length > 0) {
-        callback(data);
-      }
+    for (const updater of this.variableWatchers.values()) {
+      updater();
     }
-  }
-
-  private readVariables(variables: string[]): Record<string, string | number> {
-    const result: Record<string, string | number> = {};
-    for (const variable of variables) {
-      const value = variable.startsWith('$')
-        ? this.readVariableString(variable)
-        : this.readVariableNumber(variable);
-      if (this.variableValues.get(variable) !== value) {
-        result[variable] = value;
-      }
-      this.variableValues.set(variable, value);
-    }
-    return result;
   }
 
   private readError(): QspErrorData | null {

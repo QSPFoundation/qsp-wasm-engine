@@ -70,9 +70,16 @@ api.readVariableByKey(name: string, key: string): string | number;
 // reads size of some variable
 api.readVariableSize(name: string): number;
 // allows to subscribe to variable changes (main intention is to watch UI related variables)
-api.watchVariables(
-    variables: string[],
-    callback: (data: Record<string, string | number>) => void
+api.watchVariable(
+    name: string,
+    index: number,
+    callback: (value: string | number) => void
+  ): () => void;
+// allows to subscribe to variable key changes (main intention is to watch UI related variables)
+api.watchVariableByKey(
+    name: string,
+    key: string,
+    callback: (value: string | number) => void
   ): () => void;
 ```
 
