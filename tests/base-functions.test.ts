@@ -55,7 +55,9 @@ $cloc = $CURLOC`
     [`a = 1 & b = 5 & c = 3 & res = MIN(a,b,c)`, 'res', 1],
     [`$res = MIN('aa','zz','ab')`, '$res', 'aa'],
     [`a[0] = 1 & a[1] = 5 & a[2] = 2 & res = MIN('a')`, 'res', 1],
-    [`$b[0] = 'aa' & $b[2] = 'zz' & $b[5] = 'ab' & $res = MIN('$b')`, '$res', 'aa'],
+    [`a[0] = 1 & a[1] = 5 & a[5] = 2 & res = MIN('a')`, 'res', 0],
+    [`$b[0] = 'aa' & $b[1] = 'zz' & $b[2] = 'ab' & $res = MIN('$b')`, '$res', 'aa'],
+    [`$b[0] = 'aa' & $b[2] = 'zz' & $b[5] = 'ab' & $res = MIN('$b')`, '$res', ''],
   ])('MIN', (input, variable, result) => {
     test(input, () => {
       runTestFile(api, input);
