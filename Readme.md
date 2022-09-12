@@ -13,18 +13,20 @@ npm install --save @qsp/wasm-engine
 This library has separate builds for running in browser or on server.
 Use
 ```js
-import { initQspEngine } from '@qsp/wasm-engine/browser';
+import { initQspEngine } from '@qsp/wasm-engine';
 import qspWasmUrl from '@qsp/wasm-engine/qsp-engine.wasm';
 
-const api = await initQspEngine(qspWasmUrl);
+const wasm = await fetch(wasmPath).then((r) => r.arrayBuffer());
+const api = await init(qspWasmUrl);
 ```
 
 or 
 
 ```js
-const { initQspEngine } = require('@qsp/wasm-engine/node');
-
-const api = await initQspEngine(require.resolve('@qsp/wasm-engine/qsp-engine.wasm'));
+const { initQspEngine } = require('@qsp/wasm-engine');
+const fsp = require('fs/promises');
+const wasm = await fsp.readFile(require.resolve('@qsp/wasm-engine/qsp-engine.wasm'));
+const api = await initQspEngine(wasm.buffer);
 
 ```
 depending on your environment.

@@ -1,13 +1,13 @@
 import path from 'path';
 import fs from 'fs';
 import { readQsps, writeQsp } from '@qsp/converters';
-import { init } from './lib/qsp-engine';
+import { initQspEngine } from './lib/qsp-engine';
 import { QspAPI } from './contracts/api';
 
 const wasm = fs.readFileSync(path.resolve('./src/qsplib/public/qsp-engine.wasm'));
 
 export async function prepareApi() {
-  const api = await init(wasm.buffer);
+  const api = await initQspEngine(wasm.buffer);
   return api;
 }
 
