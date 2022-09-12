@@ -11,6 +11,7 @@
     ".": "./dist/wasm-engine.modern.js",
     "./qsp-engine.wasm": "./dist/qsp-engine.wasm"
   },
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
