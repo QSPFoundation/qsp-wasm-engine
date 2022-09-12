@@ -3,12 +3,12 @@
   "version": "1.0.1",
   "type": "module",
   "description": "QSP code in WASM",
-  "main": "./dist/node/wasm-engine.cjs",
-  "module": "./dist/node/wasm-engine.esm.js",
+  "source": "src/index.ts", 
+  "main": "./dist/wasm-engine.cjs",
+  "module": "./dist/wasm-engine.modern.js",
+  "unpkg": "./dist/wasm-engine.umd.js",
   "exports": {
-    ".": "./dist/node/wasm-engine.esm.js",
-    "./browser": "./dist/web/wasm-engine.modern.js",
-    "./node": "./dist/node/wasm-engine.cjs",
+    ".": "./dist/wasm-engine.modern.js",
     "./qsp-engine.wasm": "./dist/qsp-engine.wasm"
   },
   "files": [
@@ -16,9 +16,7 @@
   ],
   "scripts": {
     "prebuild": "rimraf ./dist && mkdir dist && cp ./src/qsplib/public/qsp-engine.wasm ./dist/qsp-engine.wasm",
-    "build": "npm run build:node && npm run build:web",
-    "build:node": "microbundle --target=node -i src/qsp-engine-node.ts -o dist/node --format=esm,cjs",
-    "build:web": "microbundle --target=web -i src/qsp-engine-browser.ts -o dist/web --format=modern",
+    "build": "microbundle",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --no-cache",
     "prepublish": "npm run build",
     "release": "np"
