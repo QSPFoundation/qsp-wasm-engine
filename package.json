@@ -1,9 +1,9 @@
 {
   "name": "@qsp/wasm-engine",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "QSP code in WASM",
-  "source": "src/index.ts", 
+  "source": "src/index.ts",
   "main": "./dist/wasm-engine.cjs",
   "module": "./dist/wasm-engine.modern.js",
   "unpkg": "./dist/wasm-engine.umd.js",
