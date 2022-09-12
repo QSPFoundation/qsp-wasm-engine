@@ -1,6 +1,6 @@
 {
   "name": "@qsp/wasm-engine",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "QSP code in WASM",
   "main": "./dist/node/wasm-engine.cjs",
@@ -55,6 +55,6 @@
     "access": "public"
   },
   "np": {
-		"yarn": false
-	}
+    "yarn": false
+  }
 }
