@@ -22,7 +22,6 @@ const api = await initQspEngine(qspWasmUrl);
 or 
 
 ```js
-const path = require('path');
 const { initQspEngine } = require('@qsp/wasm-engine/node');
 
 const api = await initQspEngine(require.resolve('@qsp/wasm-engine/qsp-engine.wasm'));

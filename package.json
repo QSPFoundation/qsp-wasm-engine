@@ -7,7 +7,9 @@
   "module": "./dist/node/wasm-engine.esm.js",
   "exports": {
     ".": "./dist/node/wasm-engine.esm.js",
-    "./web": "./dist/web/wasm-engine.modern.js"
+    "./browser": "./dist/web/wasm-engine.modern.js",
+    "./node": "./dist/node/wasm-engine.cjs",
+    "./qsp-engine.wasm": "./dist/qsp-engine.wasm"
   },
   "files": [
     "dist"
