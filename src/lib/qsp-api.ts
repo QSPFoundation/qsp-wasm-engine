@@ -146,17 +146,33 @@ export class QspAPIImpl implements QspAPI {
   }
 
   readVariable<Name extends string>(name: Name, index?: number): QspVaribleType<Name> {
-    if (name.startsWith('$')) {
-      return this.readVariableString(name, index) as QspVaribleType<Name>;
+    const cacheKey = `${name}[${index || 0}]`;
+    if (this.variableValues.has(cacheKey)) {
+      return this.variableValues.get(cacheKey) as QspVaribleType<Name>;
     }
-    return this.readVariableNumber(name, index) as QspVaribleType<Name>;
+    if (name.startsWith('$')) {
+      const value = this.readVariableString(name, index) as QspVaribleType<Name>;
+      this.variableValues.set(cacheKey, value);
+      return value;
+    }
+    const value = this.readVariableNumber(name, index) as QspVaribleType<Name>;
+    this.variableValues.set(cacheKey, value);
+    return value;
   }
 
   readVariableByKey<Name extends string>(name: Name, key: string): QspVaribleType<Name> {
-    if (name.startsWith('$')) {
-      return this.readVariableStringByKey(name, key) as QspVaribleType<Name>;
+    const cacheKey = `${name}[${key}]`;
+    if (this.variableValues.has(cacheKey)) {
+      return this.variableValues.get(cacheKey) as QspVaribleType<Name>;
     }
-    return this.readVariableNumberByKey(name, key) as QspVaribleType<Name>;
+    if (name.startsWith('$')) {
+      const value = this.readVariableStringByKey(name, key) as QspVaribleType<Name>;
+      this.variableValues.set(cacheKey, value);
+      return value;
+    }
+    const value = this.readVariableNumberByKey(name, key) as QspVaribleType<Name>;
+    this.variableValues.set(cacheKey, value);
+    return value;
   }
 
   readVariableNumber(name: string, index = 0): number {
@@ -258,7 +274,7 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onRefresh = (isRedraw: boolean): void => {
-    this.reportVariables();
+    this.reportWatched();
 
     if (isRedraw || this.module._isMainDescChanged()) {
       const mainDesc = withStringRead(this.module, (ptr) => this.module._getMainDesc(ptr));
@@ -385,7 +401,8 @@ export class QspAPIImpl implements QspAPI {
     return asAsync(this.module, (done) => this.emit('close_file', file, done));
   };
 
-  private reportVariables() {
+  private reportWatched() {
+    this.variableValues.clear();
     for (const updater of this.variableWatchers.values()) {
       updater();
     }
