@@ -19,6 +19,8 @@ export class QspAPIImpl implements QspAPI {
   private listeners = new Map<QspEventKeys, QspEventListeners[]>();
   private variableWatchers = new Set<() => void>();
   private variableValues = new Map<string, string | number>();
+  private expressionWatchers = new Set<() => void>();
+  private expressionValues = new Map<string, number>();
 
   private time: number = Date.now();
 
@@ -83,6 +85,32 @@ export class QspAPIImpl implements QspAPI {
     };
   }
 
+  watchExpression(expr: string, callback: (value: number) => void): () => void {
+    let value = this.evalExpression(expr);
+    callback(value);
+    const updater = () => {
+      const newValue = this.evalExpression(expr);
+      if (value !== newValue) {
+        value = newValue;
+        callback(value);
+      }
+    };
+    this.expressionWatchers.add(updater);
+    return () => {
+      this.expressionWatchers.delete(updater);
+    };
+  }
+
+  private evalExpression(expr: string): number {
+    if (this.expressionValues.has(expr)) {
+      return this.expressionValues.get(expr) as number;
+    }
+    this.execCode(`qspider_result = ${expr}`, false);
+    const value = this.readVariable('qspider_result', 0, false);
+    this.expressionValues.set(expr, value);
+    return value;
+  }
+
   private emit<E extends keyof QspEvents, CB extends QspEvents[E] = QspEvents[E]>(
     event: E,
     ...args: Parameters<CB>
@@ -145,9 +173,13 @@ export class QspAPIImpl implements QspAPI {
     return newPtr;
   }
 
-  readVariable<Name extends string>(name: Name, index?: number): QspVaribleType<Name> {
+  readVariable<Name extends string>(
+    name: Name,
+    index?: number,
+    useCache = false
+  ): QspVaribleType<Name> {
     const cacheKey = `${name}[${index || 0}]`;
-    if (this.variableValues.has(cacheKey)) {
+    if (useCache && this.variableValues.has(cacheKey)) {
       return this.variableValues.get(cacheKey) as QspVaribleType<Name>;
     }
     if (name.startsWith('$')) {
@@ -206,8 +238,8 @@ export class QspAPIImpl implements QspAPI {
     return this.module._getVarSize(namePtr);
   }
 
-  execCode(code: string): void {
-    withStringWrite(this.module, code, (ptr) => this.module._execString(ptr));
+  execCode(code: string, isRefresh = true): void {
+    withStringWrite(this.module, code, (ptr) => this.module._execString(ptr, isRefresh ? 1 : 0));
   }
 
   execCounter(): void {
@@ -265,6 +297,7 @@ export class QspAPIImpl implements QspAPI {
   }
 
   onError = (): void => {
+    console.log('onError');
     const errorData = this.readError();
     if (errorData) {
       console.error(errorData);
@@ -274,8 +307,6 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onRefresh = (isRedraw: boolean): void => {
-    this.reportWatched();
-
     if (isRedraw || this.module._isMainDescChanged()) {
       const mainDesc = withStringRead(this.module, (ptr) => this.module._getMainDesc(ptr));
       this.emit('main_changed', mainDesc);
@@ -295,6 +326,7 @@ export class QspAPIImpl implements QspAPI {
       const objects = withListRead(this.module, (ptr) => this.module._getObjects(ptr));
       this.emit('objects_changed', objects);
     }
+    setTimeout(() => this.reportWatched(), 0);
   };
 
   onShowWindow = (type: QspPanel, isShown: boolean): void => {
@@ -401,9 +433,17 @@ export class QspAPIImpl implements QspAPI {
     return asAsync(this.module, (done) => this.emit('close_file', file, done));
   };
 
-  private reportWatched() {
+  clearCache() {
     this.variableValues.clear();
+    this.expressionValues.clear();
+  }
+
+  private reportWatched() {
+    this.clearCache();
     for (const updater of this.variableWatchers.values()) {
+      updater();
+    }
+    for (const updater of this.expressionWatchers.values()) {
       updater();
     }
   }

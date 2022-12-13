@@ -3,6 +3,12 @@ import { jest } from '@jest/globals';
 import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  })
+}
+
 // TODO add save/load test
 describe('api', () => {
   let api: QspAPI;
@@ -88,21 +94,38 @@ describe('api', () => {
     expect(api.version()).toEqual('5.8.0');
   });
 
-  it('should watch variable by index', () => {
+  it('should watch variable by index', async () => {
     runTestFile(api, ``);
     const watchVariables = jest.fn();
     api.watchVariable('test', 1, watchVariables);
+    await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(0);
     api.execCode(`test[1] = 123`);
+    await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(123);
   });
 
-  it('should watch variable by key', () => {
+  it('should watch variable by key', async () => {
     runTestFile(api, ``);
     const watchVariables = jest.fn();
     api.watchVariableByKey('test', 'key', watchVariables);
+    await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(0);
     api.execCode(`test['key'] = 123`);
+    await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(123);
   });
+
+  it('should watch expression', async () => {
+    runTestFile(api, ``);
+    const watchExpression = jest.fn();
+    api.watchExpression('x > 0', watchExpression);
+    await delay(10);
+    expect(watchExpression).toHaveBeenCalledWith(0);
+    watchExpression.mockReset();
+    api.execCode('x = 5');
+    await delay(10);
+    expect(watchExpression).toHaveBeenCalledWith(1);
+  })
 });
+

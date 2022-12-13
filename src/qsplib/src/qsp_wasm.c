@@ -206,9 +206,9 @@ void loadSavedGameData(const void *data, int dataSize)
 
 /* exec code */
 EMSCRIPTEN_KEEPALIVE
-void execString(QSP_CHAR *s)
+void execString(QSP_CHAR *s, QSP_BOOL isRefresh)
 {
-  if (!QSPExecString(qspStringFromC(s), QSP_TRUE))
+  if (!QSPExecString(qspStringFromC(s), isRefresh))
   {
     onError();
   }

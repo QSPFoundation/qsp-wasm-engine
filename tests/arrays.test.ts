@@ -116,6 +116,7 @@ $a = $objs[]
     expect(api.readVariableByKey('a', 'other')).toBe(2);
     api.execCode(`killvar 'a', 'test'`);
     expect(error).not.toHaveBeenCalled();
+    api.clearCache();
     expect(api.readVariableByKey('a', 'test')).toBe(0);
     expect(api.readVariableByKey('a', 'other')).toBe(2);
   });
