@@ -21,6 +21,7 @@ export class QspAPIImpl implements QspAPI {
   private variableValues = new Map<string, string | number>();
   private expressionWatchers = new Set<() => void>();
   private expressionValues = new Map<string, number>();
+  private isWatcherPaused = false;
 
   private time: number = Date.now();
 
@@ -339,18 +340,26 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onMsg = (textPtr: StringPtr): void => {
+    this.isWatcherPaused = true;
     this.onRefresh(false);
     const text = readString(this.module, textPtr);
-    return asAsync(this.module, (done) => this.emit('msg', text, done));
+    return asAsync(this.module, (done) =>
+      this.emit('msg', text, () => {
+        done();
+        this.isWatcherPaused = false;
+      })
+    );
   };
 
   onInput = (textPtr: StringPtr, retPtr: Ptr, maxSize: number): void => {
+    this.isWatcherPaused = true;
     this.onRefresh(false);
     const text = readString(this.module, textPtr);
     return asAsync(this.module, (done) => {
       const onInput = (inputText: string): void => {
         writeUTF32String(this.module, inputText, retPtr, maxSize);
         done();
+        this.isWatcherPaused = false;
       };
       this.emit('input', text, onInput);
     });
@@ -368,7 +377,13 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onWait = (ms: number): void => {
-    return asAsync(this.module, (done) => this.emit('wait', ms, done));
+    this.isWatcherPaused = true;
+    return asAsync(this.module, (done) =>
+      this.emit('wait', ms, () => {
+        done();
+        this.isWatcherPaused = false;
+      })
+    );
   };
 
   onSetTimer = (ms: number): void => {
@@ -402,35 +417,69 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onOpenGame = (pathPtr: StringPtr, isNewGame: boolean): void => {
+    this.isWatcherPaused = true;
     const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) => this.emit('open_game', path, isNewGame, done));
+    return asAsync(this.module, (done) =>
+      this.emit('open_game', path, isNewGame, () => {
+        done();
+        this.isWatcherPaused = false;
+      })
+    );
   };
 
   onOpenGameStatus = (pathPtr: StringPtr): void => {
+    this.isWatcherPaused = true;
     const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) => this.emit('load_save', path, done));
+    return asAsync(this.module, (done) =>
+      this.emit('load_save', path, () => {
+        done();
+        this.isWatcherPaused = false;
+      })
+    );
   };
 
   onSaveGameStatus = (pathPtr: StringPtr): void => {
+    this.isWatcherPaused = true;
     const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) => this.emit('save_game', path, done));
+    return asAsync(this.module, (done) =>
+      this.emit('save_game', path, () => {
+        done();
+        this.isWatcherPaused = false;
+      })
+    );
   };
 
   onIsPlay = (filePtr: StringPtr): void => {
+    this.isWatcherPaused = true;
     const file = readString(this.module, filePtr);
     return asAsync(this.module, (done) =>
-      this.emit('is_play', file, (result: boolean) => done(result ? 1 : 0))
+      this.emit('is_play', file, (result: boolean) => {
+        done(result ? 1 : 0);
+        this.isWatcherPaused = false;
+      })
     );
   };
 
   onPlayFile = (filePtr: StringPtr, volume: number): void => {
+    this.isWatcherPaused = true;
     const file = readString(this.module, filePtr);
-    return asAsync(this.module, (done) => this.emit('play_file', file, volume, done));
+    return asAsync(this.module, (done) =>
+      this.emit('play_file', file, volume, () => {
+        done();
+        this.isWatcherPaused = false;
+      })
+    );
   };
 
   onCloseFile = (filePtr: StringPtr): void => {
+    this.isWatcherPaused = true;
     const file = readString(this.module, filePtr);
-    return asAsync(this.module, (done) => this.emit('close_file', file, done));
+    return asAsync(this.module, (done) =>
+      this.emit('close_file', file, () => {
+        done();
+        this.isWatcherPaused = false;
+      })
+    );
   };
 
   clearCache() {
@@ -439,6 +488,7 @@ export class QspAPIImpl implements QspAPI {
   }
 
   private reportWatched() {
+    if (this.isWatcherPaused) return;
     this.clearCache();
     for (const updater of this.variableWatchers.values()) {
       updater();

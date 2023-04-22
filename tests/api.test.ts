@@ -4,9 +4,9 @@ import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 function delay(ms: number): Promise<void> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(resolve, ms);
-  })
+  });
 }
 
 // TODO add save/load test
@@ -79,7 +79,7 @@ describe('api', () => {
     runTestFile(api, `test[100] = 1`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariableSize('test')).toBe(101);
-  })
+  });
 
   it('should exec code', () => {
     const statsChanged = jest.fn();
@@ -126,6 +126,15 @@ describe('api', () => {
     api.execCode('x = 5');
     await delay(10);
     expect(watchExpression).toHaveBeenCalledWith(1);
-  })
-});
+  });
 
+  it('should not error when watching expressions with msg/input call', async () => {
+    runTestFile(api, ``);
+    const watchExpression = jest.fn();
+    api.watchExpression('x > 0', watchExpression);
+    await delay(10);
+    expect(error).not.toHaveBeenCalled();
+    api.execCode(`msg "test"`);
+    expect(error).not.toHaveBeenCalled();
+  });
+});
