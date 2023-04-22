@@ -20,7 +20,8 @@
     "build": "microbundle",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --no-cache",
     "prepublish": "npm run build",
-    "release": "np"
+    "release": "np",
+    "lint": "eslint . && tsc --noEmit"
   },
   "keywords": [
     "qsp",
@@ -40,6 +41,7 @@
     "@qsp/converters": "^1.0.1",
     "@types/emscripten": "^1.39.6",
     "@types/jest": "^29.5.1",
+    "@types/responselike": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
     "@typescript-eslint/parser": "^5.59.0",
     "eslint": "^8.39.0",

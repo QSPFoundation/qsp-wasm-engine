@@ -6,8 +6,6 @@ export type FunctionPtr = number;
 export type StringPtr = number;
 export type Bool = 0 | 1;
 
-type IRType = 'i8' | 'i16' | 'i32' | 'i64' | 'float' | 'double';
-
 export enum QspCallType {
   DEBUG /* void func(QSPString str) */,
   ISPLAYINGFILE /* QSP_BOOL func(QSPString file) */,

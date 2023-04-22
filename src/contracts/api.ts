@@ -1,6 +1,6 @@
 import { QspEvents } from './events';
 
-export type QspVaribleType<Name extends string> = Name extends `$${infer A}` ? string : number;
+export type QspVaribleType<Name extends string> = Name extends `$${infer _A}` ? string : number;
 
 export interface QspAPI {
   on<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
