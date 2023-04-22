@@ -488,11 +488,11 @@ export class QspAPIImpl implements QspAPI {
   }
 
   private reportWatched() {
-    if (this.isWatcherPaused) return;
     this.clearCache();
     for (const updater of this.variableWatchers.values()) {
       updater();
     }
+    if (this.isWatcherPaused) return;
     for (const updater of this.expressionWatchers.values()) {
       updater();
     }

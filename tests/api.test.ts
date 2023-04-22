@@ -105,6 +105,22 @@ describe('api', () => {
     expect(watchVariables).toHaveBeenCalledWith(123);
   });
 
+  it('should see variable change before msg', async () => {
+    runTestFile(api, ``);
+    const watchVariables = jest.fn();
+    const msg = jest.fn();
+    api.on('msg', msg)
+
+    api.watchVariable('test', 1, watchVariables);
+    await delay(10);
+    expect(watchVariables).toHaveBeenCalledWith(0);
+    api.execCode(`test[1] = 123 & msg "test"`);
+    await delay(10);
+    expect(watchVariables).toHaveBeenCalledWith(123);
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    (msg.mock.calls[0][1] as Function)();
+  });
+
   it('should watch variable by key', async () => {
     runTestFile(api, ``);
     const watchVariables = jest.fn();
