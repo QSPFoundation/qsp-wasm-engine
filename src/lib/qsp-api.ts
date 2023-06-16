@@ -406,6 +406,7 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onSystemCmd = (strPtr: StringPtr): void => {
+    this.onRefresh(false);
     const text = readString(this.module, strPtr);
     this.emit('system_cmd', text);
   };
