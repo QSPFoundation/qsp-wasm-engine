@@ -31,7 +31,7 @@ describe('exec', () => {
 
     expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledTimes(2);
-    expect(onMain).toBeCalledWith('before');
-    expect(onMain).toBeCalledWith('before-after');
+    expect(onMain).toHaveBeenCalledWith('before');
+    expect(onMain).toHaveBeenCalledWith('before-after');
   });
 });

@@ -59,7 +59,7 @@ p 'works'
     );
     expect(error).not.toHaveBeenCalled();
     api.execCounter();
-    expect(onStatsChanged).toBeCalledWith('works');
+    expect(onStatsChanged).toHaveBeenCalledWith('works');
   });
 
   test('several counters should be supported', () => {
@@ -80,6 +80,6 @@ p ' & works other'
     );
     expect(error).not.toHaveBeenCalled();
     api.execCounter();
-    expect(onStatsChanged).toBeCalledWith('works & works other');
+    expect(onStatsChanged).toHaveBeenCalledWith('works & works other');
   });
 });

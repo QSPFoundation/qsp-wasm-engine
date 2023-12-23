@@ -20,7 +20,7 @@ describe('objects', () => {
     const panelVisibility = jest.fn();
     api.on('panel_visibility', panelVisibility);
     runTestFile(api, `SHOWOBJS 0`);
-    expect(panelVisibility).toBeCalledWith(QspPanel.OBJS, 0);
+    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.OBJS, 0);
   });
 
   test('ADDOBJ should add object to end of list', () => {

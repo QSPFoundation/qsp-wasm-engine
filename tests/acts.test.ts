@@ -20,7 +20,7 @@ describe('acts', () => {
     const panelVisibility = jest.fn();
     api.on('panel_visibility', panelVisibility);
     runTestFile(api, `SHOWACTS 0`);
-    expect(panelVisibility).toBeCalledWith(QspPanel.ACTS, 0);
+    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.ACTS, 0);
   });
 
   test('single line ACT', () => {
