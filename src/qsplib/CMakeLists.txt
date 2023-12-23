@@ -1,5 +1,5 @@
-project (qsplib-wasm)
 cmake_minimum_required(VERSION 3.13)
+project (qsplib-wasm VERSION 1.0.0)
 
 set(CMAKE_BUILD_TYPE Release)
 set(BUILD_TEST OFF CACHE BOOL "")
@@ -32,7 +32,10 @@ set_target_properties(qsp-engine PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -s RESERVED_FUNCTION_POINTERS=20 \
     -s ASYNCIFY \
     -s EXPORTED_RUNTIME_METHODS='[addFunction, Asyncify]' \
-    -s ENVIRONMENT='web,worker,webview' \
+    -s EXPORTED_FUNCTIONS='[_malloc, _free]' \
+    -s ENVIRONMENT='web,worker,webview,node' \
+    -s STACK_SIZE=5242880 \
+    -s ASYNCIFY_STACK_SIZE=16384 \
     -s MODULARIZE=1 \
     -s INVOKE_RUN=0 \
     -s WARN_UNALIGNED=1 \
