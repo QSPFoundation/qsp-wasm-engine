@@ -58,8 +58,5 @@
   },
   "np": {
     "yarn": false
-  },
-  "dependencies": {
-    "tslib": "^2.6.2"
   }
 }
