@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 import { QspPanel } from '../src';
 
@@ -10,14 +9,14 @@ describe('acts', () => {
   let actsChanged: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
-    actsChanged = jest.fn();
+    actsChanged = vi.fn();
     api.on('actions_changed', actsChanged);
   });
 
   test('SHOWACTS should toggle acts visibility', () => {
-    const panelVisibility = jest.fn();
+    const panelVisibility = vi.fn();
     api.on('panel_visibility', panelVisibility);
     runTestFile(api, `SHOWACTS 0`);
     expect(panelVisibility).toHaveBeenCalledWith(QspPanel.ACTS, 0);

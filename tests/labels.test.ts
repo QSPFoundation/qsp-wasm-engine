@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 describe('conditionals', () => {
@@ -8,7 +7,7 @@ describe('conditionals', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
@@ -28,7 +27,7 @@ if x = 1: y = 2
   });
 
   test('jump loops', () => {
-    const onStat = jest.fn();
+    const onStat = vi.fn();
     api.on('stats_changed', onStat);
     runTestFile(
       api,

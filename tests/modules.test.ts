@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 import { readQsps, writeQsp } from '@qsp/converters';
 
@@ -9,12 +8,12 @@ describe('objects', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
   test('OPENQST', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     api.on('open_game', onOpen);
     runTestFile(api, `x = 1 & OPENQST '1.qsp' & x = 2`);
     expect(error).not.toHaveBeenCalled();
@@ -27,7 +26,7 @@ describe('objects', () => {
   });
 
   test('INCLIB', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     api.on('open_game', onOpen);
     runTestFile(api, `x = 1 & INCLIB '1.qsp' & x = 2`);
     expect(error).not.toHaveBeenCalled();
@@ -40,7 +39,7 @@ describe('objects', () => {
   });
 
   test('FREELIB', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     api.on('open_game', onOpen);
     runTestFile(api, `l = loc('other') & INCLIB '1.qsp'`);
     expect(error).not.toHaveBeenCalled();
@@ -64,7 +63,7 @@ describe('objects', () => {
   });
 
   test('SAVEGAME', () => {
-    const onSave = jest.fn();
+    const onSave = vi.fn();
     api.on('save_game', onSave);
     runTestFile(api, `x = 1 & SAVEGAME '1.sav' & x = 2`);
     expect(error).not.toHaveBeenCalled();
@@ -77,7 +76,7 @@ describe('objects', () => {
   });
 
   test('OPENGAME', () => {
-    const onLoad = jest.fn();
+    const onLoad = vi.fn();
     api.on('load_save', onLoad);
     runTestFile(api, `x = 1 & OPENGAME '1.sav' & x = 2`);
     expect(error).not.toHaveBeenCalled();

@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, it, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 function delay(ms: number): Promise<void> {
@@ -15,7 +14,7 @@ describe('api', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
   it('should read numeric variable', async () => {
@@ -82,7 +81,7 @@ describe('api', () => {
   });
 
   it('should exec code', () => {
-    const statsChanged = jest.fn();
+    const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
     runTestFile(api, ``);
     expect(statsChanged).not.toHaveBeenCalled();
@@ -96,7 +95,7 @@ describe('api', () => {
 
   it('should watch variable by index', async () => {
     runTestFile(api, ``);
-    const watchVariables = jest.fn();
+    const watchVariables = vi.fn();
     api.watchVariable('test', 1, watchVariables);
     await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(0);
@@ -107,8 +106,8 @@ describe('api', () => {
 
   it('should see variable change before msg', async () => {
     runTestFile(api, ``);
-    const watchVariables = jest.fn();
-    const msg = jest.fn();
+    const watchVariables = vi.fn();
+    const msg = vi.fn();
     api.on('msg', msg);
 
     api.watchVariable('test', 1, watchVariables);
@@ -123,7 +122,7 @@ describe('api', () => {
 
   it('should watch variable by key', async () => {
     runTestFile(api, ``);
-    const watchVariables = jest.fn();
+    const watchVariables = vi.fn();
     api.watchVariableByKey('test', 'key', watchVariables);
     await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(0);
@@ -134,7 +133,7 @@ describe('api', () => {
 
   it('should watch expression', async () => {
     runTestFile(api, ``);
-    const watchExpression = jest.fn();
+    const watchExpression = vi.fn();
     api.watchExpression('x > 0', watchExpression);
     await delay(10);
     expect(watchExpression).toHaveBeenCalledWith(0);
@@ -146,7 +145,7 @@ describe('api', () => {
 
   it('should not error when watching expressions with msg/input call', async () => {
     runTestFile(api, ``);
-    const watchExpression = jest.fn();
+    const watchExpression = vi.fn();
     api.watchExpression('x > 0', watchExpression);
     await delay(10);
     expect(error).not.toHaveBeenCalled();

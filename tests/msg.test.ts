@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 describe('MSG', () => {
@@ -9,9 +8,9 @@ describe('MSG', () => {
   let msg: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
-    msg = jest.fn();
+    msg = vi.fn();
     api.on('msg', msg);
   });
 
@@ -22,7 +21,7 @@ describe('MSG', () => {
   });
 
   test('msg should stop execution flow', () => {
-    const mainChanged = jest.fn();
+    const mainChanged = vi.fn();
     api.on('main_changed', mainChanged);
     runTestFile(api, `*p 1 & msg 'works' & *p 2`);
     expect(mainChanged).toHaveBeenCalledWith('1');

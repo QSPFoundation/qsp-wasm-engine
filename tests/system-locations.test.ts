@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 describe('strings', () => {
@@ -8,12 +7,12 @@ describe('strings', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
   test('$ONGLOAD', () => {
-    const onCloseFile = jest.fn();
+    const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
     runTestFile(
       api,
@@ -102,7 +101,7 @@ $name = $selobj
   });
 
   test('$ONNEWLOC', () => {
-    const onStats = jest.fn();
+    const onStats = vi.fn();
     api.on('stats_changed', onStats);
     runTestFile(
       api,

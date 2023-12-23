@@ -1,6 +1,4 @@
-import { Mock } from 'jest-mock';
-import { jest } from '@jest/globals';
-
+import { Mock, beforeEach, describe, vi, it, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src';
 
@@ -9,12 +7,12 @@ describe('exec', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
   it('should trigger callback', () => {
-    const onSystemCmd = jest.fn();
+    const onSystemCmd = vi.fn();
     api.on('system_cmd', onSystemCmd);
 
     runTestFile(api, `exec('test')`);
@@ -24,7 +22,7 @@ describe('exec', () => {
   });
 
   it('should update ui on call', () => {
-    const onMain = jest.fn();
+    const onMain = vi.fn();
     api.on('main_changed', onMain);
 
     runTestFile(api, `*p 'before' & exec('test') & *p '-after'`);

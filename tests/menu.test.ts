@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 describe('objects', () => {
@@ -9,9 +8,9 @@ describe('objects', () => {
   let menu: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
-    menu = jest.fn();
+    menu = vi.fn();
     api.on('menu', menu);
   });
 
@@ -142,7 +141,7 @@ menu '$stone'
   });
 
   test('corresponding location should be called when menu item is selected', () => {
-    const statsChanged = jest.fn();
+    const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
     runTestFile(
       api,
@@ -179,7 +178,7 @@ p 'thrown'
   });
 
   test('index(1 based) of selected item should be passed into processing loc', () => {
-    const statsChanged = jest.fn();
+    const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
     runTestFile(
       api,

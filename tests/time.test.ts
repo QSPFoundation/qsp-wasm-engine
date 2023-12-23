@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 describe('time', () => {
@@ -8,12 +7,12 @@ describe('time', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
   test('WAIT should trigger wait event', () => {
-    const onWait = jest.fn();
+    const onWait = vi.fn();
     api.on('wait', onWait);
     runTestFile(api, `WAIT 1000`);
     expect(error).not.toHaveBeenCalled();
@@ -21,9 +20,9 @@ describe('time', () => {
   });
 
   test('WAIT should pause execution', () => {
-    const onWait = jest.fn();
+    const onWait = vi.fn();
     api.on('wait', onWait);
-    const onStatsChanged = jest.fn();
+    const onStatsChanged = vi.fn();
     api.on('stats_changed', onStatsChanged);
     runTestFile(api, `WAIT 1000 & p 'after wait'`);
     expect(onStatsChanged).toHaveBeenCalledWith('');
@@ -38,7 +37,7 @@ describe('time', () => {
   });
 
   test('SETTIMER should change counter frequency', () => {
-    const onTimer = jest.fn();
+    const onTimer = vi.fn();
     api.on('timer', onTimer);
     runTestFile(api, `SETTIMER 100`);
     expect(error).not.toHaveBeenCalled();
@@ -46,7 +45,7 @@ describe('time', () => {
   });
 
   test('counter location should be called', () => {
-    const onStatsChanged = jest.fn();
+    const onStatsChanged = vi.fn();
     api.on('stats_changed', onStatsChanged);
     runTestFile(
       api,
@@ -63,7 +62,7 @@ p 'works'
   });
 
   test('several counters should be supported', () => {
-    const onStatsChanged = jest.fn();
+    const onStatsChanged = vi.fn();
     api.on('stats_changed', onStatsChanged);
     runTestFile(
       api,

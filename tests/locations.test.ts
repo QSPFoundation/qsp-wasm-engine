@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 // TODO После обработки локации предыдущие значения ARGS и RESULT восстанавливаются.
@@ -10,16 +9,16 @@ describe('api', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
   test('GOTO', () => {
-    const onMain = jest.fn();
+    const onMain = vi.fn();
     api.on('main_changed', onMain);
-    const onStats = jest.fn();
+    const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    const onActs = jest.fn();
+    const onActs = vi.fn();
     api.on('actions_changed', onActs);
     runTestFile(
       api,
@@ -61,11 +60,11 @@ act '2': x
   });
 
   test('GT', () => {
-    const onMain = jest.fn();
+    const onMain = vi.fn();
     api.on('main_changed', onMain);
-    const onStats = jest.fn();
+    const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    const onActs = jest.fn();
+    const onActs = vi.fn();
     api.on('actions_changed', onActs);
     runTestFile(
       api,
@@ -107,11 +106,11 @@ act '2': x
   });
 
   test('XGOTO', () => {
-    const onMain = jest.fn();
+    const onMain = vi.fn();
     api.on('main_changed', onMain);
-    const onStats = jest.fn();
+    const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    const onActs = jest.fn();
+    const onActs = vi.fn();
     api.on('actions_changed', onActs);
     runTestFile(
       api,
@@ -153,11 +152,11 @@ act '2': x
   });
 
   test('XGT', () => {
-    const onMain = jest.fn();
+    const onMain = vi.fn();
     api.on('main_changed', onMain);
-    const onStats = jest.fn();
+    const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    const onActs = jest.fn();
+    const onActs = vi.fn();
     api.on('actions_changed', onActs);
     runTestFile(
       api,
@@ -199,11 +198,11 @@ act '2': x
   });
 
   test('GOSUB', () => {
-    const onMain = jest.fn();
+    const onMain = vi.fn();
     api.on('main_changed', onMain);
-    const onStats = jest.fn();
+    const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    const onActs = jest.fn();
+    const onActs = vi.fn();
     api.on('actions_changed', onActs);
     runTestFile(
       api,
@@ -251,11 +250,11 @@ $second = $args[1]
   });
 
   test('GS', () => {
-    const onMain = jest.fn();
+    const onMain = vi.fn();
     api.on('main_changed', onMain);
-    const onStats = jest.fn();
+    const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    const onActs = jest.fn();
+    const onActs = vi.fn();
     api.on('actions_changed', onActs);
     runTestFile(
       api,
@@ -303,11 +302,11 @@ $second = $args[1]
   });
 
   test('FUNC', () => {
-    const onMain = jest.fn();
+    const onMain = vi.fn();
     api.on('main_changed', onMain);
-    const onStats = jest.fn();
+    const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    const onActs = jest.fn();
+    const onActs = vi.fn();
     api.on('actions_changed', onActs);
     runTestFile(
       api,

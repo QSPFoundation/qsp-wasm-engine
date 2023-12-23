@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 describe('sound', () => {
@@ -8,12 +7,12 @@ describe('sound', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
   test('PLAY should trigger sound playing with defined volume', () => {
-    const onPlay = jest.fn();
+    const onPlay = vi.fn();
     api.on('play_file', onPlay);
     runTestFile(api, `PLAY 'sound/music.mp3',50`);
     expect(error).not.toHaveBeenCalled();
@@ -21,7 +20,7 @@ describe('sound', () => {
   });
 
   test('PLAY should trigger sound playing with 100% volume by default', () => {
-    const onPlay = jest.fn();
+    const onPlay = vi.fn();
     api.on('play_file', onPlay);
     runTestFile(api, `PLAY 'sound/music.mp3'`);
     expect(error).not.toHaveBeenCalled();
@@ -29,9 +28,9 @@ describe('sound', () => {
   });
 
   test('PLAY should pause flow untill released', () => {
-    const onPlay = jest.fn();
+    const onPlay = vi.fn();
     api.on('play_file', onPlay);
-    const statsChanged = jest.fn();
+    const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
     runTestFile(api, `PLAY 'sound/music.mp3' & p 'after play'`);
     expect(statsChanged).not.toHaveBeenCalled();
@@ -42,7 +41,7 @@ describe('sound', () => {
   });
 
   test('ISPLAY resolves to play status', () => {
-    const onIsPlay = jest.fn();
+    const onIsPlay = vi.fn();
     api.on('is_play', onIsPlay);
     runTestFile(api, `playing = ISPLAY('test.mp3')`);
     expect(onIsPlay).toHaveBeenCalledWith('test.mp3', expect.any(Function));
@@ -53,9 +52,9 @@ describe('sound', () => {
   });
 
   test('CLOSE should trigger stopiing file', () => {
-    const onCloseFile = jest.fn();
+    const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
-    const onPlay = jest.fn();
+    const onPlay = vi.fn();
     api.on('play_file', onPlay);
     runTestFile(api, `PLAY 'test.mp3' & CLOSE 'test.mp3'`);
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -65,7 +64,7 @@ describe('sound', () => {
   });
 
   test('CLOSE should not be triggered if no file started playing', () => {
-    const onCloseFile = jest.fn();
+    const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
     runTestFile(api, `CLOSE 'test.mp3'`);
     expect(error).not.toHaveBeenCalled();
@@ -73,9 +72,9 @@ describe('sound', () => {
   });
 
   test('CLOSE ALL should trigger stopiing sound', () => {
-    const onCloseFile = jest.fn();
+    const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
-    const onPlay = jest.fn();
+    const onPlay = vi.fn();
     api.on('play_file', onPlay);
     runTestFile(api, `PLAY 'test.mp3' & CLOSE ALL`);
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -85,7 +84,7 @@ describe('sound', () => {
   });
 
   test('CLOSE ALL should not be triggered when no file was played', () => {
-    const onCloseFile = jest.fn();
+    const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
     runTestFile(api, `CLOSE ALL`);
     expect(error).not.toHaveBeenCalled();

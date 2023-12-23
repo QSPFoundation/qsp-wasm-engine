@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 import { QspPanel } from '../src';
 
@@ -9,12 +8,12 @@ describe('Main panel', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
   test('SHOWINPUT should toggle user cmd visibility', () => {
-    const onPanelVisibility = jest.fn();
+    const onPanelVisibility = vi.fn();
     api.on('panel_visibility', onPanelVisibility);
     runTestFile(api, `SHOWINPUT 0`);
     expect(error).not.toHaveBeenCalled();
@@ -36,7 +35,7 @@ describe('Main panel', () => {
   });
 
   test('CMDCLEAR should return text from user cmd', () => {
-    const userInput = jest.fn();
+    const userInput = vi.fn();
     api.on('user_input', userInput);
     api.updateUserInput('works');
     runTestFile(api, `$textBefore = USRTXT & CMDCLEAR & $textAfter = USRTXT`);
@@ -47,7 +46,7 @@ describe('Main panel', () => {
   });
 
   test('CMDCLR should return text from user cmd', () => {
-    const userInput = jest.fn();
+    const userInput = vi.fn();
     api.on('user_input', userInput);
     api.updateUserInput('works');
     runTestFile(api, `$textBefore = USRTXT & CMDCLR & $textAfter = USRTXT`);
@@ -58,7 +57,7 @@ describe('Main panel', () => {
   });
 
   test('INPUT should interrupt execution flow and recieve entered text', () => {
-    const onInput = jest.fn();
+    const onInput = vi.fn();
     api.on('input', onInput);
     runTestFile(api, `$text = $input('Question?')`);
     expect(error).not.toHaveBeenCalled();

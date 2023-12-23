@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 describe('Main panel', () => {
@@ -9,9 +8,9 @@ describe('Main panel', () => {
   let mainChanged: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
-    mainChanged = jest.fn();
+    mainChanged = vi.fn();
     api.on('main_changed', mainChanged);
   });
 

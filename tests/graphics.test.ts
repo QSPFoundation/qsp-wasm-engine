@@ -1,6 +1,5 @@
+import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
-import { jest } from '@jest/globals';
-import { Mock } from 'jest-mock';
 import { QspAPI } from '../src/contracts/api';
 
 describe('stats panel', () => {
@@ -8,12 +7,12 @@ describe('stats panel', () => {
   let error: Mock;
   beforeEach(async () => {
     api = await prepareApi();
-    error = jest.fn();
+    error = vi.fn();
     api.on('error', error);
   });
 
   test('VIEW with path', () => {
-    const onView = jest.fn();
+    const onView = vi.fn();
     api.on('view', onView);
     runTestFile(api, `VIEW '1.png'`);
     expect(error).not.toHaveBeenCalled();
@@ -21,7 +20,7 @@ describe('stats panel', () => {
   });
 
   test('VIEW without path', () => {
-    const onView = jest.fn();
+    const onView = vi.fn();
     api.on('view', onView);
     runTestFile(api, `VIEW`);
     expect(error).not.toHaveBeenCalled();
@@ -29,13 +28,13 @@ describe('stats panel', () => {
   });
 
   test('REFINT', () => {
-    const mainChanged = jest.fn();
+    const mainChanged = vi.fn();
     api.on('main_changed', mainChanged);
-    const statsChanged = jest.fn();
+    const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
-    const actsChanged = jest.fn();
+    const actsChanged = vi.fn();
     api.on('actions_changed', actsChanged);
-    const objsChanged = jest.fn();
+    const objsChanged = vi.fn();
     api.on('objects_changed', objsChanged);
     api.execCode('REFINT');
 
