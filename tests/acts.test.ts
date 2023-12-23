@@ -50,7 +50,7 @@ describe('acts', () => {
       api,
       `act '1':
   p 1
-end`
+end`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(actsChanged).toHaveBeenCalledWith([
@@ -66,7 +66,7 @@ end`
       api,
       `act '1', '1.png':
   p 1
-end`
+end`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(actsChanged).toHaveBeenCalledWith([
@@ -115,12 +115,10 @@ act '2':
   p 3
 end
 $acts = $CURACTS
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariable('$acts')).toEqual(
-      `ACT '1': P 1\r\nACT '2':\r\nP 2\r\nP 3\r\nEND\r\n`
-    );
+    expect(api.readVariable('$acts')).toEqual(`ACT '1': P 1\r\nACT '2':\r\nP 2\r\nP 3\r\nEND\r\n`);
   });
 
   test('$SELACT should return currently selected action', () => {

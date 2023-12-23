@@ -12,6 +12,7 @@ npm install --save @qsp/wasm-engine
 
 This library has separate builds for running in browser or on server.
 Use
+
 ```js
 import { initQspEngine } from '@qsp/wasm-engine';
 import qspWasmUrl from '@qsp/wasm-engine/qsp-engine.wasm';
@@ -20,15 +21,15 @@ const wasm = await fetch(wasmPath).then((r) => r.arrayBuffer());
 const api = await init(qspWasmUrl);
 ```
 
-or 
+or
 
 ```js
 const { initQspEngine } = require('@qsp/wasm-engine');
 const fsp = require('fs/promises');
 const wasm = await fsp.readFile(require.resolve('@qsp/wasm-engine/qsp-engine.wasm'));
 const api = await initQspEngine(wasm.buffer);
-
 ```
+
 depending on your environment.
 As first argument you need to pass URL of wasm module in browser (you might need to configure your bundler to handle wasm module as URL) or path to wasm module in node.
 `initQspEngine` returns a promise that resolves with API wrapper abstracting away all low level interactions with wasm.
@@ -89,6 +90,7 @@ api.watchVariableByKey(
 API triggers several events when engine provides updates on current state of game or needs to receive some input from user.
 
 Here is the list of currently supported events.
+
 - `main_changed` - event is triggered whenever text in main panel changes.
   Arguments:
   1. `text` - current content of main panel
@@ -105,13 +107,15 @@ Here is the list of currently supported events.
   Arguments:
   1. `type` - code of panel that changed
   1. `isShown` - if panel is shown now
-- `user_input` - event is triggered whenever user input is changed (either from game of using `api.updateUserInput`) 
+- `user_input` - event is triggered whenever user input is changed (either from game of using `api.updateUserInput`)
   Arguments:
   1. `text` - current user input
--  `menu` - event is triggered when `MENU` operator is called in game
+- `menu` - event is triggered when `MENU` operator is called in game
   Arguments:
-  1. `items` - array of menu items (every object has two fields - `name` and `image`)
-  1. `callback` - function to be called after user selected some menu item (passing index). `-1` should be passed ff no item has been selected.
+
+1. `items` - array of menu items (every object has two fields - `name` and `image`)
+1. `callback` - function to be called after user selected some menu item (passing index). `-1` should be passed ff no item has been selected.
+
 - `msg` - event is triggered when `MSG` operator is called in game
   Arguments:
   1. `text` - content of message
@@ -163,6 +167,6 @@ Here is the list of currently supported events.
 - `system_cmd` - event is triggered when `EXEC` operator is called in game
   Arguments:
   1. `cmd` - command string (depends on player)
-- `error` - event is triggered whenever error has happened while executing QSP code: 
+- `error` - event is triggered whenever error has happened while executing QSP code:
   Arguments:
   1. `errorData` - object containing information about error

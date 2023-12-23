@@ -19,7 +19,7 @@ describe('strings', () => {
 i = 1
 x = 1
 loop while i > 1: x += 1
-    `
+    `,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -33,7 +33,7 @@ loop while i > 1: x += 1
 i = 1
 x = 1
 loop while i < 5: x += 1 & i = 10  
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(2);
@@ -44,7 +44,7 @@ loop while i < 5: x += 1 & i = 10
       api,
       `
 loop i = 1 while i < 10 step i += 2: x+=1
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(5);
@@ -56,7 +56,7 @@ loop i = 1 while i < 10 step i += 2: x+=1
       `
 i = 5
 loop local i = 1 while i < 10 step i+=2: x+=1
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(5);

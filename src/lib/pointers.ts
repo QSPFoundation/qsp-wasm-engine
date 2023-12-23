@@ -54,7 +54,7 @@ export function withStringRead(module: QspWasmModule, callback: (ptr: Ptr) => vo
 export function withStringWrite(
   module: QspWasmModule,
   value: string,
-  callback: (ptr: Ptr) => void
+  callback: (ptr: Ptr) => void,
 ): void {
   const ptr = writeString(module, value);
   callback(ptr);
@@ -77,7 +77,7 @@ export function withListRead(module: QspWasmModule, callback: (ptr: Ptr) => Ptr)
 export function withBufferWrite(
   module: QspWasmModule,
   data: ArrayBuffer,
-  callback: (ptr: Ptr, size: number) => void
+  callback: (ptr: Ptr, size: number) => void,
 ): void {
   const bytes = new Uint8Array(data);
   const ptr = module._malloc(bytes.length);
@@ -88,7 +88,7 @@ export function withBufferWrite(
 
 export function withBufferRead(
   module: QspWasmModule,
-  callback: (ptr: Ptr) => Ptr
+  callback: (ptr: Ptr) => Ptr,
 ): ArrayBuffer | null {
   const sizePtr = allocPointer(module);
   const bufferPtr = callback(sizePtr);
@@ -126,7 +126,7 @@ export function readListItems(module: QspWasmModule, listPtr: Ptr, count: number
 
 export function asAsync(
   module: QspWasmModule,
-  callback: (done: (result?: number) => void) => void
+  callback: (done: (result?: number) => void) => void,
 ) {
   return module.Asyncify.handleSleep((wakeUp) => {
     callback((result) => wakeUp(result || 0));
@@ -151,7 +151,7 @@ export function writeUTF32String(
   module: QspWasmModule,
   str: string,
   outPtr: Ptr,
-  maxBytesToWrite = 2147483647
+  maxBytesToWrite = 2147483647,
 ): number {
   if (maxBytesToWrite < 4) return 0;
   const startPtr = outPtr;

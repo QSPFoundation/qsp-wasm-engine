@@ -1,4 +1,4 @@
-import { QspErrorData, QspListItem, QspPanel } from "./common";
+import { QspErrorData, QspListItem, QspPanel } from './common';
 
 export type QspEvents = {
   main_changed: (text: string) => void;

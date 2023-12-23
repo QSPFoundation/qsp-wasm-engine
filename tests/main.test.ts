@@ -65,13 +65,16 @@ describe('Main panel', () => {
   });
 
   test('implicit output', async () => {
-    runTestFile(api, `
+    runTestFile(
+      api,
+      `
 'test'
 func('foo')    
 'test'
 ---
 # foo
-`);
+`,
+    );
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('test\r\ntest\r\n');
@@ -84,7 +87,7 @@ func('foo')
       $txt = $MAINTXT
       *PL '23'
       *NL '456'
-      '78'`
+      '78'`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(mainChanged).toHaveBeenCalledTimes(1);

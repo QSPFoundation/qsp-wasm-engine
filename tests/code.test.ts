@@ -25,7 +25,7 @@ if t _
 else
   $type = 'old'
 end
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$type')).toBe('new');

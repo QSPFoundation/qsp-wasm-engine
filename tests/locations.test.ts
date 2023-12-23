@@ -32,7 +32,7 @@ act '1': x
 *p 'target main'
 nl 'target stats'
 act '2': x
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
@@ -78,7 +78,7 @@ act '1': x
 *p 'target main'
 nl 'target stats'
 act '2': x
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
@@ -124,7 +124,7 @@ act '1': x
 *nl 'target main'
 nl 'target stats'
 act '2': x
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
@@ -170,7 +170,7 @@ act '1': x
 *nl 'target main'
 nl 'target stats'
 act '2': x
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
@@ -218,7 +218,7 @@ nl 'target stats'
 act '2': x
 first = args[0]
 $second = $args[1]
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
@@ -270,7 +270,7 @@ nl 'target stats'
 act '2': x
 first = args[0]
 $second = $args[1]
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
@@ -322,7 +322,7 @@ nl 'target stats'
 act '2': x
 first = args[0]
 $second = $args[1]
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
@@ -362,7 +362,7 @@ x = func('process')
 ---
 # process
 result = 5
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(5);
@@ -376,7 +376,7 @@ $x = func('process')
 ---
 # process
 $result = 'test'
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$x')).toBe('test');
@@ -389,7 +389,7 @@ $result = 'test'
 x = 1
 exit
 x = 2
-    `
+    `,
     );
 
     expect(api.readVariable('x')).toBe(1);
@@ -406,7 +406,7 @@ act '2':
   $args_0 = $args[0]
   args_1 = args[1]
 end
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     api.selectAction(0);
@@ -426,7 +426,7 @@ act '2':
   $args_0 = $args[0]
   args_1 = args[1]
 end
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     api.selectAction(0);
@@ -444,7 +444,7 @@ end
 # target
 first = args[0]
 $second = $args[1]
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('first')).toBe(1);
@@ -459,7 +459,7 @@ x = @process
 ---
 # process
 result = 5
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(5);

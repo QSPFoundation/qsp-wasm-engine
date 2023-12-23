@@ -77,7 +77,7 @@ var createQspModule = (() => {
       if (scriptDirectory.indexOf('blob:') !== 0) {
         scriptDirectory = scriptDirectory.substr(
           0,
-          scriptDirectory.replace(/[?#].*/, '').lastIndexOf('/') + 1
+          scriptDirectory.replace(/[?#].*/, '').lastIndexOf('/') + 1,
         );
       } else {
         scriptDirectory = '';
@@ -162,10 +162,10 @@ var createQspModule = (() => {
       if (cookie1 != 34821223 || cookie2 != 2310721022) {
         abort(
           `Stack overflow! Stack cookie has been overwritten at ${ptrToString(
-            max
+            max,
           )}, expected hex dwords 0x89BACDFE and 0x2135467, but received ${ptrToString(
-            cookie2
-          )} ${ptrToString(cookie1)}`
+            cookie2,
+          )} ${ptrToString(cookie1)}`,
         );
       }
       if (HEAPU32[0 >> 2] != 1668509029) {
@@ -337,7 +337,7 @@ var createQspModule = (() => {
         }
       }
       instantiateAsync(wasmBinary, wasmBinaryFile, info, receiveInstantiationResult).catch(
-        readyPromiseReject
+        readyPromiseReject,
       );
       return {};
     }
@@ -367,7 +367,7 @@ var createQspModule = (() => {
       abort(
         `stack overflow (Attempt to set SP to ${ptrToString(requested)}` +
           `, with stack limits [${ptrToString(end)} - ${ptrToString(base)}` +
-          ']). If you require more stack space build with -sSTACK_SIZE=<bytes>'
+          ']). If you require more stack space build with -sSTACK_SIZE=<bytes>',
       );
     };
     var _emscripten_date_now = () => Date.now();
@@ -395,7 +395,7 @@ var createQspModule = (() => {
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296);
         var newSize = Math.min(
           maxHeapSize,
-          alignUp(Math.max(requestedSize, overGrownHeapSize), 65536)
+          alignUp(Math.max(requestedSize, overGrownHeapSize), 65536),
         );
         var replacement = growMemory(newSize);
         if (replacement) {
@@ -525,7 +525,7 @@ var createQspModule = (() => {
       if (e instanceof WebAssembly.RuntimeError) {
         if (_emscripten_stack_get_current() <= 0) {
           err(
-            'Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 5242880)'
+            'Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 5242880)',
           );
         }
       }
@@ -699,7 +699,7 @@ var createQspModule = (() => {
               if (asyncPromiseHandlers) {
                 Asyncify.asyncPromiseHandlers = null;
                 (isError ? asyncPromiseHandlers.reject : asyncPromiseHandlers.resolve)(
-                  asyncWasmReturnValue
+                  asyncWasmReturnValue,
                 );
                 handled = true;
               }

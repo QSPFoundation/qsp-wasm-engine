@@ -66,9 +66,9 @@ describe('stats panel', () => {
   });
 
   test('SHOWSTAT should change panel visibility', () => {
-    const panelVisibilityChanged = jest.fn()
+    const panelVisibilityChanged = jest.fn();
     api.on('panel_visibility', panelVisibilityChanged);
     runTestFile(api, `SHOWSTAT 0`);
     expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, 0);
-  })
+  });
 });

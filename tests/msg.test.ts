@@ -12,14 +12,14 @@ describe('MSG', () => {
     error = jest.fn();
     api.on('error', error);
     msg = jest.fn();
-    api.on('msg', msg)
+    api.on('msg', msg);
   });
 
   test('MSG should trigger event in api', () => {
     runTestFile(api, `msg 'works'`);
     expect(error).not.toHaveBeenCalled();
     expect(msg).toHaveBeenCalledWith('works', expect.any(Function));
-  })
+  });
 
   test('msg should stop execution flow', () => {
     const mainChanged = jest.fn();
@@ -30,5 +30,5 @@ describe('MSG', () => {
     // eslint-disable-next-line @typescript-eslint/ban-types
     (msg.mock.calls[0][1] as Function)();
     expect(mainChanged).toHaveBeenCalledWith('12');
-  })
+  });
 });

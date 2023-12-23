@@ -109,7 +109,7 @@ describe('api', () => {
     runTestFile(api, ``);
     const watchVariables = jest.fn();
     const msg = jest.fn();
-    api.on('msg', msg)
+    api.on('msg', msg);
 
     api.watchVariable('test', 1, watchVariables);
     await delay(10);

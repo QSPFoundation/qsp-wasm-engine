@@ -47,12 +47,12 @@ describe('stats panel', () => {
   });
 
   test('RGB', () => {
-    runTestFile(api, `x = RGB(16, 32, 64)`)
+    runTestFile(api, `x = RGB(16, 32, 64)`);
     expect(api.readVariable('x')).toBe(-12574704);
-  })
+  });
 
   test('RGB with alpha', () => {
-    runTestFile(api, `x = RGB(16, 32, 64, 128)`)
+    runTestFile(api, `x = RGB(16, 32, 64, 128)`);
     expect(api.readVariable('x')).toBe(-2143281136);
-  })
+  });
 });

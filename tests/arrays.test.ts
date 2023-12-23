@@ -18,7 +18,7 @@ describe('api', () => {
       `
 $arr[1] = 'test'
 arr[1] = 1
-  `
+  `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$arr', 1)).toBe('');
@@ -31,7 +31,7 @@ arr[1] = 1
       `
 arr[1] = 1
 $arr[1] = 'test'
-  `
+  `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$arr', 1)).toBe('test');
@@ -45,7 +45,7 @@ $arr[1] = 'test'
 $objs[] = 'Напильник'
 $objs[] = 'Топор'
 $objs[] = 'Доска' 
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$objs', 0)).toBe('Напильник');
@@ -61,7 +61,7 @@ $objs[] = 'Напильник'
 $objs[] = 'Топор'
 $objs[] = 'Доска' 
 $a = $objs[]
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$a')).toBe('Доска');
@@ -274,7 +274,7 @@ $a = $objs[]
       `
 $arr[1,3] = 'test'
 $res = $arr[1,3]
-    `
+    `,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -287,7 +287,7 @@ $res = $arr[1,3]
       `
 $arr['first','second'] = 'test'
 $res = $arr['first','second']
-    `
+    `,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -300,7 +300,7 @@ $res = $arr['first','second']
       `
 $arr['first',2,'sss'] = 'test'
 $res = $arr['first',2,'sss']
-    `
+    `,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -313,11 +313,10 @@ $res = $arr['first',2,'sss']
 $arr[1,3] = 'test'
 $arr['1,3'] = 'test1'
 $res = $arr[1,3]
-    `
+    `,
     );
 
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$res')).toBe('test');
   });
-  
 });

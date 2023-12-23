@@ -59,7 +59,7 @@ describe('stats panel', () => {
       `
 x = 1
 y = 2
-y, x  = x, y`
+y, x  = x, y`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(2);
@@ -81,7 +81,7 @@ lc = c
 ld = d
 le = e
 lf = f
-    `
+    `,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -113,7 +113,7 @@ gs 'nested'
 ---
 # nested
 na = a
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('a')).toBe(1);
@@ -133,12 +133,12 @@ local a
 a[] = args[1]
 size[$args[0]] = arrsize('a')
 res[$args[0]] = a[0]
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
-    expect(api.readVariableByKey('res', 'first')).toBe(1)
-    expect(api.readVariableByKey('res', 'second')).toBe(2)
-    expect(api.readVariableByKey('size', 'first')).toBe(1)
-    expect(api.readVariableByKey('size', 'second')).toBe(1)
+    expect(api.readVariableByKey('res', 'first')).toBe(1);
+    expect(api.readVariableByKey('res', 'second')).toBe(2);
+    expect(api.readVariableByKey('size', 'first')).toBe(1);
+    expect(api.readVariableByKey('size', 'second')).toBe(1);
   });
 });

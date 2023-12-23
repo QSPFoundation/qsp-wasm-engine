@@ -46,8 +46,13 @@ describe('objects', () => {
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('l')).toBe(0);
     expect(onOpen).toHaveBeenCalledWith('1.qsp', 0, expect.any(Function));
-    api.openGame(writeQsp(readQsps(`# other
----`)), false);
+    api.openGame(
+      writeQsp(
+        readQsps(`# other
+---`),
+      ),
+      false,
+    );
     // eslint-disable-next-line @typescript-eslint/ban-types
     (onOpen.mock.calls[0][2] as Function)();
     api.execCode(`l = loc('other')`);

@@ -30,7 +30,7 @@ describe('api', () => {
 gt 'other'
 ---
 #other
-$cloc = $CURLOC`
+$cloc = $CURLOC`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$cloc')).toBe('other');

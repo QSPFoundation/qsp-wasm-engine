@@ -1,7 +1,7 @@
 import { Mock } from 'jest-mock';
 import { jest } from '@jest/globals';
 
-import { prepareApi, runTestFile } from "../src/test-helpers";
+import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src';
 
 describe('exec', () => {
@@ -33,5 +33,5 @@ describe('exec', () => {
     expect(onMain).toHaveBeenCalledTimes(2);
     expect(onMain).toBeCalledWith('before');
     expect(onMain).toBeCalledWith('before-after');
-  })
-})
+  });
+});

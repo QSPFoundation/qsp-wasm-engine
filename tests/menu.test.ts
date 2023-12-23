@@ -22,7 +22,7 @@ describe('objects', () => {
 $stone[0]='Взять камень:takestone'
 $stone[1]='Кинуть камень:throwstone'
 menu '$stone'
-`
+`,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -37,7 +37,7 @@ menu '$stone'
           image: '',
         },
       ],
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -48,7 +48,7 @@ menu '$stone'
 $stone[0]='Взять камень:takestone'
 $stone[1]='Кинуть камень:throwstone'
 menu 'stone'
-`
+`,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -63,7 +63,7 @@ menu 'stone'
           image: '',
         },
       ],
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -73,7 +73,7 @@ menu 'stone'
       `
 $stone[0]='Взять камень:takestone:1.png'
 menu '$stone'
-`
+`,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -84,7 +84,7 @@ menu '$stone'
           image: '1.png',
         },
       ],
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -95,7 +95,7 @@ menu '$stone'
 $stone[0]='Взять камень:takestone'
 $stone[2]='Взять камень:takestone'
 menu '$stone'
-`
+`,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -106,7 +106,7 @@ menu '$stone'
           image: '',
         },
       ],
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -118,7 +118,7 @@ $stone[0]='Взять камень:takestone'
 $stone[1]='-:-'
 $stone[2]='Кинуть камень:throwstone'
 menu '$stone'
-`
+`,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -137,7 +137,7 @@ menu '$stone'
           image: '',
         },
       ],
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -156,7 +156,7 @@ p 'taken'
 ---
 # throwstone
 p 'thrown'
-`
+`,
     );
 
     expect(menu).toHaveBeenCalledWith(
@@ -170,7 +170,7 @@ p 'thrown'
           image: '',
         },
       ],
-      expect.any(Function)
+      expect.any(Function),
     );
     // eslint-disable-next-line @typescript-eslint/ban-types
     (menu.mock.calls[0][1] as Function)(1);
@@ -190,7 +190,7 @@ menu '$stone'
 ---
 # stone
 r = args[0]
-`
+`,
     );
 
     // eslint-disable-next-line @typescript-eslint/ban-types

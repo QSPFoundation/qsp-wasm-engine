@@ -50,7 +50,7 @@ export class QspAPIImpl implements QspAPI {
   watchVariable<Name extends string>(
     name: Name,
     index: number,
-    callback: (value: QspVaribleType<Name>) => void
+    callback: (value: QspVaribleType<Name>) => void,
   ): () => void {
     let value: QspVaribleType<Name> = this.readVariable(name, index);
     callback(value);
@@ -69,7 +69,7 @@ export class QspAPIImpl implements QspAPI {
   watchVariableByKey<Name extends string>(
     name: Name,
     key: string,
-    callback: (value: QspVaribleType<Name>) => void
+    callback: (value: QspVaribleType<Name>) => void,
   ): () => void {
     let value: QspVaribleType<Name> = this.readVariableByKey(name, key);
     callback(value);
@@ -127,7 +127,7 @@ export class QspAPIImpl implements QspAPI {
 
   openGame(data: ArrayBuffer, isNewGame: boolean): void {
     withBufferWrite(this.module, data, (ptr, size) =>
-      this.module._loadGameData(ptr, size, isNewGame ? 1 : 0)
+      this.module._loadGameData(ptr, size, isNewGame ? 1 : 0),
     );
   }
 
@@ -177,7 +177,7 @@ export class QspAPIImpl implements QspAPI {
   readVariable<Name extends string>(
     name: Name,
     index?: number,
-    useCache = false
+    useCache = false,
   ): QspVaribleType<Name> {
     const cacheKey = `${name}[${index || 0}]`;
     if (useCache && this.variableValues.has(cacheKey)) {
@@ -222,7 +222,7 @@ export class QspAPIImpl implements QspAPI {
   readVariableString(name: string, index = 0): string {
     const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
     return withStringRead(this.module, (ptr) =>
-      this.module._getVarStringValue(namePtr, index, ptr)
+      this.module._getVarStringValue(namePtr, index, ptr),
     );
   }
 
@@ -230,7 +230,7 @@ export class QspAPIImpl implements QspAPI {
     const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
     const keyPtr = this.getStaticStringPointer(key.toLocaleUpperCase());
     return withStringRead(this.module, (ptr) =>
-      this.module._getVarStringValueByKey(namePtr, keyPtr, ptr)
+      this.module._getVarStringValueByKey(namePtr, keyPtr, ptr),
     );
   }
 
@@ -347,7 +347,7 @@ export class QspAPIImpl implements QspAPI {
       this.emit('msg', text, () => {
         done();
         this.isWatcherPaused = false;
-      })
+      }),
     );
   };
 
@@ -382,7 +382,7 @@ export class QspAPIImpl implements QspAPI {
       this.emit('wait', ms, () => {
         done();
         this.isWatcherPaused = false;
-      })
+      }),
     );
   };
 
@@ -424,7 +424,7 @@ export class QspAPIImpl implements QspAPI {
       this.emit('open_game', path, isNewGame, () => {
         done();
         this.isWatcherPaused = false;
-      })
+      }),
     );
   };
 
@@ -435,7 +435,7 @@ export class QspAPIImpl implements QspAPI {
       this.emit('load_save', path, () => {
         done();
         this.isWatcherPaused = false;
-      })
+      }),
     );
   };
 
@@ -446,7 +446,7 @@ export class QspAPIImpl implements QspAPI {
       this.emit('save_game', path, () => {
         done();
         this.isWatcherPaused = false;
-      })
+      }),
     );
   };
 
@@ -457,7 +457,7 @@ export class QspAPIImpl implements QspAPI {
       this.emit('is_play', file, (result: boolean) => {
         done(result ? 1 : 0);
         this.isWatcherPaused = false;
-      })
+      }),
     );
   };
 
@@ -468,7 +468,7 @@ export class QspAPIImpl implements QspAPI {
       this.emit('play_file', file, volume, () => {
         done();
         this.isWatcherPaused = false;
-      })
+      }),
     );
   };
 
@@ -479,7 +479,7 @@ export class QspAPIImpl implements QspAPI {
       this.emit('close_file', file, () => {
         done();
         this.isWatcherPaused = false;
-      })
+      }),
     );
   };
 

@@ -30,7 +30,7 @@ dynamic {
 $after_0 = $args[0]
 after_1 = args[1]
 after_2 = args[2]
-    `
+    `,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -66,7 +66,7 @@ $after_0 = $args[0]
 after_1 = args[1]
 after_2 = args[2]
 after_result = result
-    `
+    `,
     );
 
     expect(error).not.toHaveBeenCalled();

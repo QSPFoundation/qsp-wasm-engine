@@ -23,12 +23,12 @@ export interface QspAPI {
   watchVariable<Name extends string>(
     name: Name,
     index: number,
-    callback: (value: QspVaribleType<Name>) => void
+    callback: (value: QspVaribleType<Name>) => void,
   ): () => void;
   watchVariableByKey<Name extends string>(
     name: Name,
     key: string,
-    callback: (value: QspVaribleType<Name>) => void
+    callback: (value: QspVaribleType<Name>) => void,
   ): () => void;
   watchExpression(expr: string, callback: (value: number) => void): () => void;
   clearCache(): void;

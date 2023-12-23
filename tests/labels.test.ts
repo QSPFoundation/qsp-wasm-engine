@@ -21,7 +21,7 @@ jump 'end'
 x = 2
 :end
 if x = 1: y = 2
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(2);
@@ -39,7 +39,7 @@ if s<9:
   s+=1
   p s
   jump 'loop'
-end`
+end`,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -52,7 +52,7 @@ end`
       `
 act '1': x = 1 & jump 'end'
 :end
-  `
+  `,
     );
     expect(error).not.toHaveBeenCalled();
     api.selectAction(0);
@@ -73,7 +73,7 @@ act '1': x = 1 & jump 'end'
       `
 dynamic { x = 1 & jump 'end' }
 :end
-  `
+  `,
     );
     expect(api.readVariable('x')).toBe(1);
     expect(error).toHaveBeenCalledWith({

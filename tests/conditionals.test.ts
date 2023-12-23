@@ -29,7 +29,7 @@ describe('conditionals', () => {
       `
 x = 1 & y = 2
 if x = 1: y = 1
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(1);
@@ -40,7 +40,7 @@ if x = 1: y = 1
       `
 x = 2 & y = 2
 if x = 1: y = 1
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(2);
@@ -52,7 +52,7 @@ if x = 1: y = 1
       `
 x = 2 & y = 2
 if x = 1: y = 1 else y = 3
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(3);
@@ -63,7 +63,7 @@ if x = 1: y = 1 else y = 3
       `
 x = 2 & y = 2
 if x = 1: y = 1 elseif x = 2: y = 4 else y = 3
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(4);
@@ -77,7 +77,7 @@ x = 1 & y = 2
 if x = 1:
   y = 1
 end
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(1);
@@ -90,7 +90,7 @@ x = 2 & y = 2
 if x = 1:
   y = 1
 end
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(2);
@@ -106,7 +106,7 @@ if x = 1:
 else
   y = 3
 end
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(3);
@@ -123,7 +123,7 @@ elseif x = 2:
 else
   y = 3
 end
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('y')).toBe(4);
@@ -145,7 +145,7 @@ if x = 1:
       out = 5
     end
 end
-    `
+    `,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('out')).toBe(7);

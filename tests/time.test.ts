@@ -55,7 +55,7 @@ $counter = 'counter'
 ---
 #counter
 p 'works'
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     api.execCounter();
@@ -76,7 +76,7 @@ p 'works'
 -- 
 #counter_other
 p ' & works other'
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     api.execCounter();

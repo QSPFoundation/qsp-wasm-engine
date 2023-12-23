@@ -23,7 +23,7 @@ $ONGLOAD = 'gload'
 ---
 # gload
 x = 1
-`
+`,
     );
     const save = api.saveGame();
     if (!save) throw new Error('failed to save');
@@ -43,7 +43,7 @@ $ONGSAVE = 'gsave'
 ---
 # gsave
 x = 1
-`
+`,
     );
     const save = api.saveGame();
     if (!save) throw new Error('failed to save');
@@ -61,7 +61,7 @@ addobj 'test', '1.png'
 # objadd
 $name = $args[0]
 $image = $args[1]
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$name')).toBe('test');
@@ -78,7 +78,7 @@ delobj 'test'
 ---
 # objdel
 $name = $args[0]
-`
+`,
     );
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$name')).toBe('test');
@@ -94,7 +94,7 @@ addobj 'test1'
 ---
 # objsel
 $name = $selobj
-`
+`,
     );
     api.selectObject(1);
     expect(error).not.toHaveBeenCalled();
@@ -116,7 +116,7 @@ $cur = $curloc
 ---
 # other
 pl 'other'
-  `
+  `,
     );
 
     expect(error).not.toHaveBeenCalled();
@@ -125,7 +125,6 @@ pl 'other'
   });
 
   test('$ONNEWLOC should recieve args on actual location', () => {
-    
     runTestFile(
       api,
       `
@@ -137,14 +136,13 @@ $args_0 = $args[0]
 args_1 = args[1]
 ---
 # other
-  `
+  `,
     );
 
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$args_0')).toBe('test');
     expect(api.readVariable('args_1')).toBe(1);
   });
-
 
   test('$ONACTSEL', () => {
     runTestFile(
@@ -156,7 +154,7 @@ act '2': 2
 ---
 # actsel
 $sel = $SELACT
-`
+`,
     );
     api.selectAction(1);
     expect(error).not.toHaveBeenCalled();
@@ -173,7 +171,7 @@ $sel = $SELACT
 # usercom
 x = 2
 $text = $user_text
-`
+`,
     );
 
     expect(api.readVariable('x')).toBe(1);
