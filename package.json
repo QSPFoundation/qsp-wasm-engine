@@ -1,6 +1,6 @@
 {
   "name": "@qsp/wasm-engine",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "type": "module",
   "description": "QSP code in WASM",
   "source": "src/index.ts",
