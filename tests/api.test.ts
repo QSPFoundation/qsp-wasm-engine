@@ -152,4 +152,26 @@ describe('api', () => {
     api.execCode(`msg "test"`);
     expect(error).not.toHaveBeenCalled();
   });
+
+  it('should not fail if watch expression is called when execution is paused (waiting for msg callback for example)', async () => {
+    runTestFile(api, `x = 1`);
+    const msg = vi.fn();
+    api.on('msg', msg);
+    const watchExpression = vi.fn();
+    api.execCode(`msg "test" && '1'`);
+
+    expect(error).not.toHaveBeenCalled();
+
+    api.watchExpression('x > 0', watchExpression);
+
+    expect(error).not.toHaveBeenCalled();
+    expect(watchExpression).not.toHaveBeenCalled();
+
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    (msg.mock.calls[0][1] as Function)();
+  
+    await delay(10);
+    expect(error).not.toHaveBeenCalled();
+    expect(watchExpression).toHaveBeenCalledWith(1);
+  })
 });

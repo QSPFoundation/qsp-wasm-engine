@@ -87,8 +87,11 @@ export class QspAPIImpl implements QspAPI {
   }
 
   watchExpression(expr: string, callback: (value: number) => void): () => void {
-    let value = this.evalExpression(expr);
-    callback(value);
+    let value = -1;
+    if (!this.isWatcherPaused) {
+      value = this.evalExpression(expr);
+      callback(value);
+    }
     const updater = () => {
       const newValue = this.evalExpression(expr);
       if (value !== newValue) {
@@ -298,11 +301,17 @@ export class QspAPIImpl implements QspAPI {
   }
 
   onError = (): void => {
-    console.log('onError');
     const errorData = this.readError();
     if (errorData) {
-      console.error(errorData);
       this.emit('error', errorData);
+    } else {
+      this.emit('error', {
+        code: -1,
+        description: 'Unknown error',
+        location: '',
+        actionIndex: -1,
+        line: -1,
+      });
     }
     this.onRefresh(true);
   };
@@ -335,8 +344,14 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onMenu = (listPtr: Ptr, count: number): void => {
+    this.isWatcherPaused = true;
     const items = readListItems(this.module, listPtr, count);
-    return asAsync(this.module, (done) => this.emit('menu', items, done));
+    return asAsync(this.module, (done) =>
+      this.emit('menu', items, (index: number) => {
+        done(index);
+        this.isWatcherPaused = false;
+      }),
+    );
   };
 
   onMsg = (textPtr: StringPtr): void => {
