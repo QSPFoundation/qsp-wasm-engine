@@ -158,7 +158,7 @@ describe('api', () => {
     const msg = vi.fn();
     api.on('msg', msg);
     const watchExpression = vi.fn();
-    api.execCode(`msg "test" && '1'`);
+    api.execCode(`'before' & msg "test" & '1'`);
 
     expect(error).not.toHaveBeenCalled();
 
@@ -173,5 +173,31 @@ describe('api', () => {
     await delay(10);
     expect(error).not.toHaveBeenCalled();
     expect(watchExpression).toHaveBeenCalledWith(1);
-  })
+  });
+
+  it.only('should not fail with watch expression and several updates with msg', async () => {
+    runTestFile(api, `x = 1`);
+    const msg = vi.fn();
+    api.on('msg', msg);
+    const watchExpression = vi.fn();
+    api.watchExpression('x > 0', watchExpression);
+
+    api.execCode(`'before' & msg "test 1" & 'between' & msg "test 2" & 'after'`);
+
+    await delay(10);
+    expect(error).not.toHaveBeenCalled();
+
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    (msg.mock.calls[0][1] as Function)();
+  
+    await delay(10);
+    expect(error).not.toHaveBeenCalled();
+
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    (msg.mock.calls[1][1] as Function)();
+
+    await delay(10);
+    expect(error).not.toHaveBeenCalled();
+    expect(watchExpression).toHaveBeenCalledWith(1);
+  });
 });

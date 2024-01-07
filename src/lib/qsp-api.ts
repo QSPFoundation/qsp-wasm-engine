@@ -93,6 +93,7 @@ export class QspAPIImpl implements QspAPI {
       callback(value);
     }
     const updater = () => {
+      if (this.isWatcherPaused) return;
       const newValue = this.evalExpression(expr);
       if (value !== newValue) {
         value = newValue;
@@ -313,7 +314,7 @@ export class QspAPIImpl implements QspAPI {
         line: -1,
       });
     }
-    this.onRefresh(true);
+    // this.onRefresh(true);
   };
 
   onRefresh = (isRedraw: boolean): void => {
@@ -348,8 +349,8 @@ export class QspAPIImpl implements QspAPI {
     const items = readListItems(this.module, listPtr, count);
     return asAsync(this.module, (done) =>
       this.emit('menu', items, (index: number) => {
-        done(index);
         this.isWatcherPaused = false;
+        done(index);
       }),
     );
   };
@@ -360,8 +361,8 @@ export class QspAPIImpl implements QspAPI {
     const text = readString(this.module, textPtr);
     return asAsync(this.module, (done) =>
       this.emit('msg', text, () => {
-        done();
         this.isWatcherPaused = false;
+        done();
       }),
     );
   };
@@ -373,8 +374,8 @@ export class QspAPIImpl implements QspAPI {
     return asAsync(this.module, (done) => {
       const onInput = (inputText: string): void => {
         writeUTF32String(this.module, inputText, retPtr, maxSize);
-        done();
         this.isWatcherPaused = false;
+        done();
       };
       this.emit('input', text, onInput);
     });
@@ -395,8 +396,8 @@ export class QspAPIImpl implements QspAPI {
     this.isWatcherPaused = true;
     return asAsync(this.module, (done) =>
       this.emit('wait', ms, () => {
-        done();
         this.isWatcherPaused = false;
+        done();
       }),
     );
   };
@@ -437,8 +438,8 @@ export class QspAPIImpl implements QspAPI {
     const path = readString(this.module, pathPtr);
     return asAsync(this.module, (done) =>
       this.emit('open_game', path, isNewGame, () => {
-        done();
         this.isWatcherPaused = false;
+        done();
       }),
     );
   };
@@ -448,8 +449,8 @@ export class QspAPIImpl implements QspAPI {
     const path = readString(this.module, pathPtr);
     return asAsync(this.module, (done) =>
       this.emit('load_save', path, () => {
-        done();
         this.isWatcherPaused = false;
+        done();
       }),
     );
   };
@@ -459,8 +460,8 @@ export class QspAPIImpl implements QspAPI {
     const path = readString(this.module, pathPtr);
     return asAsync(this.module, (done) =>
       this.emit('save_game', path, () => {
-        done();
         this.isWatcherPaused = false;
+        done();
       }),
     );
   };
@@ -470,8 +471,8 @@ export class QspAPIImpl implements QspAPI {
     const file = readString(this.module, filePtr);
     return asAsync(this.module, (done) =>
       this.emit('is_play', file, (result: boolean) => {
-        done(result ? 1 : 0);
         this.isWatcherPaused = false;
+        done(result ? 1 : 0);
       }),
     );
   };
@@ -481,8 +482,8 @@ export class QspAPIImpl implements QspAPI {
     const file = readString(this.module, filePtr);
     return asAsync(this.module, (done) =>
       this.emit('play_file', file, volume, () => {
-        done();
         this.isWatcherPaused = false;
+        done();
       }),
     );
   };
@@ -492,8 +493,8 @@ export class QspAPIImpl implements QspAPI {
     const file = readString(this.module, filePtr);
     return asAsync(this.module, (done) =>
       this.emit('close_file', file, () => {
-        done();
         this.isWatcherPaused = false;
+        done();
       }),
     );
   };
@@ -508,7 +509,6 @@ export class QspAPIImpl implements QspAPI {
     for (const updater of this.variableWatchers.values()) {
       updater();
     }
-    if (this.isWatcherPaused) return;
     for (const updater of this.expressionWatchers.values()) {
       updater();
     }
