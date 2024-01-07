@@ -19,9 +19,7 @@ export class QspAPIImpl implements QspAPI {
   private listeners = new Map<QspEventKeys, QspEventListeners[]>();
   private variableWatchers = new Set<() => void>();
   private variableValues = new Map<string, string | number>();
-  private expressionWatchers = new Set<() => void>();
   private expressionValues = new Map<string, number>();
-  private isWatcherPaused = false;
 
   private time: number = Date.now();
 
@@ -83,27 +81,6 @@ export class QspAPIImpl implements QspAPI {
     this.variableWatchers.add(updater);
     return () => {
       this.variableWatchers.delete(updater);
-    };
-  }
-
-  watchExpression(expr: string, callback: (value: number) => void): () => void {
-    let value = -1;
-    if (!this.isWatcherPaused) {
-      value = this.evalExpression(expr);
-      callback(value);
-    }
-    const updater = () => {
-      console.log('updater', this.isWatcherPaused);
-      if (this.isWatcherPaused) return;
-      const newValue = this.evalExpression(expr);
-      if (value !== newValue) {
-        value = newValue;
-        callback(value);
-      }
-    };
-    this.expressionWatchers.add(updater);
-    return () => {
-      this.expressionWatchers.delete(updater);
     };
   }
 
@@ -348,9 +325,7 @@ export class QspAPIImpl implements QspAPI {
   onMenu = (listPtr: Ptr, count: number): void => {
     const items = readListItems(this.module, listPtr, count);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('menu', items, (index: number) => {
-        this.isWatcherPaused = false;
         done(index);
       });
     });
@@ -360,10 +335,7 @@ export class QspAPIImpl implements QspAPI {
     this.onRefresh(false);
     const text = readString(this.module, textPtr);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('msg', text, () => {
-        this.isWatcherPaused = false;
-        console.log('msg done');
         done();
       });
     });
@@ -373,10 +345,8 @@ export class QspAPIImpl implements QspAPI {
     this.onRefresh(false);
     const text = readString(this.module, textPtr);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       const onInput = (inputText: string): void => {
         writeUTF32String(this.module, inputText, retPtr, maxSize);
-        this.isWatcherPaused = false;
         done();
       };
       this.emit('input', text, onInput);
@@ -396,9 +366,7 @@ export class QspAPIImpl implements QspAPI {
 
   onWait = (ms: number): void => {
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('wait', ms, () => {
-        this.isWatcherPaused = false;
         done();
       });
     });
@@ -438,9 +406,7 @@ export class QspAPIImpl implements QspAPI {
   onOpenGame = (pathPtr: StringPtr, isNewGame: boolean): void => {
     const path = readString(this.module, pathPtr);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('open_game', path, isNewGame, () => {
-        this.isWatcherPaused = false;
         done();
       });
     });
@@ -449,9 +415,7 @@ export class QspAPIImpl implements QspAPI {
   onOpenGameStatus = (pathPtr: StringPtr): void => {
     const path = readString(this.module, pathPtr);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('load_save', path, () => {
-        this.isWatcherPaused = false;
         done();
       });
     });
@@ -460,9 +424,7 @@ export class QspAPIImpl implements QspAPI {
   onSaveGameStatus = (pathPtr: StringPtr): void => {
     const path = readString(this.module, pathPtr);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('save_game', path, () => {
-        this.isWatcherPaused = false;
         done();
       });
     });
@@ -471,9 +433,7 @@ export class QspAPIImpl implements QspAPI {
   onIsPlay = (filePtr: StringPtr): void => {
     const file = readString(this.module, filePtr);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('is_play', file, (result: boolean) => {
-        this.isWatcherPaused = false;
         done(result ? 1 : 0);
       });
     });
@@ -482,9 +442,7 @@ export class QspAPIImpl implements QspAPI {
   onPlayFile = (filePtr: StringPtr, volume: number): void => {
     const file = readString(this.module, filePtr);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('play_file', file, volume, () => {
-        this.isWatcherPaused = false;
         done();
       });
     });
@@ -493,9 +451,7 @@ export class QspAPIImpl implements QspAPI {
   onCloseFile = (filePtr: StringPtr): void => {
     const file = readString(this.module, filePtr);
     return asAsync(this.module, (done) => {
-      this.isWatcherPaused = true;
       this.emit('close_file', file, () => {
-        this.isWatcherPaused = false;
         done();
       });
     });
@@ -509,9 +465,6 @@ export class QspAPIImpl implements QspAPI {
   private reportWatched() {
     this.clearCache();
     for (const updater of this.variableWatchers.values()) {
-      updater();
-    }
-    for (const updater of this.expressionWatchers.values()) {
       updater();
     }
   }

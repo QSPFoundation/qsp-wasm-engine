@@ -30,6 +30,5 @@ export interface QspAPI {
     key: string,
     callback: (value: QspVaribleType<Name>) => void,
   ): () => void;
-  watchExpression(expr: string, callback: (value: number) => void): () => void;
   clearCache(): void;
 }
