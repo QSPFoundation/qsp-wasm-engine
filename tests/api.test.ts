@@ -175,7 +175,7 @@ describe('api', () => {
     expect(watchExpression).toHaveBeenCalledWith(1);
   });
 
-  it.only('should not fail with watch expression and several updates with msg', async () => {
+  it('should not fail with watch expression and several updates with msg', async () => {
     runTestFile(api, `x = 1`);
     const msg = vi.fn();
     api.on('msg', msg);
