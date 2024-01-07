@@ -1,4 +1,4 @@
-import { QspAPI, QspVaribleType } from '../contracts/api';
+import { QspAPI, QspVariableType } from '../contracts/api';
 import { QspErrorData, QspPanel } from '../contracts/common';
 import { QspEventKeys, QspEventListeners, QspEvents } from '../contracts/events';
 import { Ptr, QspCallType, QspWasmModule, StringPtr } from '../contracts/wasm-module';
@@ -48,9 +48,9 @@ export class QspAPIImpl implements QspAPI {
   watchVariable<Name extends string>(
     name: Name,
     index: number,
-    callback: (value: QspVaribleType<Name>) => void,
+    callback: (value: QspVariableType<Name>) => void,
   ): () => void {
-    let value: QspVaribleType<Name> = this.readVariable(name, index);
+    let value: QspVariableType<Name> = this.readVariable(name, index);
     callback(value);
     const updater = () => {
       const newValue = this.readVariable(name, index);
@@ -67,9 +67,9 @@ export class QspAPIImpl implements QspAPI {
   watchVariableByKey<Name extends string>(
     name: Name,
     key: string,
-    callback: (value: QspVaribleType<Name>) => void,
+    callback: (value: QspVariableType<Name>) => void,
   ): () => void {
-    let value: QspVaribleType<Name> = this.readVariableByKey(name, key);
+    let value: QspVariableType<Name> = this.readVariableByKey(name, key);
     callback(value);
     const updater = () => {
       const newValue = this.readVariableByKey(name, key);
@@ -160,32 +160,32 @@ export class QspAPIImpl implements QspAPI {
     name: Name,
     index?: number,
     useCache = false,
-  ): QspVaribleType<Name> {
+  ): QspVariableType<Name> {
     const cacheKey = `${name}[${index || 0}]`;
     if (useCache && this.variableValues.has(cacheKey)) {
-      return this.variableValues.get(cacheKey) as QspVaribleType<Name>;
+      return this.variableValues.get(cacheKey) as QspVariableType<Name>;
     }
     if (name.startsWith('$')) {
-      const value = this.readVariableString(name, index) as QspVaribleType<Name>;
+      const value = this.readVariableString(name, index) as QspVariableType<Name>;
       this.variableValues.set(cacheKey, value);
       return value;
     }
-    const value = this.readVariableNumber(name, index) as QspVaribleType<Name>;
+    const value = this.readVariableNumber(name, index) as QspVariableType<Name>;
     this.variableValues.set(cacheKey, value);
     return value;
   }
 
-  readVariableByKey<Name extends string>(name: Name, key: string): QspVaribleType<Name> {
+  readVariableByKey<Name extends string>(name: Name, key: string): QspVariableType<Name> {
     const cacheKey = `${name}[${key}]`;
     if (this.variableValues.has(cacheKey)) {
-      return this.variableValues.get(cacheKey) as QspVaribleType<Name>;
+      return this.variableValues.get(cacheKey) as QspVariableType<Name>;
     }
     if (name.startsWith('$')) {
-      const value = this.readVariableStringByKey(name, key) as QspVaribleType<Name>;
+      const value = this.readVariableStringByKey(name, key) as QspVariableType<Name>;
       this.variableValues.set(cacheKey, value);
       return value;
     }
-    const value = this.readVariableNumberByKey(name, key) as QspVaribleType<Name>;
+    const value = this.readVariableNumberByKey(name, key) as QspVariableType<Name>;
     this.variableValues.set(cacheKey, value);
     return value;
   }

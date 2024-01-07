@@ -27,7 +27,7 @@ describe('sound', () => {
     expect(onPlay).toHaveBeenCalledWith('sound/music.mp3', 100, expect.any(Function));
   });
 
-  test('PLAY should pause flow untill released', () => {
+  test('PLAY should pause flow until released', () => {
     const onPlay = vi.fn();
     api.on('play_file', onPlay);
     const statsChanged = vi.fn();

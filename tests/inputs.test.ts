@@ -56,7 +56,7 @@ describe('Main panel', () => {
     expect(api.readVariable('$textAfter')).toBe('');
   });
 
-  test('INPUT should interrupt execution flow and recieve entered text', () => {
+  test('INPUT should interrupt execution flow and receive entered text', () => {
     const onInput = vi.fn();
     api.on('input', onInput);
     runTestFile(api, `$text = $input('Question?')`);

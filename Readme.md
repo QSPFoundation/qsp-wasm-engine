@@ -37,7 +37,7 @@ As first argument you need to pass URL of wasm module in browser (you might need
 ## API
 
 ```ts
-// subscribing for engine events (see belove)
+// subscribing for engine events (see below)
 api.on(event: string, callback: Function): void;
 // unsubscribing from engine events
 api.off(event: string, callback: Function): void;

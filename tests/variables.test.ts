@@ -43,7 +43,7 @@ describe('stats panel', () => {
     expect(api.readVariable('money')).toBe(100);
   });
 
-  test('multi assignmet', () => {
+  test('multi assignment', () => {
     runTestFile(api, `a, $b, $c, d = 1, 'test', 'other', 2`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('a')).toBe(1);

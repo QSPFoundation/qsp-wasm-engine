@@ -123,7 +123,7 @@ pl 'other'
     expect(api.readVariable('$cur')).toBe('other');
   });
 
-  test('$ONNEWLOC should recieve args on actual location', () => {
+  test('$ONNEWLOC should receive args on actual location', () => {
     runTestFile(
       api,
       `

@@ -74,7 +74,7 @@ describe('api', () => {
     expect(api.readVariable('$тест')).toBe('254');
   });
 
-  it('should read varible size', () => {
+  it('should read variable size', () => {
     runTestFile(api, `test[100] = 1`);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariableSize('test')).toBe(101);
