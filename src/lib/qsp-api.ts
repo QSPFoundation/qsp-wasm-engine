@@ -93,6 +93,7 @@ export class QspAPIImpl implements QspAPI {
       callback(value);
     }
     const updater = () => {
+      console.log('updater', this.isWatcherPaused);
       if (this.isWatcherPaused) return;
       const newValue = this.evalExpression(expr);
       if (value !== newValue) {
@@ -345,33 +346,34 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onMenu = (listPtr: Ptr, count: number): void => {
-    this.isWatcherPaused = true;
     const items = readListItems(this.module, listPtr, count);
-    return asAsync(this.module, (done) =>
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       this.emit('menu', items, (index: number) => {
         this.isWatcherPaused = false;
         done(index);
-      }),
-    );
+      });
+    });
   };
 
   onMsg = (textPtr: StringPtr): void => {
-    this.isWatcherPaused = true;
-    this.onRefresh(false);
-    const text = readString(this.module, textPtr);
-    return asAsync(this.module, (done) =>
-      this.emit('msg', text, () => {
-        this.isWatcherPaused = false;
-        done();
-      }),
-    );
-  };
-
-  onInput = (textPtr: StringPtr, retPtr: Ptr, maxSize: number): void => {
-    this.isWatcherPaused = true;
     this.onRefresh(false);
     const text = readString(this.module, textPtr);
     return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
+      this.emit('msg', text, () => {
+        this.isWatcherPaused = false;
+        console.log('msg done');
+        done();
+      });
+    });
+  };
+
+  onInput = (textPtr: StringPtr, retPtr: Ptr, maxSize: number): void => {
+    this.onRefresh(false);
+    const text = readString(this.module, textPtr);
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       const onInput = (inputText: string): void => {
         writeUTF32String(this.module, inputText, retPtr, maxSize);
         this.isWatcherPaused = false;
@@ -393,13 +395,13 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onWait = (ms: number): void => {
-    this.isWatcherPaused = true;
-    return asAsync(this.module, (done) =>
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       this.emit('wait', ms, () => {
         this.isWatcherPaused = false;
         done();
-      }),
-    );
+      });
+    });
   };
 
   onSetTimer = (ms: number): void => {
@@ -434,69 +436,69 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onOpenGame = (pathPtr: StringPtr, isNewGame: boolean): void => {
-    this.isWatcherPaused = true;
     const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) =>
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       this.emit('open_game', path, isNewGame, () => {
         this.isWatcherPaused = false;
         done();
-      }),
-    );
+      });
+    });
   };
 
   onOpenGameStatus = (pathPtr: StringPtr): void => {
-    this.isWatcherPaused = true;
     const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) =>
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       this.emit('load_save', path, () => {
         this.isWatcherPaused = false;
         done();
-      }),
-    );
+      });
+    });
   };
 
   onSaveGameStatus = (pathPtr: StringPtr): void => {
-    this.isWatcherPaused = true;
     const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) =>
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       this.emit('save_game', path, () => {
         this.isWatcherPaused = false;
         done();
-      }),
-    );
+      });
+    });
   };
 
   onIsPlay = (filePtr: StringPtr): void => {
-    this.isWatcherPaused = true;
     const file = readString(this.module, filePtr);
-    return asAsync(this.module, (done) =>
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       this.emit('is_play', file, (result: boolean) => {
         this.isWatcherPaused = false;
         done(result ? 1 : 0);
-      }),
-    );
+      });
+    });
   };
 
   onPlayFile = (filePtr: StringPtr, volume: number): void => {
-    this.isWatcherPaused = true;
     const file = readString(this.module, filePtr);
-    return asAsync(this.module, (done) =>
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       this.emit('play_file', file, volume, () => {
         this.isWatcherPaused = false;
         done();
-      }),
-    );
+      });
+    });
   };
 
   onCloseFile = (filePtr: StringPtr): void => {
-    this.isWatcherPaused = true;
     const file = readString(this.module, filePtr);
-    return asAsync(this.module, (done) =>
+    return asAsync(this.module, (done) => {
+      this.isWatcherPaused = true;
       this.emit('close_file', file, () => {
         this.isWatcherPaused = false;
         done();
-      }),
-    );
+      });
+    });
   };
 
   clearCache() {

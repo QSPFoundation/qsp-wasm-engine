@@ -158,7 +158,7 @@ describe('api', () => {
     const msg = vi.fn();
     api.on('msg', msg);
     const watchExpression = vi.fn();
-    api.execCode(`'before' & msg "test" & '1'`);
+    api.execCode(`'before' & msg "here" & 'after'`);
 
     expect(error).not.toHaveBeenCalled();
 
