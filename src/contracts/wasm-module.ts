@@ -68,6 +68,7 @@ export interface QspWasmModule extends EmscriptenModule {
   _loadSavedGameData(data: BufferPtr, size: number): void;
 
   _execString(input: CharsPtr, isRefresh: Bool): void;
+  _execExpression(input: CharsPtr): void;
   _execCounter(): void;
   _execUserInput(input: CharsPtr): void;
   _execLoc(input: CharsPtr): void;

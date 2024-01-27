@@ -167,14 +167,13 @@ describe('api', () => {
     api.watchExpression('x > 0', watchExpression);
 
     expect(error).not.toHaveBeenCalled();
-    expect(watchExpression).not.toHaveBeenCalled();
+    expect(watchExpression).toHaveBeenCalledWith(1);
 
     // eslint-disable-next-line @typescript-eslint/ban-types
     (msg.mock.calls[0][1] as Function)();
   
     await delay(10);
     expect(error).not.toHaveBeenCalled();
-    expect(watchExpression).toHaveBeenCalledWith(1);
   });
 
   it('should not fail with watch expression and several updates with msg', async () => {

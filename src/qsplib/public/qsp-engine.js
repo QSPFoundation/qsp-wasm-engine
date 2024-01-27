@@ -319,7 +319,7 @@ var createQspModule = (() => {
         wasmExports = Asyncify.instrumentWasmExports(wasmExports);
         wasmMemory = wasmExports['g'];
         updateMemoryViews();
-        wasmTable = wasmExports['V'];
+        wasmTable = wasmExports['W'];
         addOnInit(wasmExports['h']);
         removeRunDependency('wasm-instantiate');
         return wasmExports;
@@ -888,53 +888,55 @@ var createQspModule = (() => {
       (_loadSavedGameData = Module['_loadSavedGameData'] = wasmExports['C'])(a0, a1));
     var _execString = (Module['_execString'] = (a0, a1) =>
       (_execString = Module['_execString'] = wasmExports['D'])(a0, a1));
+    var _execExpression = (Module['_execExpression'] = (a0) =>
+      (_execExpression = Module['_execExpression'] = wasmExports['E'])(a0));
     var _execCounter = (Module['_execCounter'] = () =>
-      (_execCounter = Module['_execCounter'] = wasmExports['E'])());
+      (_execCounter = Module['_execCounter'] = wasmExports['F'])());
     var _execLoc = (Module['_execLoc'] = (a0) =>
-      (_execLoc = Module['_execLoc'] = wasmExports['F'])(a0));
+      (_execLoc = Module['_execLoc'] = wasmExports['G'])(a0));
     var _execUserInput = (Module['_execUserInput'] = (a0) =>
-      (_execUserInput = Module['_execUserInput'] = wasmExports['G'])(a0));
+      (_execUserInput = Module['_execUserInput'] = wasmExports['H'])(a0));
     var _getLastErrorNum = (Module['_getLastErrorNum'] = () =>
-      (_getLastErrorNum = Module['_getLastErrorNum'] = wasmExports['H'])());
+      (_getLastErrorNum = Module['_getLastErrorNum'] = wasmExports['I'])());
     var _getLastErrorLoc = (Module['_getLastErrorLoc'] = (a0) =>
-      (_getLastErrorLoc = Module['_getLastErrorLoc'] = wasmExports['I'])(a0));
+      (_getLastErrorLoc = Module['_getLastErrorLoc'] = wasmExports['J'])(a0));
     var _getLastErrorActIndex = (Module['_getLastErrorActIndex'] = () =>
-      (_getLastErrorActIndex = Module['_getLastErrorActIndex'] = wasmExports['J'])());
+      (_getLastErrorActIndex = Module['_getLastErrorActIndex'] = wasmExports['K'])());
     var _getLastErrorLine = (Module['_getLastErrorLine'] = () =>
-      (_getLastErrorLine = Module['_getLastErrorLine'] = wasmExports['K'])());
+      (_getLastErrorLine = Module['_getLastErrorLine'] = wasmExports['L'])());
     var _getErrorDesc = (Module['_getErrorDesc'] = (a0, a1) =>
-      (_getErrorDesc = Module['_getErrorDesc'] = wasmExports['L'])(a0, a1));
+      (_getErrorDesc = Module['_getErrorDesc'] = wasmExports['M'])(a0, a1));
     var _getVarStringValue = (Module['_getVarStringValue'] = (a0, a1, a2) =>
-      (_getVarStringValue = Module['_getVarStringValue'] = wasmExports['M'])(a0, a1, a2));
+      (_getVarStringValue = Module['_getVarStringValue'] = wasmExports['N'])(a0, a1, a2));
     var _getVarNumValue = (Module['_getVarNumValue'] = (a0, a1) =>
-      (_getVarNumValue = Module['_getVarNumValue'] = wasmExports['N'])(a0, a1));
+      (_getVarNumValue = Module['_getVarNumValue'] = wasmExports['O'])(a0, a1));
     var _getVarStringValueByKey = (Module['_getVarStringValueByKey'] = (a0, a1, a2) =>
-      (_getVarStringValueByKey = Module['_getVarStringValueByKey'] = wasmExports['O'])(a0, a1, a2));
+      (_getVarStringValueByKey = Module['_getVarStringValueByKey'] = wasmExports['P'])(a0, a1, a2));
     var _getVarNumValueByKey = (Module['_getVarNumValueByKey'] = (a0, a1) =>
-      (_getVarNumValueByKey = Module['_getVarNumValueByKey'] = wasmExports['P'])(a0, a1));
+      (_getVarNumValueByKey = Module['_getVarNumValueByKey'] = wasmExports['Q'])(a0, a1));
     var _getVarSize = (Module['_getVarSize'] = (a0) =>
-      (_getVarSize = Module['_getVarSize'] = wasmExports['Q'])(a0));
+      (_getVarSize = Module['_getVarSize'] = wasmExports['R'])(a0));
     var _initCallBacks = (Module['_initCallBacks'] = () =>
-      (_initCallBacks = Module['_initCallBacks'] = wasmExports['R'])());
+      (_initCallBacks = Module['_initCallBacks'] = wasmExports['S'])());
     var _setCallBack = (Module['_setCallBack'] = (a0, a1) =>
-      (_setCallBack = Module['_setCallBack'] = wasmExports['S'])(a0, a1));
+      (_setCallBack = Module['_setCallBack'] = wasmExports['T'])(a0, a1));
     var _freeItemsList = (Module['_freeItemsList'] = (a0) =>
-      (_freeItemsList = Module['_freeItemsList'] = wasmExports['T'])(a0));
+      (_freeItemsList = Module['_freeItemsList'] = wasmExports['U'])(a0));
     var _freeSaveBuffer = (Module['_freeSaveBuffer'] = (a0) =>
-      (_freeSaveBuffer = Module['_freeSaveBuffer'] = wasmExports['U'])(a0));
+      (_freeSaveBuffer = Module['_freeSaveBuffer'] = wasmExports['V'])(a0));
     var ___errno_location = () => (___errno_location = wasmExports['__errno_location'])();
-    var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['W'])();
+    var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['X'])();
     var _emscripten_stack_get_free = () =>
       (_emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'])();
-    var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['X'])();
-    var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['Y'])();
-    var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['Z'])();
+    var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['Y'])();
+    var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['Z'])();
+    var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['_'])();
     var ___set_stack_limits = (Module['___set_stack_limits'] = (a0, a1) =>
-      (___set_stack_limits = Module['___set_stack_limits'] = wasmExports['_'])(a0, a1));
-    var _asyncify_start_unwind = (a0) => (_asyncify_start_unwind = wasmExports['$'])(a0);
-    var _asyncify_stop_unwind = () => (_asyncify_stop_unwind = wasmExports['aa'])();
-    var _asyncify_start_rewind = (a0) => (_asyncify_start_rewind = wasmExports['ba'])(a0);
-    var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports['ca'])();
+      (___set_stack_limits = Module['___set_stack_limits'] = wasmExports['$'])(a0, a1));
+    var _asyncify_start_unwind = (a0) => (_asyncify_start_unwind = wasmExports['aa'])(a0);
+    var _asyncify_stop_unwind = () => (_asyncify_stop_unwind = wasmExports['ba'])();
+    var _asyncify_start_rewind = (a0) => (_asyncify_start_rewind = wasmExports['ca'])(a0);
+    var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports['da'])();
     Module['addFunction'] = addFunction;
     Module['Asyncify'] = Asyncify;
     var calledRun;

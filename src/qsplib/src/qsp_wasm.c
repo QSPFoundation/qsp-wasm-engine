@@ -215,6 +215,14 @@ void execString(QSP_CHAR *s, QSP_BOOL isRefresh)
 }
 
 EMSCRIPTEN_KEEPALIVE
+void execExpression(QSP_CHAR *s)
+{
+  QSPLineOfCode *strs;
+  int linesCount = qspPreprocessData(qspStringFromC(s), &strs);
+  qspExecCode(strs, 0, linesCount, 0, 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
 void execCounter()
 {
   if (!QSPExecCounter(QSP_TRUE))
