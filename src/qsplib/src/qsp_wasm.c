@@ -180,14 +180,16 @@ void *saveGameData(int *realSize)
   void *fileData = (void *)malloc(fileSize);
   if (!QSPSaveGameAsData(fileData, &fileSize, QSP_FALSE))
   {
-    if (fileSize)
+    while (fileSize)
     {
       fileData = (void *)realloc(fileData, fileSize);
-      if (!QSPSaveGameAsData(fileData, &fileSize, QSP_FALSE))
-      {
-        free(fileData);
-        return fileData;
-      }
+      if (QSPSaveGameAsData(fileData, &fileSize, QSP_TRUE))
+        break;
+    }
+    if (!fileSize)
+    {
+      free(fileData);
+      return fileData;
     }
   }
 
@@ -253,7 +255,7 @@ void execUserInput(QSP_CHAR *s)
 
 /* Errors */
 EMSCRIPTEN_KEEPALIVE
-int getLastErrorNum() 
+int getLastErrorNum()
 {
   return qspErrorNum;
 }
@@ -354,7 +356,6 @@ int getVarSize(QSP_CHAR *name)
   QSPGetVarValuesCount(qspStringFromC(name), &numVal);
   return numVal;
 }
-
 
 /* callbacks */
 EMSCRIPTEN_KEEPALIVE
