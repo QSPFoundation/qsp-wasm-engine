@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@qsp/converters": "^1.0.1",
-    "@types/emscripten": "^1.39.10",
+    "@types/emscripten": "^1.39.13",
     "@types/responselike": "^1.0.3",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
@@ -48,10 +48,10 @@
     "eslint-config-prettier": "^9.1.0",
     "microbundle": "^0.15.1",
     "np": "^9.2.0",
-    "prettier": "^3.1.1",
-    "rimraf": "^5.0.5",
-    "typescript": "^5.3.3",
-    "vitest": "^1.1.0"
+    "prettier": "3.3.3",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.4"
   },
   "publishConfig": {
     "access": "public"
