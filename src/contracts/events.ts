@@ -1,4 +1,4 @@
-import { QspErrorData, QspListItem, QspPanel } from './common';
+import { DebugRecord, QspErrorData, QspListItem, QspPanel } from './common';
 
 export type QspEvents = {
   main_changed: (text: string) => void;
@@ -22,6 +22,10 @@ export type QspEvents = {
   play_file: (path: string, volume: number, onReady: () => void) => void;
   close_file: (path: string, onReady: () => void) => void;
   system_cmd: (cmd: string) => void;
+  debug: (
+    record: DebugRecord,
+    resume: () => void,
+  ) => void;
 };
 
 export type QspEventKeys = keyof QspEvents;

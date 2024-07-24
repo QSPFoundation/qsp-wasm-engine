@@ -74,6 +74,19 @@ export function withListRead(module: QspWasmModule, callback: (ptr: Ptr) => Ptr)
   return list;
 }
 
+export function withStringListRead(module: QspWasmModule, callback: (ptr: Ptr) => Ptr): string[] {
+  const countPtr = allocPointer(module);
+
+  const codePtr = callback(countPtr);
+  const count = readInt(module, countPtr);
+  const list = readStringList(module, codePtr, count);
+
+  module._freeStringsBuffer(codePtr);
+  freePointer(module, countPtr);
+
+  return list;
+}
+
 export function withBufferWrite(
   module: QspWasmModule,
   data: ArrayBuffer,
@@ -121,6 +134,18 @@ export function readListItems(module: QspWasmModule, listPtr: Ptr, count: number
       image,
     });
   }
+  return list;
+}
+
+export function readStringList(module: QspWasmModule, listPtr: Ptr, count: number): string[] {
+  const list: string[] = [];
+  let ptr = listPtr;
+  for (let i = 0; i < count; ++i) {
+    const line = readString(module, ptr);
+    ptr = movePointer(ptr, 2);
+    list.push(line);
+  }
+
   return list;
 }
 

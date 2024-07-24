@@ -17,3 +17,10 @@ export enum QspPanel {
   VARS,
   INPUT,
 }
+
+export interface DebugRecord {
+  code: string;
+  loc: string;
+  line: number;
+  actIndex: number;
+}

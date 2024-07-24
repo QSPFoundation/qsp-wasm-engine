@@ -382,3 +382,92 @@ void freeSaveBuffer(void *buffer)
 {
   free(buffer);
 }
+
+EMSCRIPTEN_KEEPALIVE
+void freeStringsBuffer(QSPString *list)
+{
+  free(list);
+}
+
+/* debug */
+EMSCRIPTEN_KEEPALIVE
+void enableDebugMode()
+{
+  QSPEnableDebugMode(QSP_TRUE);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void disableDebugMode()
+{
+  QSPEnableDebugMode(QSP_FALSE);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void getCurStateLoc(QSPString *loc)
+{
+  *loc = (qspRealCurLoc >= 0 && qspRealCurLoc < qspLocsCount ? qspLocs[qspRealCurLoc].Name : qspNullString);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int getCurStateLine()
+{
+  return qspRealLine;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int getCurStateActIndex()
+{
+  return qspRealActIndex;
+}
+
+EMSCRIPTEN_KEEPALIVE
+QSPString *getLocationsList(int *count)
+{
+  *count = qspLocsCount;
+  QSPString *lines = (QSPString *)malloc(qspLocsCount * sizeof(QSPString));
+  int i;
+  for (i = 0; i < qspLocsCount; ++i)
+  {
+    lines[i] = qspLocs[i].Name;
+  }
+  return lines;
+}
+
+EMSCRIPTEN_KEEPALIVE
+QSPString *getLocationCode(QSP_CHAR *name, int *count)
+{
+  int locInd = qspLocIndex(qspStringFromC(name));
+  if (locInd >= 0)
+  {
+    QSPLocation *loc = qspLocs + locInd;
+
+    *count = loc->OnVisitLinesCount;
+    QSPString *lines = (QSPString *)malloc(loc->OnVisitLinesCount * sizeof(QSPString));
+    int i;
+    for (i = 0; i < loc->OnVisitLinesCount; ++i)
+    {
+      lines[i] = loc->OnVisitLines[i].Str;
+    }
+    return lines;
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE
+QSPString *getActionCode(QSP_CHAR *name, int index, int *count)
+{
+  int locInd = qspLocIndex(qspStringFromC(name));
+
+  if (locInd >= 0 && index >= 0 && index < QSP_MAXACTIONS)
+  {
+    QSPLocation *loc = qspLocs + locInd;
+    QSPLocAct *act = loc->Actions + index;
+    *count = act->OnPressLinesCount;
+    QSPString *lines = (QSPString *)malloc(act->OnPressLinesCount * sizeof(QSPString));
+    int i;
+    for (i = 0; i < act->OnPressLinesCount; ++i)
+    {
+      lines[i] = act->OnPressLines[i].Str;
+    }
+    return lines;
+  }
+}

@@ -32,4 +32,11 @@ export interface QspAPI {
   ): () => void;
   watchExpression(expr: string, callback: (value: number) => void): () => void;
   clearCache(): void;
+
+  enableDebugMode(): void;
+  disableDebugMode(): void;
+
+  getLocationsList(): void;
+  getLocationCode(name: string): string[];
+  getActionCode(name: string, index: number): string[];
 }

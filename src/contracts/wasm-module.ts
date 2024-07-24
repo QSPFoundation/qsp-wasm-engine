@@ -38,6 +38,7 @@ export interface QspWasmModule extends EmscriptenModule {
   _freeString(string: CharsPtr): void;
   _freeItemsList(items: Ptr): void;
   _freeSaveBuffer(buffer: Ptr): void;
+  _freeStringsBuffer(buffer: Ptr): void;
 
   // libqsp
   _init(): void;
@@ -87,4 +88,14 @@ export interface QspWasmModule extends EmscriptenModule {
 
   _initCallBacks(): void;
   _setCallBack(type: QspCallType, fnPtr: FunctionPtr): void;
+
+  _enableDebugMode(): void;
+  _disableDebugMode(): void;
+  _getCurStateLoc(ptr: Ptr): void;
+  _getCurStateLine(): number;
+  _getCurStateActIndex(): number;
+
+  _getLocationsList( count: Ptr): Ptr;
+  _getLocationCode(name: CharsPtr, count: Ptr): Ptr;
+  _getActionCode(name: CharsPtr, index: number, count: Ptr): Ptr;
 }

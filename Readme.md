@@ -83,6 +83,16 @@ api.watchVariableByKey(
     key: string,
     callback: (value: string | number) => void
   ): () => void;
+// enable debug mode
+api.enableDebugMode(): void;
+// disable debug mode
+api.disableDebugMode(): void;
+// get list of locations
+api.getLocationsList(): string[];
+// get location code by name
+api.getLocationCode(name: string): string[];
+// get action code by index
+api.getActionCode(location: string, index: number): string[];
 ```
 
 ## Engine events
@@ -170,3 +180,7 @@ Here is the list of currently supported events.
 - `error` - event is triggered whenever error has happened while executing QSP code:
   Arguments:
   1. `errorData` - object containing information about error
+- `debug` - when debug mode is on this event will be fired fr every executed string
+  Arguments:
+  1. `debugRecord` - object contaning current line, location name and action index
+  2. `resume` - funtion to be executed to resume execution

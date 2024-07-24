@@ -319,7 +319,7 @@ var createQspModule = (() => {
         wasmExports = Asyncify.instrumentWasmExports(wasmExports);
         wasmMemory = wasmExports['g'];
         updateMemoryViews();
-        wasmTable = wasmExports['W'];
+        wasmTable = wasmExports['da'];
         addOnInit(wasmExports['h']);
         removeRunDependency('wasm-instantiate');
         return wasmExports;
@@ -924,19 +924,37 @@ var createQspModule = (() => {
       (_freeItemsList = Module['_freeItemsList'] = wasmExports['U'])(a0));
     var _freeSaveBuffer = (Module['_freeSaveBuffer'] = (a0) =>
       (_freeSaveBuffer = Module['_freeSaveBuffer'] = wasmExports['V'])(a0));
+    var _freeStringsBuffer = (Module['_freeStringsBuffer'] = (a0) =>
+      (_freeStringsBuffer = Module['_freeStringsBuffer'] = wasmExports['W'])(a0));
+    var _enableDebugMode = (Module['_enableDebugMode'] = () =>
+      (_enableDebugMode = Module['_enableDebugMode'] = wasmExports['X'])());
+    var _disableDebugMode = (Module['_disableDebugMode'] = () =>
+      (_disableDebugMode = Module['_disableDebugMode'] = wasmExports['Y'])());
+    var _getCurStateLoc = (Module['_getCurStateLoc'] = (a0) =>
+      (_getCurStateLoc = Module['_getCurStateLoc'] = wasmExports['Z'])(a0));
+    var _getCurStateLine = (Module['_getCurStateLine'] = () =>
+      (_getCurStateLine = Module['_getCurStateLine'] = wasmExports['_'])());
+    var _getCurStateActIndex = (Module['_getCurStateActIndex'] = () =>
+      (_getCurStateActIndex = Module['_getCurStateActIndex'] = wasmExports['$'])());
+    var _getLocationsList = (Module['_getLocationsList'] = (a0) =>
+      (_getLocationsList = Module['_getLocationsList'] = wasmExports['aa'])(a0));
+    var _getLocationCode = (Module['_getLocationCode'] = (a0, a1) =>
+      (_getLocationCode = Module['_getLocationCode'] = wasmExports['ba'])(a0, a1));
+    var _getActionCode = (Module['_getActionCode'] = (a0, a1, a2) =>
+      (_getActionCode = Module['_getActionCode'] = wasmExports['ca'])(a0, a1, a2));
     var ___errno_location = () => (___errno_location = wasmExports['__errno_location'])();
-    var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['X'])();
+    var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['ea'])();
     var _emscripten_stack_get_free = () =>
       (_emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'])();
-    var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['Y'])();
-    var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['Z'])();
-    var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['_'])();
+    var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['fa'])();
+    var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['ga'])();
+    var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['ha'])();
     var ___set_stack_limits = (Module['___set_stack_limits'] = (a0, a1) =>
-      (___set_stack_limits = Module['___set_stack_limits'] = wasmExports['$'])(a0, a1));
-    var _asyncify_start_unwind = (a0) => (_asyncify_start_unwind = wasmExports['aa'])(a0);
-    var _asyncify_stop_unwind = () => (_asyncify_stop_unwind = wasmExports['ba'])();
-    var _asyncify_start_rewind = (a0) => (_asyncify_start_rewind = wasmExports['ca'])(a0);
-    var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports['da'])();
+      (___set_stack_limits = Module['___set_stack_limits'] = wasmExports['ia'])(a0, a1));
+    var _asyncify_start_unwind = (a0) => (_asyncify_start_unwind = wasmExports['ja'])(a0);
+    var _asyncify_stop_unwind = () => (_asyncify_stop_unwind = wasmExports['ka'])();
+    var _asyncify_start_rewind = (a0) => (_asyncify_start_rewind = wasmExports['la'])(a0);
+    var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports['ma'])();
     Module['addFunction'] = addFunction;
     Module['Asyncify'] = Asyncify;
     var calledRun;

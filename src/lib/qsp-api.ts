@@ -9,6 +9,7 @@ import {
   withBufferRead,
   withBufferWrite,
   withListRead,
+  withStringListRead,
   withStringRead,
   withStringWrite,
   writeString,
@@ -258,6 +259,28 @@ export class QspAPIImpl implements QspAPI {
     withStringWrite(this.module, code, (ptr) => this.module._execUserInput(ptr));
   }
 
+  enableDebugMode(): void {
+    this.module._enableDebugMode();
+  }
+  disableDebugMode(): void {
+    this.module._disableDebugMode();
+  }
+
+  getLocationsList(): string[] {
+    return withStringListRead(this.module, (ptr: Ptr) => this.module._getLocationsList(ptr));
+  }
+
+  getLocationCode(name: string): string[] {
+    const namePtr = this.getStaticStringPointer(name);
+    return withStringListRead(this.module, (ptr: Ptr) =>
+      this.module._getLocationCode(namePtr, ptr),
+    );
+  }
+  getActionCode(location: string, index: number): string[] {
+    const namePtr = this.getStaticStringPointer(location);
+    return withStringListRead(this.module, (ptr: Ptr) => this.module._getActionCode(namePtr, index, ptr));
+  }
+
   private init(): void {
     this.module._init();
     this.module._initCallBacks();
@@ -408,8 +431,23 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onDebug = (strPtr: StringPtr): void => {
-    const text = readString(this.module, strPtr);
-    console.log('DEBUG:', text);
+    const code = readString(this.module, strPtr);
+    const loc = withStringRead(this.module, (ptr) => this.module._getCurStateLoc(ptr));
+    const line = this.module._getCurStateLine();
+    const actIndex = this.module._getCurStateActIndex();
+
+    return asAsync(this.module, (done) => {
+      this.emit(
+        'debug',
+        {
+          code,
+          loc,
+          line,
+          actIndex,
+        },
+        done,
+      );
+    });
   };
 
   onSystemCmd = (strPtr: StringPtr): void => {
