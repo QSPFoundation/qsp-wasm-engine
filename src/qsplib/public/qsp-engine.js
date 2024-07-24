@@ -1,25 +1,31 @@
 var createQspModule = (() => {
-  var _scriptDir = import.meta.url;
+  var _scriptName = import.meta.url;
 
   return async function (moduleArg = {}) {
+    var moduleRtn;
+
     var Module = moduleArg;
     var readyPromiseResolve, readyPromiseReject;
-    Module['ready'] = new Promise((resolve, reject) => {
+    var readyPromise = new Promise((resolve, reject) => {
       readyPromiseResolve = resolve;
       readyPromiseReject = reject;
     });
-    var moduleOverrides = Object.assign({}, Module);
-    var arguments_ = [];
-    var thisProgram = './this.program';
-    var quit_ = (status, toThrow) => {
-      throw toThrow;
-    };
     var ENVIRONMENT_IS_WEB = typeof window == 'object';
     var ENVIRONMENT_IS_WORKER = typeof importScripts == 'function';
     var ENVIRONMENT_IS_NODE =
       typeof process == 'object' &&
       typeof process.versions == 'object' &&
       typeof process.versions.node == 'string';
+    if (ENVIRONMENT_IS_NODE) {
+      const { createRequire: createRequire } = await import('module');
+      var require = createRequire(import.meta.url);
+    }
+    var moduleOverrides = Object.assign({}, Module);
+    var arguments_ = [];
+    var thisProgram = './this.program';
+    var quit_ = (status, toThrow) => {
+      throw toThrow;
+    };
     var scriptDirectory = '';
     function locateFile(path) {
       if (Module['locateFile']) {
@@ -27,33 +33,23 @@ var createQspModule = (() => {
       }
       return scriptDirectory + path;
     }
-    var read_, readAsync, readBinary;
+    var readAsync, readBinary;
     if (ENVIRONMENT_IS_NODE) {
-      const { createRequire: createRequire } = await import('module');
-      var require = createRequire(import.meta.url);
       var fs = require('fs');
       var nodePath = require('path');
-      if (ENVIRONMENT_IS_WORKER) {
-        scriptDirectory = nodePath.dirname(scriptDirectory) + '/';
-      } else {
-        scriptDirectory = require('url').fileURLToPath(new URL('./', import.meta.url));
-      }
-      read_ = (filename, binary) => {
-        filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
-        return fs.readFileSync(filename, binary ? undefined : 'utf8');
-      };
+      scriptDirectory = require('url').fileURLToPath(new URL('./', import.meta.url));
       readBinary = (filename) => {
-        var ret = read_(filename, true);
-        if (!ret.buffer) {
-          ret = new Uint8Array(ret);
-        }
+        filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
+        var ret = fs.readFileSync(filename);
         return ret;
       };
-      readAsync = (filename, onload, onerror, binary = true) => {
+      readAsync = (filename, binary = true) => {
         filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
-        fs.readFile(filename, binary ? undefined : 'utf8', (err, data) => {
-          if (err) onerror(err);
-          else onload(binary ? data.buffer : data);
+        return new Promise((resolve, reject) => {
+          fs.readFile(filename, binary ? undefined : 'utf8', (err, data) => {
+            if (err) reject(err);
+            else resolve(binary ? data.buffer : data);
+          });
         });
       };
       if (!Module['thisProgram'] && process.argv.length > 1) {
@@ -64,31 +60,24 @@ var createQspModule = (() => {
         process.exitCode = status;
         throw toThrow;
       };
-      Module['inspect'] = () => '[Emscripten Module object]';
     } else if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
       if (ENVIRONMENT_IS_WORKER) {
         scriptDirectory = self.location.href;
       } else if (typeof document != 'undefined' && document.currentScript) {
         scriptDirectory = document.currentScript.src;
       }
-      if (_scriptDir) {
-        scriptDirectory = _scriptDir;
+      if (_scriptName) {
+        scriptDirectory = _scriptName;
       }
-      if (scriptDirectory.indexOf('blob:') !== 0) {
+      if (scriptDirectory.startsWith('blob:')) {
+        scriptDirectory = '';
+      } else {
         scriptDirectory = scriptDirectory.substr(
           0,
           scriptDirectory.replace(/[?#].*/, '').lastIndexOf('/') + 1,
         );
-      } else {
-        scriptDirectory = '';
       }
       {
-        read_ = (url) => {
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', url, false);
-          xhr.send(null);
-          return xhr.responseText;
-        };
         if (ENVIRONMENT_IS_WORKER) {
           readBinary = (url) => {
             var xhr = new XMLHttpRequest();
@@ -98,19 +87,28 @@ var createQspModule = (() => {
             return new Uint8Array(xhr.response);
           };
         }
-        readAsync = (url, onload, onerror) => {
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', url, true);
-          xhr.responseType = 'arraybuffer';
-          xhr.onload = () => {
-            if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) {
-              onload(xhr.response);
-              return;
+        readAsync = (url) => {
+          if (isFileURI(url)) {
+            return new Promise((reject, resolve) => {
+              var xhr = new XMLHttpRequest();
+              xhr.open('GET', url, true);
+              xhr.responseType = 'arraybuffer';
+              xhr.onload = () => {
+                if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) {
+                  resolve(xhr.response);
+                }
+                reject(xhr.status);
+              };
+              xhr.onerror = reject;
+              xhr.send(null);
+            });
+          }
+          return fetch(url, { credentials: 'same-origin' }).then((response) => {
+            if (response.ok) {
+              return response.arrayBuffer();
             }
-            onerror();
-          };
-          xhr.onerror = onerror;
-          xhr.send(null);
+            return Promise.reject(new Error(response.status + ' : ' + response.url));
+          });
         };
       }
     } else {
@@ -124,9 +122,6 @@ var createQspModule = (() => {
     if (Module['quit']) quit_ = Module['quit'];
     var wasmBinary;
     if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
-    if (typeof WebAssembly != 'object') {
-      abort('no native wasm support detected');
-    }
     var wasmMemory;
     var ABORT = false;
     var EXITSTATUS;
@@ -246,15 +241,17 @@ var createQspModule = (() => {
     var dataURIPrefix = 'data:application/octet-stream;base64,';
     var isDataURI = (filename) => filename.startsWith(dataURIPrefix);
     var isFileURI = (filename) => filename.startsWith('file://');
-    var wasmBinaryFile;
-    if (Module['locateFile']) {
-      wasmBinaryFile = 'qsp-engine.wasm';
-      if (!isDataURI(wasmBinaryFile)) {
-        wasmBinaryFile = locateFile(wasmBinaryFile);
+    function findWasmBinary() {
+      if (Module['locateFile']) {
+        var f = 'qsp-engine.wasm';
+        if (!isDataURI(f)) {
+          return locateFile(f);
+        }
+        return f;
       }
-    } else {
-      wasmBinaryFile = new URL('qsp-engine.wasm', import.meta.url).href;
+      return new URL('qsp-engine.wasm', import.meta.url).href;
     }
+    var wasmBinaryFile;
     function getBinarySync(file) {
       if (file == wasmBinaryFile && wasmBinary) {
         return new Uint8Array(wasmBinary);
@@ -265,28 +262,17 @@ var createQspModule = (() => {
       throw 'both async and sync fetching of the wasm failed';
     }
     function getBinaryPromise(binaryFile) {
-      if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER)) {
-        if (typeof fetch == 'function' && !isFileURI(binaryFile)) {
-          return fetch(binaryFile, { credentials: 'same-origin' })
-            .then((response) => {
-              if (!response['ok']) {
-                throw "failed to load wasm binary file at '" + binaryFile + "'";
-              }
-              return response['arrayBuffer']();
-            })
-            .catch(() => getBinarySync(binaryFile));
-        } else if (readAsync) {
-          return new Promise((resolve, reject) => {
-            readAsync(binaryFile, (response) => resolve(new Uint8Array(response)), reject);
-          });
-        }
+      if (!wasmBinary) {
+        return readAsync(binaryFile).then(
+          (response) => new Uint8Array(response),
+          () => getBinarySync(binaryFile),
+        );
       }
       return Promise.resolve().then(() => getBinarySync(binaryFile));
     }
     function instantiateArrayBuffer(binaryFile, imports, receiver) {
       return getBinaryPromise(binaryFile)
         .then((binary) => WebAssembly.instantiate(binary, imports))
-        .then((instance) => instance)
         .then(receiver, (reason) => {
           err(`failed to asynchronously prepare wasm: ${reason}`);
           abort(reason);
@@ -312,14 +298,17 @@ var createQspModule = (() => {
       }
       return instantiateArrayBuffer(binaryFile, imports, callback);
     }
+    function getWasmImports() {
+      return { a: wasmImports };
+    }
     function createWasm() {
-      var info = { a: wasmImports };
+      var info = getWasmImports();
       function receiveInstance(instance, module) {
         wasmExports = instance.exports;
         wasmExports = Asyncify.instrumentWasmExports(wasmExports);
         wasmMemory = wasmExports['g'];
         updateMemoryViews();
-        wasmTable = wasmExports['da'];
+        wasmTable = wasmExports['m'];
         addOnInit(wasmExports['h']);
         removeRunDependency('wasm-instantiate');
         return wasmExports;
@@ -336,6 +325,7 @@ var createQspModule = (() => {
           readyPromiseReject(e);
         }
       }
+      if (!wasmBinaryFile) wasmBinaryFile = findWasmBinary();
       instantiateAsync(wasmBinary, wasmBinaryFile, info, receiveInstantiationResult).catch(
         readyPromiseReject,
       );
@@ -370,8 +360,8 @@ var createQspModule = (() => {
           ']). If you require more stack space build with -sSTACK_SIZE=<bytes>',
       );
     };
+    var __emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
     var _emscripten_date_now = () => Date.now();
-    var _emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
     var getHeapMax = () => 2147483648;
     var growMemory = (size) => {
       var b = wasmMemory.buffer;
@@ -436,61 +426,9 @@ var createQspModule = (() => {
     };
     var stringToAscii = (str, buffer) => {
       for (var i = 0; i < str.length; ++i) {
-        HEAP8[buffer++ >> 0] = str.charCodeAt(i);
+        HEAP8[buffer++] = str.charCodeAt(i);
       }
-      HEAP8[buffer >> 0] = 0;
-    };
-    var UTF8Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder('utf8') : undefined;
-    var UTF8ArrayToString = (heapOrArray, idx, maxBytesToRead) => {
-      var endIdx = idx + maxBytesToRead;
-      var endPtr = idx;
-      while (heapOrArray[endPtr] && !(endPtr >= endIdx)) ++endPtr;
-      if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
-        return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
-      }
-      var str = '';
-      while (idx < endPtr) {
-        var u0 = heapOrArray[idx++];
-        if (!(u0 & 128)) {
-          str += String.fromCharCode(u0);
-          continue;
-        }
-        var u1 = heapOrArray[idx++] & 63;
-        if ((u0 & 224) == 192) {
-          str += String.fromCharCode(((u0 & 31) << 6) | u1);
-          continue;
-        }
-        var u2 = heapOrArray[idx++] & 63;
-        if ((u0 & 240) == 224) {
-          u0 = ((u0 & 15) << 12) | (u1 << 6) | u2;
-        } else {
-          u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
-        }
-        if (u0 < 65536) {
-          str += String.fromCharCode(u0);
-        } else {
-          var ch = u0 - 65536;
-          str += String.fromCharCode(55296 | (ch >> 10), 56320 | (ch & 1023));
-        }
-      }
-      return str;
-    };
-    var UTF8ToString = (ptr, maxBytesToRead) =>
-      ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : '';
-    var SYSCALLS = {
-      varargs: undefined,
-      get() {
-        var ret = HEAP32[+SYSCALLS.varargs >> 2];
-        SYSCALLS.varargs += 4;
-        return ret;
-      },
-      getp() {
-        return SYSCALLS.get();
-      },
-      getStr(ptr) {
-        var ret = UTF8ToString(ptr);
-        return ret;
-      },
+      HEAP8[buffer] = 0;
     };
     var _environ_get = (__environ, environ_buf) => {
       var bufSize = 0;
@@ -578,7 +516,6 @@ var createQspModule = (() => {
       instrumentWasmImports(imports) {
         var importPattern = /^(invoke_.*|__asyncjs__.*)$/;
         for (let [x, original] of Object.entries(imports)) {
-          let sig = original.sig;
           if (typeof original == 'function') {
             let isAsyncifyImport = original.isAsync || importPattern.test(x);
           }
@@ -588,10 +525,10 @@ var createQspModule = (() => {
         var ret = {};
         for (let [x, original] of Object.entries(exports)) {
           if (typeof original == 'function') {
-            ret[x] = function () {
+            ret[x] = (...args) => {
               Asyncify.exportCallStack.push(x);
               try {
-                return original.apply(null, arguments);
+                return original(...args);
               } finally {
                 if (!ABORT) {
                   var y = Asyncify.exportCallStack.pop();
@@ -658,15 +595,19 @@ var createQspModule = (() => {
         var rewindId = Asyncify.getCallStackId(bottomOfCallStack);
         HEAP32[(ptr + 8) >> 2] = rewindId;
       },
-      getDataRewindFunc(ptr) {
+      getDataRewindFuncName(ptr) {
         var id = HEAP32[(ptr + 8) >> 2];
         var name = Asyncify.callStackIdToName[id];
+        return name;
+      },
+      getDataRewindFunc(name) {
         var func = wasmExports[name];
         return func;
       },
       doRewind(ptr) {
-        var start = Asyncify.getDataRewindFunc(ptr);
-        return start();
+        var name = Asyncify.getDataRewindFuncName(ptr);
+        var func = Asyncify.getDataRewindFunc(name);
+        return func();
       },
       handleSleep(startAsync) {
         if (ABORT) return;
@@ -722,7 +663,7 @@ var createQspModule = (() => {
           runAndAbortIfError(_asyncify_stop_rewind);
           _free(Asyncify.currData);
           Asyncify.currData = null;
-          Asyncify.sleepCallbacks.forEach((func) => callUserCallback(func));
+          Asyncify.sleepCallbacks.forEach(callUserCallback);
         } else {
           abort(`invalid state: ${Asyncify.state}`);
         }
@@ -764,7 +705,7 @@ var createQspModule = (() => {
       generateFuncType(sig, typeSectionBody);
       var bytes = [0, 97, 115, 109, 1, 0, 0, 0, 1];
       uleb128Encode(typeSectionBody.length, bytes);
-      bytes.push.apply(bytes, typeSectionBody);
+      bytes.push(...typeSectionBody);
       bytes.push(2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0);
       var module = new WebAssembly.Module(new Uint8Array(bytes));
       var instance = new WebAssembly.Instance(module, { e: { f: func } });
@@ -838,8 +779,8 @@ var createQspModule = (() => {
     };
     var wasmImports = {
       a: ___handle_stack_overflow,
+      f: __emscripten_memcpy_js,
       e: _emscripten_date_now,
-      f: _emscripten_memcpy_js,
       b: _emscripten_resize_heap,
       c: _environ_get,
       d: _environ_sizes_get,
@@ -854,98 +795,95 @@ var createQspModule = (() => {
     var _setErrorCallback = (Module['_setErrorCallback'] = (a0) =>
       (_setErrorCallback = Module['_setErrorCallback'] = wasmExports['l'])(a0));
     var _getMainDesc = (Module['_getMainDesc'] = (a0) =>
-      (_getMainDesc = Module['_getMainDesc'] = wasmExports['m'])(a0));
+      (_getMainDesc = Module['_getMainDesc'] = wasmExports['n'])(a0));
     var _isMainDescChanged = (Module['_isMainDescChanged'] = () =>
-      (_isMainDescChanged = Module['_isMainDescChanged'] = wasmExports['n'])());
+      (_isMainDescChanged = Module['_isMainDescChanged'] = wasmExports['o'])());
     var _getVarsDesc = (Module['_getVarsDesc'] = (a0) =>
-      (_getVarsDesc = Module['_getVarsDesc'] = wasmExports['o'])(a0));
+      (_getVarsDesc = Module['_getVarsDesc'] = wasmExports['p'])(a0));
     var _isVarsDescChanged = (Module['_isVarsDescChanged'] = () =>
-      (_isVarsDescChanged = Module['_isVarsDescChanged'] = wasmExports['p'])());
+      (_isVarsDescChanged = Module['_isVarsDescChanged'] = wasmExports['q'])());
     var _getActions = (Module['_getActions'] = (a0) =>
-      (_getActions = Module['_getActions'] = wasmExports['q'])(a0));
+      (_getActions = Module['_getActions'] = wasmExports['r'])(a0));
     var _malloc = (Module['_malloc'] = (a0) =>
-      (_malloc = Module['_malloc'] = wasmExports['r'])(a0));
+      (_malloc = Module['_malloc'] = wasmExports['s'])(a0));
     var _selectAction = (Module['_selectAction'] = (a0) =>
-      (_selectAction = Module['_selectAction'] = wasmExports['s'])(a0));
+      (_selectAction = Module['_selectAction'] = wasmExports['t'])(a0));
     var _executeSelAction = (Module['_executeSelAction'] = () =>
-      (_executeSelAction = Module['_executeSelAction'] = wasmExports['t'])());
+      (_executeSelAction = Module['_executeSelAction'] = wasmExports['u'])());
     var _isActionsChanged = (Module['_isActionsChanged'] = () =>
-      (_isActionsChanged = Module['_isActionsChanged'] = wasmExports['u'])());
+      (_isActionsChanged = Module['_isActionsChanged'] = wasmExports['v'])());
     var _getObjects = (Module['_getObjects'] = (a0) =>
-      (_getObjects = Module['_getObjects'] = wasmExports['v'])(a0));
+      (_getObjects = Module['_getObjects'] = wasmExports['w'])(a0));
     var _selectObject = (Module['_selectObject'] = (a0) =>
-      (_selectObject = Module['_selectObject'] = wasmExports['w'])(a0));
+      (_selectObject = Module['_selectObject'] = wasmExports['x'])(a0));
     var _isObjectsChanged = (Module['_isObjectsChanged'] = () =>
-      (_isObjectsChanged = Module['_isObjectsChanged'] = wasmExports['x'])());
+      (_isObjectsChanged = Module['_isObjectsChanged'] = wasmExports['y'])());
     var _loadGameData = (Module['_loadGameData'] = (a0, a1, a2) =>
-      (_loadGameData = Module['_loadGameData'] = wasmExports['y'])(a0, a1, a2));
+      (_loadGameData = Module['_loadGameData'] = wasmExports['z'])(a0, a1, a2));
     var _restartGame = (Module['_restartGame'] = () =>
-      (_restartGame = Module['_restartGame'] = wasmExports['z'])());
+      (_restartGame = Module['_restartGame'] = wasmExports['A'])());
     var _saveGameData = (Module['_saveGameData'] = (a0) =>
-      (_saveGameData = Module['_saveGameData'] = wasmExports['A'])(a0));
-    var _free = (Module['_free'] = (a0) => (_free = Module['_free'] = wasmExports['B'])(a0));
+      (_saveGameData = Module['_saveGameData'] = wasmExports['B'])(a0));
+    var _free = (Module['_free'] = (a0) => (_free = Module['_free'] = wasmExports['C'])(a0));
     var _loadSavedGameData = (Module['_loadSavedGameData'] = (a0, a1) =>
-      (_loadSavedGameData = Module['_loadSavedGameData'] = wasmExports['C'])(a0, a1));
+      (_loadSavedGameData = Module['_loadSavedGameData'] = wasmExports['D'])(a0, a1));
     var _execString = (Module['_execString'] = (a0, a1) =>
-      (_execString = Module['_execString'] = wasmExports['D'])(a0, a1));
+      (_execString = Module['_execString'] = wasmExports['E'])(a0, a1));
     var _execExpression = (Module['_execExpression'] = (a0) =>
-      (_execExpression = Module['_execExpression'] = wasmExports['E'])(a0));
+      (_execExpression = Module['_execExpression'] = wasmExports['F'])(a0));
     var _execCounter = (Module['_execCounter'] = () =>
-      (_execCounter = Module['_execCounter'] = wasmExports['F'])());
+      (_execCounter = Module['_execCounter'] = wasmExports['G'])());
     var _execLoc = (Module['_execLoc'] = (a0) =>
-      (_execLoc = Module['_execLoc'] = wasmExports['G'])(a0));
+      (_execLoc = Module['_execLoc'] = wasmExports['H'])(a0));
     var _execUserInput = (Module['_execUserInput'] = (a0) =>
-      (_execUserInput = Module['_execUserInput'] = wasmExports['H'])(a0));
+      (_execUserInput = Module['_execUserInput'] = wasmExports['I'])(a0));
     var _getLastErrorNum = (Module['_getLastErrorNum'] = () =>
-      (_getLastErrorNum = Module['_getLastErrorNum'] = wasmExports['I'])());
+      (_getLastErrorNum = Module['_getLastErrorNum'] = wasmExports['J'])());
     var _getLastErrorLoc = (Module['_getLastErrorLoc'] = (a0) =>
-      (_getLastErrorLoc = Module['_getLastErrorLoc'] = wasmExports['J'])(a0));
+      (_getLastErrorLoc = Module['_getLastErrorLoc'] = wasmExports['K'])(a0));
     var _getLastErrorActIndex = (Module['_getLastErrorActIndex'] = () =>
-      (_getLastErrorActIndex = Module['_getLastErrorActIndex'] = wasmExports['K'])());
+      (_getLastErrorActIndex = Module['_getLastErrorActIndex'] = wasmExports['L'])());
     var _getLastErrorLine = (Module['_getLastErrorLine'] = () =>
-      (_getLastErrorLine = Module['_getLastErrorLine'] = wasmExports['L'])());
+      (_getLastErrorLine = Module['_getLastErrorLine'] = wasmExports['M'])());
     var _getErrorDesc = (Module['_getErrorDesc'] = (a0, a1) =>
-      (_getErrorDesc = Module['_getErrorDesc'] = wasmExports['M'])(a0, a1));
+      (_getErrorDesc = Module['_getErrorDesc'] = wasmExports['N'])(a0, a1));
     var _getVarStringValue = (Module['_getVarStringValue'] = (a0, a1, a2) =>
-      (_getVarStringValue = Module['_getVarStringValue'] = wasmExports['N'])(a0, a1, a2));
+      (_getVarStringValue = Module['_getVarStringValue'] = wasmExports['O'])(a0, a1, a2));
     var _getVarNumValue = (Module['_getVarNumValue'] = (a0, a1) =>
-      (_getVarNumValue = Module['_getVarNumValue'] = wasmExports['O'])(a0, a1));
+      (_getVarNumValue = Module['_getVarNumValue'] = wasmExports['P'])(a0, a1));
     var _getVarStringValueByKey = (Module['_getVarStringValueByKey'] = (a0, a1, a2) =>
-      (_getVarStringValueByKey = Module['_getVarStringValueByKey'] = wasmExports['P'])(a0, a1, a2));
+      (_getVarStringValueByKey = Module['_getVarStringValueByKey'] = wasmExports['Q'])(a0, a1, a2));
     var _getVarNumValueByKey = (Module['_getVarNumValueByKey'] = (a0, a1) =>
-      (_getVarNumValueByKey = Module['_getVarNumValueByKey'] = wasmExports['Q'])(a0, a1));
+      (_getVarNumValueByKey = Module['_getVarNumValueByKey'] = wasmExports['R'])(a0, a1));
     var _getVarSize = (Module['_getVarSize'] = (a0) =>
-      (_getVarSize = Module['_getVarSize'] = wasmExports['R'])(a0));
+      (_getVarSize = Module['_getVarSize'] = wasmExports['S'])(a0));
     var _initCallBacks = (Module['_initCallBacks'] = () =>
-      (_initCallBacks = Module['_initCallBacks'] = wasmExports['S'])());
+      (_initCallBacks = Module['_initCallBacks'] = wasmExports['T'])());
     var _setCallBack = (Module['_setCallBack'] = (a0, a1) =>
-      (_setCallBack = Module['_setCallBack'] = wasmExports['T'])(a0, a1));
+      (_setCallBack = Module['_setCallBack'] = wasmExports['U'])(a0, a1));
     var _freeItemsList = (Module['_freeItemsList'] = (a0) =>
-      (_freeItemsList = Module['_freeItemsList'] = wasmExports['U'])(a0));
+      (_freeItemsList = Module['_freeItemsList'] = wasmExports['V'])(a0));
     var _freeSaveBuffer = (Module['_freeSaveBuffer'] = (a0) =>
-      (_freeSaveBuffer = Module['_freeSaveBuffer'] = wasmExports['V'])(a0));
+      (_freeSaveBuffer = Module['_freeSaveBuffer'] = wasmExports['W'])(a0));
     var _freeStringsBuffer = (Module['_freeStringsBuffer'] = (a0) =>
-      (_freeStringsBuffer = Module['_freeStringsBuffer'] = wasmExports['W'])(a0));
+      (_freeStringsBuffer = Module['_freeStringsBuffer'] = wasmExports['X'])(a0));
     var _enableDebugMode = (Module['_enableDebugMode'] = () =>
-      (_enableDebugMode = Module['_enableDebugMode'] = wasmExports['X'])());
+      (_enableDebugMode = Module['_enableDebugMode'] = wasmExports['Y'])());
     var _disableDebugMode = (Module['_disableDebugMode'] = () =>
-      (_disableDebugMode = Module['_disableDebugMode'] = wasmExports['Y'])());
+      (_disableDebugMode = Module['_disableDebugMode'] = wasmExports['Z'])());
     var _getCurStateLoc = (Module['_getCurStateLoc'] = (a0) =>
-      (_getCurStateLoc = Module['_getCurStateLoc'] = wasmExports['Z'])(a0));
+      (_getCurStateLoc = Module['_getCurStateLoc'] = wasmExports['_'])(a0));
     var _getCurStateLine = (Module['_getCurStateLine'] = () =>
-      (_getCurStateLine = Module['_getCurStateLine'] = wasmExports['_'])());
+      (_getCurStateLine = Module['_getCurStateLine'] = wasmExports['$'])());
     var _getCurStateActIndex = (Module['_getCurStateActIndex'] = () =>
-      (_getCurStateActIndex = Module['_getCurStateActIndex'] = wasmExports['$'])());
+      (_getCurStateActIndex = Module['_getCurStateActIndex'] = wasmExports['aa'])());
     var _getLocationsList = (Module['_getLocationsList'] = (a0) =>
-      (_getLocationsList = Module['_getLocationsList'] = wasmExports['aa'])(a0));
+      (_getLocationsList = Module['_getLocationsList'] = wasmExports['ba'])(a0));
     var _getLocationCode = (Module['_getLocationCode'] = (a0, a1) =>
-      (_getLocationCode = Module['_getLocationCode'] = wasmExports['ba'])(a0, a1));
+      (_getLocationCode = Module['_getLocationCode'] = wasmExports['ca'])(a0, a1));
     var _getActionCode = (Module['_getActionCode'] = (a0, a1, a2) =>
-      (_getActionCode = Module['_getActionCode'] = wasmExports['ca'])(a0, a1, a2));
-    var ___errno_location = () => (___errno_location = wasmExports['__errno_location'])();
+      (_getActionCode = Module['_getActionCode'] = wasmExports['da'])(a0, a1, a2));
     var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['ea'])();
-    var _emscripten_stack_get_free = () =>
-      (_emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'])();
     var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['fa'])();
     var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['ga'])();
     var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['ha'])();
@@ -982,7 +920,7 @@ var createQspModule = (() => {
         if (ABORT) return;
         initRuntime();
         readyPromiseResolve(Module);
-        if (Module['onRuntimeInitialized']) Module['onRuntimeInitialized']();
+        Module['onRuntimeInitialized']?.();
         postRun();
       }
       if (Module['setStatus']) {
@@ -1005,8 +943,9 @@ var createQspModule = (() => {
       }
     }
     run();
+    moduleRtn = readyPromise;
 
-    return moduleArg.ready;
+    return moduleRtn;
   };
 })();
 export default createQspModule;
