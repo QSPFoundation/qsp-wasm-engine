@@ -30,7 +30,7 @@ export enum QspCallType {
 }
 
 export interface QspWasmModule extends EmscriptenModule {
-  addFunction(fn: Function, signature: string): FunctionPtr; //eslint-disable-line @typescript-eslint/ban-types
+  addFunction(fn: (...args: never) => unknown, signature: string): FunctionPtr;
   Asyncify: {
     handleSleep(cb: (wakeUp: (ret: number) => void) => void): void;
   };

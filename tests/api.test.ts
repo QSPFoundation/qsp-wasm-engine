@@ -116,8 +116,7 @@ describe('api', () => {
     api.execCode(`test[1] = 123 & msg "test"`);
     await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(123);
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (msg.mock.calls[0][1] as Function)();
+    msg.mock.calls[0][1]();
   });
 
   it('should watch variable by key', async () => {
@@ -130,8 +129,6 @@ describe('api', () => {
     await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(123);
   });
-
-
 
   it('should watch expression', async () => {
     runTestFile(api, ``);
@@ -169,9 +166,8 @@ describe('api', () => {
     expect(error).not.toHaveBeenCalled();
     expect(watchExpression).toHaveBeenCalledWith(1);
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (msg.mock.calls[0][1] as Function)();
-  
+    msg.mock.calls[0][1]();
+
     await delay(10);
     expect(error).not.toHaveBeenCalled();
   });
@@ -188,14 +184,12 @@ describe('api', () => {
     await delay(10);
     expect(error).not.toHaveBeenCalled();
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (msg.mock.calls[0][1] as Function)();
-  
+    msg.mock.calls[0][1]();
+
     await delay(10);
     expect(error).not.toHaveBeenCalled();
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (msg.mock.calls[1][1] as Function)();
+    msg.mock.calls[1][1]();
 
     await delay(10);
     expect(error).not.toHaveBeenCalled();

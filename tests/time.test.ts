@@ -27,8 +27,7 @@ describe('time', () => {
     runTestFile(api, `WAIT 1000 & p 'after wait'`);
     expect(onStatsChanged).toHaveBeenCalledWith('');
     expect(onWait).toHaveBeenCalledWith(1000, expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onWait.mock.calls[0][1] as Function)();
+    onWait.mock.calls[0][1]();
     expect(onStatsChanged).toHaveBeenCalledWith('after wait');
   });
 

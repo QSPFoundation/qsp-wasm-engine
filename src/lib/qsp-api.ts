@@ -318,8 +318,7 @@ export class QspAPIImpl implements QspAPI {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  private registerCallback(type: QspCallType, callback: Function, signature: string): void {
+  private registerCallback(type: QspCallType, callback: (...args: never) => unknown, signature: string): void {
     this.module._setCallBack(type, this.module.addFunction(callback, signature));
   }
 

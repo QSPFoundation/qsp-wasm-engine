@@ -16,8 +16,7 @@ describe('api', () => {
     api.on('version', onVersion);
     runTestFile(api, `$ver = $QSPVER`);
     expect(onVersion).toHaveBeenCalledWith('', expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onVersion.mock.calls[0][1] as Function)('5.8.0');
+    onVersion.mock.calls[0][1]('5.8.0');
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$ver')).toBe('5.8.0');
   });

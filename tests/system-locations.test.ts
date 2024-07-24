@@ -27,8 +27,7 @@ x = 1
     const save = api.saveGame();
     if (!save) throw new Error('failed to save');
     api.loadSave(save);
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onCloseFile.mock.calls[0][1] as Function)();
+    onCloseFile.mock.calls[0][1]();
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(1);
   });

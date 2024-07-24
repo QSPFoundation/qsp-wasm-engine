@@ -19,8 +19,7 @@ describe('objects', () => {
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(1);
     expect(onOpen).toHaveBeenCalledWith('1.qsp', 1, expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onOpen.mock.calls[0][2] as Function)();
+    onOpen.mock.calls[0][2]();
     expect(api.readVariable('x')).toBe(1);
     expect(error).not.toHaveBeenCalled();
   });
@@ -32,8 +31,7 @@ describe('objects', () => {
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(1);
     expect(onOpen).toHaveBeenCalledWith('1.qsp', 0, expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onOpen.mock.calls[0][2] as Function)();
+    onOpen.mock.calls[0][2]();
     expect(api.readVariable('x')).toBe(2);
     expect(error).not.toHaveBeenCalled();
   });
@@ -52,8 +50,7 @@ describe('objects', () => {
       ),
       false,
     );
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onOpen.mock.calls[0][2] as Function)();
+    onOpen.mock.calls[0][2]();
     api.execCode(`l = loc('other')`);
     expect(api.readVariable('l')).toBe(1);
     api.execCode('FREELIB');
@@ -69,8 +66,7 @@ describe('objects', () => {
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(1);
     expect(onSave).toHaveBeenCalledWith('1.sav', expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onSave.mock.calls[0][1] as Function)();
+    onSave.mock.calls[0][1]();
     expect(api.readVariable('x')).toBe(2);
     expect(error).not.toHaveBeenCalled();
   });
@@ -82,8 +78,7 @@ describe('objects', () => {
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(1);
     expect(onLoad).toHaveBeenCalledWith('1.sav', expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onLoad.mock.calls[0][1] as Function)();
+    onLoad.mock.calls[0][1]();
     expect(api.readVariable('x')).toBe(2);
     expect(error).not.toHaveBeenCalled();
   });

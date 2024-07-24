@@ -171,8 +171,7 @@ p 'thrown'
       ],
       expect.any(Function),
     );
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (menu.mock.calls[0][1] as Function)(1);
+    menu.mock.calls[0][1](1);
     expect(error).not.toHaveBeenCalled();
     expect(statsChanged).toHaveBeenCalledWith('thrown');
   });
@@ -192,8 +191,7 @@ r = args[0]
 `,
     );
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (menu.mock.calls[0][1] as Function)(1);
+    menu.mock.calls[0][1](1);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('r')).toBe(2);
   });

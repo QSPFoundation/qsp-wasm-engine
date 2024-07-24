@@ -62,8 +62,7 @@ describe('Main panel', () => {
     runTestFile(api, `$text = $input('Question?')`);
     expect(error).not.toHaveBeenCalled();
     expect(onInput).toHaveBeenCalledWith('Question?', expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onInput.mock.calls[0][1] as Function)('Answer');
+    onInput.mock.calls[0][1]('Answer');
     expect(api.readVariable('$text')).toBe('Answer');
   });
 });

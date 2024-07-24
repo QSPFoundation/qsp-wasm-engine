@@ -26,8 +26,7 @@ describe('MSG', () => {
     runTestFile(api, `*p 1 & msg 'works' & *p 2`);
     expect(mainChanged).toHaveBeenCalledWith('1');
     expect(msg).toHaveBeenCalledWith('works', expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (msg.mock.calls[0][1] as Function)();
+    msg.mock.calls[0][1]();
     expect(mainChanged).toHaveBeenCalledWith('12');
   });
 });

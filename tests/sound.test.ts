@@ -34,8 +34,7 @@ describe('sound', () => {
     api.on('stats_changed', statsChanged);
     runTestFile(api, `PLAY 'sound/music.mp3' & p 'after play'`);
     expect(statsChanged).not.toHaveBeenCalled();
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onPlay.mock.calls[0][2] as Function)();
+    onPlay.mock.calls[0][2]();
     expect(error).not.toHaveBeenCalled();
     expect(statsChanged).toHaveBeenCalledWith('after play');
   });
@@ -45,8 +44,7 @@ describe('sound', () => {
     api.on('is_play', onIsPlay);
     runTestFile(api, `playing = ISPLAY('test.mp3')`);
     expect(onIsPlay).toHaveBeenCalledWith('test.mp3', expect.any(Function));
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onIsPlay.mock.calls[0][1] as Function)(1);
+    onIsPlay.mock.calls[0][1](1);
     expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('playing')).toBe(1);
   });
@@ -57,8 +55,7 @@ describe('sound', () => {
     const onPlay = vi.fn();
     api.on('play_file', onPlay);
     runTestFile(api, `PLAY 'test.mp3' & CLOSE 'test.mp3'`);
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onPlay.mock.calls[0][2] as Function)();
+    onPlay.mock.calls[0][2]();
     expect(error).not.toHaveBeenCalled();
     expect(onCloseFile).toHaveBeenCalledWith('test.mp3', expect.any(Function));
   });
@@ -77,8 +74,7 @@ describe('sound', () => {
     const onPlay = vi.fn();
     api.on('play_file', onPlay);
     runTestFile(api, `PLAY 'test.mp3' & CLOSE ALL`);
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (onPlay.mock.calls[0][2] as Function)();
+    onPlay.mock.calls[0][2]();
     expect(error).not.toHaveBeenCalled();
     expect(onCloseFile).toHaveBeenCalledWith('', expect.any(Function));
   });
