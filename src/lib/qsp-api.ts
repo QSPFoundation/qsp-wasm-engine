@@ -126,6 +126,7 @@ export class QspAPIImpl implements QspAPI {
   }
 
   openGame(data: ArrayBuffer, isNewGame: boolean): void {
+    if (isNewGame) this._cleanup();
     withBufferWrite(this.module, data, (ptr, size) =>
       this.module._loadGameData(ptr, size, isNewGame ? 1 : 0),
     );
@@ -278,7 +279,9 @@ export class QspAPIImpl implements QspAPI {
   }
   getActionCode(location: string, index: number): string[] {
     const namePtr = this.getStaticStringPointer(location);
-    return withStringListRead(this.module, (ptr: Ptr) => this.module._getActionCode(namePtr, index, ptr));
+    return withStringListRead(this.module, (ptr: Ptr) =>
+      this.module._getActionCode(namePtr, index, ptr),
+    );
   }
 
   private init(): void {
@@ -318,7 +321,11 @@ export class QspAPIImpl implements QspAPI {
     }
   }
 
-  private registerCallback(type: QspCallType, callback: (...args: never) => unknown, signature: string): void {
+  private registerCallback(
+    type: QspCallType,
+    callback: (...args: never) => unknown,
+    signature: string,
+  ): void {
     this.module._setCallBack(type, this.module.addFunction(callback, signature));
   }
 
@@ -375,7 +382,6 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onMsg = (textPtr: StringPtr): void => {
-    this.onRefresh(false);
     const text = readString(this.module, textPtr);
     return asAsync(this.module, (done) => {
       this.emit('msg', text, () => {
@@ -385,7 +391,6 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onInput = (textPtr: StringPtr, retPtr: Ptr, maxSize: number): void => {
-    this.onRefresh(false);
     const text = readString(this.module, textPtr);
     return asAsync(this.module, (done) => {
       const onInput = (inputText: string): void => {
@@ -518,6 +523,20 @@ export class QspAPIImpl implements QspAPI {
   clearCache() {
     this.variableValues.clear();
     this.expressionValues.clear();
+  }
+
+  _run_checks() {
+    this.module.__run_checks();
+  }
+
+  _cleanup() {
+    this.clearCache();
+    this.variableWatchers.clear();
+    this.expressionWatchers.clear();
+    for (const ptr of this.staticStrings.values()) {
+      this.module._free(ptr);
+    }
+    this.staticStrings.clear();
   }
 
   private reportWatched() {

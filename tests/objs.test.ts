@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 import { QspPanel } from '../src';
@@ -14,6 +14,11 @@ describe('objects', () => {
     objectsChanged = vi.fn();
     api.on('objects_changed', objectsChanged);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   test('SHOWOBJS should toggle acts visibility', () => {
     const panelVisibility = vi.fn();
@@ -24,7 +29,7 @@ describe('objects', () => {
 
   test('ADDOBJ should add object to end of list', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -39,7 +44,7 @@ describe('objects', () => {
 
   test('ADDOBJ should add object with image', () => {
     runTestFile(api, `ADDOBJ 'first', '1.png'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -50,7 +55,7 @@ describe('objects', () => {
 
   test('ADDOBJ should add object into specified position', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second', '', 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'second',
@@ -65,7 +70,7 @@ describe('objects', () => {
 
   test('ADD OBJ should add object to end of list', () => {
     runTestFile(api, `ADD OBJ 'first' & ADD OBJ 'second'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -80,7 +85,7 @@ describe('objects', () => {
 
   test('ADD OBJ should add object with image', () => {
     runTestFile(api, `ADD OBJ 'first', '1.png'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -91,7 +96,7 @@ describe('objects', () => {
 
   test('ADD OBJ should add object into specified position', () => {
     runTestFile(api, `ADD OBJ 'first' & ADD OBJ 'second', '', 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'second',
@@ -106,7 +111,7 @@ describe('objects', () => {
 
   test('DELOBJ should delete object by name', () => {
     runTestFile(api, `ADDOBJ 'first', '1.png'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -115,13 +120,13 @@ describe('objects', () => {
     ]);
     objectsChanged.mockClear();
     api.execCode(`DELOBJ 'first'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([]);
   });
 
   test('DEL OBJ should delete object by name', () => {
     runTestFile(api, `ADDOBJ 'first', '1.png'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -136,7 +141,7 @@ describe('objects', () => {
 
   test('KILLOBJ should delete object by index', () => {
     runTestFile(api, `ADD OBJ 'first' & ADD OBJ 'second'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -149,7 +154,7 @@ describe('objects', () => {
     ]);
     objectsChanged.mockClear();
     api.execCode(`KILLOBJ 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'second',
@@ -160,7 +165,7 @@ describe('objects', () => {
 
   test('KILLOBJ should clear inventory when called without index', () => {
     runTestFile(api, `ADD OBJ 'first' & ADD OBJ 'second'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -173,13 +178,13 @@ describe('objects', () => {
     ]);
     objectsChanged.mockClear();
     api.execCode(`KILLOBJ`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([]);
   });
 
   test('KILLALL should clear inventory', () => {
     runTestFile(api, `ADD OBJ 'first' & ADD OBJ 'second'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([
       {
         name: 'first',
@@ -192,39 +197,40 @@ describe('objects', () => {
     ]);
     objectsChanged.mockClear();
     api.execCode(`KILLALL`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(objectsChanged).toHaveBeenCalledWith([]);
   });
 
   test('$SELOBJ should return name of selected object', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second'`);
-    expect(error).not.toHaveBeenCalled();
+
     api.selectObject(1);
     api.execCode('$selected = $SELOBJ');
+
     expect(api.readVariable('$selected')).toBe('second');
   });
 
   test('COUNTOBJ should return number of object', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & count = COUNTOBJ`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('count')).toBe(2);
   });
 
   test('$GETOBJ should return object name in position', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & $first = $GETOBJ(1)`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$first')).toBe('first');
   });
 
   test('reading last object in list', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & $last = $GETOBJ(COUNTOBJ)`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$last')).toBe('second');
   });
 
   test('$GETOBJ should return empty string if no object position', () => {
     runTestFile(api, `$first = $GETOBJ(1)`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$first')).toBe('');
   });
 });

@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -10,6 +10,11 @@ describe('api', () => {
     error = vi.fn();
     api.on('error', error);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   test('$QSPVER', () => {
     const onVersion = vi.fn();
@@ -17,7 +22,7 @@ describe('api', () => {
     runTestFile(api, `$ver = $QSPVER`);
     expect(onVersion).toHaveBeenCalledWith('', expect.any(Function));
     onVersion.mock.calls[0][1]('5.8.0');
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$ver')).toBe('5.8.0');
   });
 
@@ -30,7 +35,7 @@ gt 'other'
 #other
 $cloc = $CURLOC`,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$cloc')).toBe('other');
   });
 
@@ -43,7 +48,7 @@ $cloc = $CURLOC`,
   ])('MAX', (input, variable, result) => {
     test(input, () => {
       runTestFile(api, input);
-      expect(error).not.toBeCalled();
+
       expect(api.readVariable(variable)).toBe(result);
     });
   });
@@ -59,7 +64,7 @@ $cloc = $CURLOC`,
   ])('MIN', (input, variable, result) => {
     test(input, () => {
       runTestFile(api, input);
-      expect(error).not.toBeCalled();
+
       expect(api.readVariable(variable)).toBe(result);
     });
   });
@@ -67,7 +72,7 @@ $cloc = $CURLOC`,
   test('RND', () => {
     runTestFile(api, 'res = RND');
     const result = api.readVariable('res');
-    expect(error).not.toHaveBeenCalled();
+
     expect(result > 0).toBeTruthy();
     expect(result <= 1000).toBeTruthy();
   });
@@ -75,7 +80,7 @@ $cloc = $CURLOC`,
   test('RAND', () => {
     runTestFile(api, 'res = RAND(1, 4)');
     const result = api.readVariable('res');
-    expect(error).not.toHaveBeenCalled();
+
     expect(result >= 1).toBeTruthy();
     expect(result <= 4).toBeTruthy();
   });
@@ -83,7 +88,7 @@ $cloc = $CURLOC`,
   test('RAND reversed', () => {
     runTestFile(api, 'res = RAND(4, 1)');
     const result = api.readVariable('res');
-    expect(error).not.toHaveBeenCalled();
+
     expect(result >= 1).toBeTruthy();
     expect(result <= 4).toBeTruthy();
   });
@@ -91,7 +96,7 @@ $cloc = $CURLOC`,
   test('RAND without second param', () => {
     runTestFile(api, 'res = RAND 2');
     const result = api.readVariable('res');
-    expect(error).not.toHaveBeenCalled();
+
     expect(result >= 1).toBeTruthy();
     expect(result <= 2).toBeTruthy();
   });

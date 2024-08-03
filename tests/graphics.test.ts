@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -10,12 +10,17 @@ describe('stats panel', () => {
     error = vi.fn();
     api.on('error', error);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   test('VIEW with path', () => {
     const onView = vi.fn();
     api.on('view', onView);
     runTestFile(api, `VIEW '1.png'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(onView).toHaveBeenCalledWith('1.png');
   });
 
@@ -23,7 +28,7 @@ describe('stats panel', () => {
     const onView = vi.fn();
     api.on('view', onView);
     runTestFile(api, `VIEW`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(onView).toHaveBeenCalledWith('');
   });
 
@@ -38,7 +43,7 @@ describe('stats panel', () => {
     api.on('objects_changed', objsChanged);
     api.execCode('REFINT');
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalled();
     expect(statsChanged).toHaveBeenCalled();
     expect(actsChanged).toHaveBeenCalled();

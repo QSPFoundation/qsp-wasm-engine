@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -9,6 +9,11 @@ describe('stats panel', () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+  });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
   });
 
   test('default number value', () => {
@@ -21,31 +26,31 @@ describe('stats panel', () => {
 
   test('variables are case insensitive', () => {
     runTestFile(api, `money = 100 & MONEY += 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('MoNeY')).toBe(101);
   });
 
   test('LET assignment', () => {
     runTestFile(api, `LET money = 100`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('money')).toBe(100);
   });
 
   test('SET assignment', () => {
     runTestFile(api, `SET money = 100`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('money')).toBe(100);
   });
 
   test('assignment', () => {
     runTestFile(api, `money = 100`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('money')).toBe(100);
   });
 
   test('multi assignment', () => {
     runTestFile(api, `a, $b, $c, d = 1, 'test', 'other', 2`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('a')).toBe(1);
     expect(api.readVariable('$b')).toBe('test');
     expect(api.readVariable('$c')).toBe('other');
@@ -60,7 +65,7 @@ x = 1
 y = 2
 y, x  = x, y`,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('x')).toBe(2);
     expect(api.readVariable('y')).toBe(1);
   });
@@ -83,7 +88,7 @@ lf = f
     `,
     );
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('a')).toBe(1);
     expect(api.readVariable('la')).toBe(11);
     expect(api.readVariable('b')).toBe(2);
@@ -114,7 +119,7 @@ gs 'nested'
 na = a
 `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('a')).toBe(1);
     expect(api.readVariable('la')).toBe(2);
     expect(api.readVariable('na')).toBe(2);
@@ -134,7 +139,7 @@ size[$args[0]] = arrsize('a')
 res[$args[0]] = a[0]
 `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariableByKey('res', 'first')).toBe(1);
     expect(api.readVariableByKey('res', 'second')).toBe(2);
     expect(api.readVariableByKey('size', 'first')).toBe(1);

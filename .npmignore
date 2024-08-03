@@ -3,6 +3,5 @@
 .prettierignore
 .prettierrc.json
 compile-wasm.sh
-jest.config.js
 src/**
 test/**

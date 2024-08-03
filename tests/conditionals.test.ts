@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -10,15 +10,20 @@ describe('conditionals', () => {
     error = vi.fn();
     api.on('error', error);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   test('IIF true', () => {
     runTestFile(api, `x = 1 & abs_x = IIF(x > 0, x, -x)`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('abs_x')).toBe(1);
   });
   test('IIF false', () => {
     runTestFile(api, `x = -1 & abs_x = IIF(x > 0, x, -x)`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('abs_x')).toBe(1);
   });
 
@@ -30,7 +35,7 @@ x = 1 & y = 2
 if x = 1: y = 1
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(1);
   });
   test('single line line if false', () => {
@@ -41,7 +46,7 @@ x = 2 & y = 2
 if x = 1: y = 1
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(2);
   });
 
@@ -53,7 +58,7 @@ x = 2 & y = 2
 if x = 1: y = 1 else y = 3
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(3);
   });
   test.skip('single line elseif ', () => {
@@ -64,7 +69,7 @@ x = 2 & y = 2
 if x = 1: y = 1 elseif x = 2: y = 4 else y = 3
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(4);
   });
 
@@ -78,7 +83,7 @@ if x = 1:
 end
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(1);
   });
   test('multi line line if false', () => {
@@ -91,7 +96,7 @@ if x = 1:
 end
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(2);
   });
 
@@ -107,7 +112,7 @@ else
 end
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(3);
   });
   test('multi line elseif ', () => {
@@ -124,7 +129,7 @@ else
 end
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(4);
   });
 
@@ -146,7 +151,7 @@ if x = 1:
 end
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('out')).toBe(7);
   });
 });

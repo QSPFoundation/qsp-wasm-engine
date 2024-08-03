@@ -1,11 +1,19 @@
 #include <wchar.h>
 #include "emscripten.h"
 
+#ifdef __has_feature
+#if __has_feature(address_sanitizer)
+#include <sanitizer/lsan_interface.h>
+#endif
+#endif
+
 typedef wchar_t QSP_CHAR;
 typedef int (*QSP_CALLBACK)();
 
 #define QSP_BINDING
+#ifndef _UNICODE
 #define _UNICODE
+#endif
 
 #include "qsp/declarations.h"
 #include "qsp/bindings/default/qsp_default.h"
@@ -23,6 +31,11 @@ typedef int (*QSP_CALLBACK)();
 #include "qsp/mathops.h"
 #include "qsp/variables.h"
 #include "qsp/errors.h"
+
+EMSCRIPTEN_KEEPALIVE
+const char *__asan_default_options() {
+  return "detect_stack_use_after_return=1:print_stats=1";
+}
 
 int MAX_LIST_ITEMS = 1000;
 
@@ -222,6 +235,7 @@ void execExpression(QSP_CHAR *s)
   QSPLineOfCode *strs;
   int linesCount = qspPreprocessData(qspStringFromC(s), &strs);
   qspExecCode(strs, 0, linesCount, 0, 0);
+  qspFreePrepLines(strs, linesCount);
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -470,4 +484,15 @@ QSPString *getActionCode(QSP_CHAR *name, int index, int *count)
     }
     return lines;
   }
+}
+
+EMSCRIPTEN_KEEPALIVE
+void _run_checks()
+{
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+  // code for ASan-enabled builds
+  __lsan_do_leak_check();
+#endif
+#endif
 }

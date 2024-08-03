@@ -1,12 +1,8 @@
-import { Mock, beforeEach, describe, vi, it, expect } from 'vitest';
-import { prepareApi, runTestFile } from '../src/test-helpers';
+import { Mock, beforeEach, describe, vi, it, expect, afterEach } from 'vitest';
+import { delay, prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+
 
 // TODO add save/load test
 describe('api', () => {
@@ -17,66 +13,72 @@ describe('api', () => {
     error = vi.fn();
     api.on('error', error);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
+  
   it('should read numeric variable', async () => {
     runTestFile(api, `test = 254`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('test')).toBe(254);
   });
   it('should read numeric variable by index', async () => {
     runTestFile(api, `test[2] = 254`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('test', 2)).toBe(254);
   });
   it('should read numeric variable by key', () => {
     runTestFile(api, `test[0] = 11 & test['test'] = 254`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariableByKey('test', 'test')).toBe(254);
   });
 
   it('should read numeric variable by cyrillic key', () => {
     runTestFile(api, `test[0] = 11 & test['тест'] = 254`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariableByKey('test', 'тест')).toBe(254);
   });
 
   it('should read numeric variable in cyrilic', async () => {
     runTestFile(api, `тест = 254`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('тест')).toBe(254);
   });
 
   it('should read string variable', async () => {
     runTestFile(api, `$test = '254'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$test')).toBe('254');
   });
   it('should read string variable by index', async () => {
     runTestFile(api, `$test[2] = '254'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$test', 2)).toBe('254');
   });
 
   it('should read string variable by key', async () => {
     runTestFile(api, `$test['s'] = '254' & $test['test'] = '252'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariableByKey('$test', 'test')).toBe('252');
   });
 
   it('should read string variable by cyrillic key', async () => {
     runTestFile(api, `$test['dd'] = '254' & $test['тест'] = '252'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariableByKey('$test', 'тест')).toBe('252');
   });
 
   it('should read string variable in cyrilic', async () => {
     runTestFile(api, `$тест = '254'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$тест')).toBe('254');
   });
 
   it('should read variable size', () => {
     runTestFile(api, `test[100] = 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariableSize('test')).toBe(101);
   });
 
@@ -146,10 +148,13 @@ describe('api', () => {
     runTestFile(api, ``);
     const watchExpression = vi.fn();
     api.watchExpression('x > 0', watchExpression);
+    const msg = vi.fn();
+    api.on("msg", msg);
     await delay(10);
-    expect(error).not.toHaveBeenCalled();
+
     api.execCode(`msg "test"`);
     expect(error).not.toHaveBeenCalled();
+    msg.mock.calls[0][1]();
   });
 
   it('should not fail if watch expression is called when execution is paused (waiting for msg callback for example)', async () => {
@@ -159,11 +164,8 @@ describe('api', () => {
     const watchExpression = vi.fn();
     api.execCode(`'before' & msg "here" & 'after'`);
 
-    expect(error).not.toHaveBeenCalled();
-
     api.watchExpression('x > 0', watchExpression);
 
-    expect(error).not.toHaveBeenCalled();
     expect(watchExpression).toHaveBeenCalledWith(1);
 
     msg.mock.calls[0][1]();
@@ -182,17 +184,14 @@ describe('api', () => {
     api.execCode(`'before' & msg "test 1" & 'between' & msg "test 2" & 'after'`);
 
     await delay(10);
-    expect(error).not.toHaveBeenCalled();
 
     msg.mock.calls[0][1]();
 
     await delay(10);
-    expect(error).not.toHaveBeenCalled();
 
     msg.mock.calls[1][1]();
 
     await delay(10);
-    expect(error).not.toHaveBeenCalled();
     expect(watchExpression).toHaveBeenCalledWith(1);
   });
 });

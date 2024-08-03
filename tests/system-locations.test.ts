@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -9,6 +9,11 @@ describe('strings', () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+  });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
   });
 
   test('$ONGLOAD', () => {
@@ -28,7 +33,7 @@ x = 1
     if (!save) throw new Error('failed to save');
     api.loadSave(save);
     onCloseFile.mock.calls[0][1]();
-    expect(error).not.toHaveBeenCalled();
+    
     expect(api.readVariable('x')).toBe(1);
   });
 
@@ -45,7 +50,6 @@ x = 1
     );
     const save = api.saveGame();
     if (!save) throw new Error('failed to save');
-    expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(1);
   });
 
@@ -61,7 +65,6 @@ $name = $args[0]
 $image = $args[1]
 `,
     );
-    expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$name')).toBe('test');
     expect(api.readVariable('$image')).toBe('1.png');
   });
@@ -78,7 +81,6 @@ delobj 'test'
 $name = $args[0]
 `,
     );
-    expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$name')).toBe('test');
   });
 
@@ -95,7 +97,6 @@ $name = $selobj
 `,
     );
     api.selectObject(1);
-    expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$name')).toBe('test1');
   });
 
@@ -117,7 +118,6 @@ pl 'other'
   `,
     );
 
-    expect(error).not.toHaveBeenCalled();
     expect(onStats).toHaveBeenCalledWith('other\r\nnewloc\r\n');
     expect(api.readVariable('$cur')).toBe('other');
   });
@@ -137,7 +137,6 @@ args_1 = args[1]
   `,
     );
 
-    expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$args_0')).toBe('test');
     expect(api.readVariable('args_1')).toBe(1);
   });
@@ -155,7 +154,7 @@ $sel = $SELACT
 `,
     );
     api.selectAction(1);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$sel')).toBe('2');
   });
 

@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 import { QspPanel } from '../src';
@@ -15,6 +15,12 @@ describe('acts', () => {
     api.on('actions_changed', actsChanged);
   });
 
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
+
   test('SHOWACTS should toggle acts visibility', () => {
     const panelVisibility = vi.fn();
     api.on('panel_visibility', panelVisibility);
@@ -24,7 +30,7 @@ describe('acts', () => {
 
   test('single line ACT', () => {
     runTestFile(api, `act '1': p 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(actsChanged).toHaveBeenCalledWith([
       {
         name: '1',
@@ -35,7 +41,7 @@ describe('acts', () => {
 
   test('single line ACT with image', () => {
     runTestFile(api, `act '1', '1.png': p 1`);
-    expect(error).not.toHaveBeenCalled();
+    
     expect(actsChanged).toHaveBeenCalledWith([
       {
         name: '1',
@@ -51,7 +57,7 @@ describe('acts', () => {
   p 1
 end`,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(actsChanged).toHaveBeenCalledWith([
       {
         name: '1',
@@ -67,7 +73,7 @@ end`,
   p 1
 end`,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(actsChanged).toHaveBeenCalledWith([
       {
         name: '1',
@@ -78,7 +84,7 @@ end`,
 
   test('DELACT should delete action', () => {
     runTestFile(api, `act '1': p 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(actsChanged).toHaveBeenCalledWith([
       {
         name: '1',
@@ -92,7 +98,7 @@ end`,
 
   test('DEL ACT should delete action', () => {
     runTestFile(api, `act '1': p 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(actsChanged).toHaveBeenCalledWith([
       {
         name: '1',
@@ -116,7 +122,7 @@ end
 $acts = $CURACTS
 `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$acts')).toEqual(`ACT '1': P 1\r\nACT '2':\r\nP 2\r\nP 3\r\nEND\r\n`);
   });
 
@@ -129,7 +135,7 @@ $acts = $CURACTS
 
   test('CLA should clear list of actions', () => {
     runTestFile(api, `act '1': p 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(actsChanged).toHaveBeenCalledWith([
       {
         name: '1',
@@ -143,7 +149,7 @@ $acts = $CURACTS
 
   test('CLS should clear list of actions', () => {
     runTestFile(api, `act '1': p 1`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(actsChanged).toHaveBeenCalledWith([
       {
         name: '1',

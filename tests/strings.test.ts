@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -9,6 +9,11 @@ describe('strings', () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+  });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
   });
 
   describe.each([
@@ -21,26 +26,26 @@ describe('strings', () => {
   ])('string compare', (input, result) => {
     test(input, () => {
       runTestFile(api, `res = ${input}`);
-      expect(error).not.toHaveBeenCalled();
+
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
   test('subexpression', () => {
     runTestFile(api, `i = 1 & $res = 'i=<<i>>'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$res')).toBe('i=1');
   });
 
   test('nested subexpressions', () => {
     runTestFile(api, `i = 1 & $a['_1'] = 'here' & $res = 's=<<$a["_<<i>>"]>>'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$res')).toBe('s=here');
   });
 
   test('LEN', () => {
     runTestFile(api, 'res = LEN("тест")');
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('res')).toBe(4);
   });
 
@@ -51,26 +56,26 @@ describe('strings', () => {
   ])('MID', (input, result) => {
     test(input, () => {
       runTestFile(api, `$res = ${input}`);
-      expect(error).not.toHaveBeenCalled();
+
       expect(api.readVariable('$res')).toBe(result);
     });
   });
 
   test('UCASE', () => {
     runTestFile(api, `$res = $UCASE('TexT#')`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$res')).toBe('TEXT#');
   });
 
   test('LCASE', () => {
     runTestFile(api, `$res = $LCASE('TexT#')`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$res')).toBe('text#');
   });
 
   test('TRIM', () => {
     runTestFile(api, `$res = $TRIM(' TRIM TEST ')`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$res')).toBe('TRIM TEST');
   });
 
@@ -82,7 +87,7 @@ describe('strings', () => {
   ])('REPLACE', (input, result) => {
     test(input, () => {
       runTestFile(api, `$res = ${input}`);
-      expect(error).not.toHaveBeenCalled();
+
       expect(api.readVariable('$res')).toBe(result);
     });
   });
@@ -94,7 +99,7 @@ describe('strings', () => {
   ])('INSTR', (input, result) => {
     test(input, () => {
       runTestFile(api, `res = ${input}`);
-      expect(error).not.toHaveBeenCalled();
+
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -108,20 +113,20 @@ describe('strings', () => {
   ])('ISNUM', (input, result) => {
     test(input, () => {
       runTestFile(api, `res = ${input}`);
-      expect(error).not.toHaveBeenCalled();
+
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
   test('VAL', () => {
     runTestFile(api, `res = VAL('123')`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('res')).toBe(123);
   });
 
   test('STR', () => {
     runTestFile(api, `$res = STR(123)`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$res')).toBe('123');
   });
 
@@ -137,7 +142,7 @@ describe('strings', () => {
   ])('STRFIND', (input, result) => {
     test(input, () => {
       runTestFile(api, `$res = ${input}`);
-      expect(error).not.toHaveBeenCalled();
+
       expect(api.readVariable('$res')).toBe(result);
     });
   });
@@ -148,7 +153,7 @@ describe('strings', () => {
   ])('STRCOMP', (input, result) => {
     test(input, () => {
       runTestFile(api, `res = ${input}`);
-      expect(error).not.toHaveBeenCalled();
+
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -166,7 +171,7 @@ describe('strings', () => {
   ])('STRPOS', (input, result) => {
     test(input, () => {
       runTestFile(api, `res = ${input}`);
-      expect(error).not.toHaveBeenCalled();
+
       expect(api.readVariable('res')).toBe(result);
     });
   });

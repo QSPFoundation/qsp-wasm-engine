@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -9,6 +9,11 @@ describe('api', () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+  });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
   });
 
   test('long line split', () => {
@@ -26,7 +31,7 @@ else
 end
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$type')).toBe('new');
   });
 });

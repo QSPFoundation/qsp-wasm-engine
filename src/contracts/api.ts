@@ -17,6 +17,7 @@ export interface QspAPI {
   readVariableByKey<Name extends string>(name: Name, key: string): QspVariableType<Name>;
   readVariableSize(name: string): number;
   execCode(code: string): void;
+  execExpression(expr: string): void;
   execCounter(): void;
   updateUserInput(code: string): void;
   execLoc(name: string): void;
@@ -39,4 +40,7 @@ export interface QspAPI {
   getLocationsList(): void;
   getLocationCode(name: string): string[];
   getActionCode(name: string, index: number): string[];
+
+  _cleanup(): void;
+  _run_checks(): void;
 }

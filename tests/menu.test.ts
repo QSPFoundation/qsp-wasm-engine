@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -13,6 +13,11 @@ describe('objects', () => {
     menu = vi.fn();
     api.on('menu', menu);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   test('MENU should trigger showing menu', () => {
     runTestFile(
@@ -24,7 +29,7 @@ menu '$stone'
 `,
     );
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(menu).toHaveBeenCalledWith(
       [
         {
@@ -38,6 +43,7 @@ menu '$stone'
       ],
       expect.any(Function),
     );
+    menu.mock.calls[0][1](-1);
   });
 
   test('MENU should trigger showing menu without $ in name', () => {
@@ -50,7 +56,7 @@ menu 'stone'
 `,
     );
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(menu).toHaveBeenCalledWith(
       [
         {
@@ -64,6 +70,7 @@ menu 'stone'
       ],
       expect.any(Function),
     );
+    menu.mock.calls[0][1](-1);
   });
 
   test('MENU should trigger showing menu with icon', () => {
@@ -75,7 +82,7 @@ menu '$stone'
 `,
     );
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(menu).toHaveBeenCalledWith(
       [
         {
@@ -85,6 +92,7 @@ menu '$stone'
       ],
       expect.any(Function),
     );
+    menu.mock.calls[0][1](-1);
   });
 
   test('MENU stops on first empty item', () => {
@@ -97,7 +105,7 @@ menu '$stone'
 `,
     );
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(menu).toHaveBeenCalledWith(
       [
         {
@@ -107,6 +115,7 @@ menu '$stone'
       ],
       expect.any(Function),
     );
+    menu.mock.calls[0][1](-1);
   });
 
   test('MENU should support separator as -:-', () => {
@@ -120,7 +129,7 @@ menu '$stone'
 `,
     );
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(menu).toHaveBeenCalledWith(
       [
         {
@@ -138,6 +147,7 @@ menu '$stone'
       ],
       expect.any(Function),
     );
+    menu.mock.calls[0][1](-1);
   });
 
   test('corresponding location should be called when menu item is selected', () => {
@@ -172,7 +182,7 @@ p 'thrown'
       expect.any(Function),
     );
     menu.mock.calls[0][1](1);
-    expect(error).not.toHaveBeenCalled();
+
     expect(statsChanged).toHaveBeenCalledWith('thrown');
   });
 
@@ -192,7 +202,7 @@ r = args[0]
     );
 
     menu.mock.calls[0][1](1);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('r')).toBe(2);
   });
 });

@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -10,13 +10,19 @@ describe('time', () => {
     error = vi.fn();
     api.on('error', error);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   test('WAIT should trigger wait event', () => {
     const onWait = vi.fn();
     api.on('wait', onWait);
     runTestFile(api, `WAIT 1000`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(onWait).toHaveBeenCalledWith(1000, expect.any(Function));
+    onWait.mock.calls[0][1]();
   });
 
   test('WAIT should pause execution', () => {
@@ -39,7 +45,7 @@ describe('time', () => {
     const onTimer = vi.fn();
     api.on('timer', onTimer);
     runTestFile(api, `SETTIMER 100`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(onTimer).toHaveBeenCalledWith(100);
   });
 
@@ -55,7 +61,7 @@ $counter = 'counter'
 p 'works'
 `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     api.execCounter();
     expect(onStatsChanged).toHaveBeenCalledWith('works');
   });
@@ -76,7 +82,7 @@ p 'works'
 p ' & works other'
 `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     api.execCounter();
     expect(onStatsChanged).toHaveBeenCalledWith('works & works other');
   });

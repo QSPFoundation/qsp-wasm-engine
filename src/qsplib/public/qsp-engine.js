@@ -156,11 +156,7 @@ var createQspModule = (() => {
       var cookie2 = HEAPU32[(max + 4) >> 2];
       if (cookie1 != 34821223 || cookie2 != 2310721022) {
         abort(
-          `Stack overflow! Stack cookie has been overwritten at ${ptrToString(
-            max,
-          )}, expected hex dwords 0x89BACDFE and 0x2135467, but received ${ptrToString(
-            cookie2,
-          )} ${ptrToString(cookie1)}`,
+          `Stack overflow! Stack cookie has been overwritten at ${ptrToString(max)}, expected hex dwords 0x89BACDFE and 0x2135467, but received ${ptrToString(cookie2)} ${ptrToString(cookie1)}`,
         );
       }
       if (HEAPU32[0 >> 2] != 1668509029) {
@@ -308,7 +304,7 @@ var createQspModule = (() => {
         wasmExports = Asyncify.instrumentWasmExports(wasmExports);
         wasmMemory = wasmExports['g'];
         updateMemoryViews();
-        wasmTable = wasmExports['m'];
+        wasmTable = wasmExports['n'];
         addOnInit(wasmExports['h']);
         removeRunDependency('wasm-instantiate');
         return wasmExports;
@@ -787,112 +783,116 @@ var createQspModule = (() => {
     };
     var wasmExports = createWasm();
     var ___wasm_call_ctors = () => (___wasm_call_ctors = wasmExports['h'])();
-    var _init = (Module['_init'] = () => (_init = Module['_init'] = wasmExports['i'])());
+    var ___asan_default_options = (Module['___asan_default_options'] = () =>
+      (___asan_default_options = Module['___asan_default_options'] = wasmExports['i'])());
+    var _init = (Module['_init'] = () => (_init = Module['_init'] = wasmExports['j'])());
     var _dispose = (Module['_dispose'] = () =>
-      (_dispose = Module['_dispose'] = wasmExports['j'])());
+      (_dispose = Module['_dispose'] = wasmExports['k'])());
     var _getVersion = (Module['_getVersion'] = (a0) =>
-      (_getVersion = Module['_getVersion'] = wasmExports['k'])(a0));
+      (_getVersion = Module['_getVersion'] = wasmExports['l'])(a0));
     var _setErrorCallback = (Module['_setErrorCallback'] = (a0) =>
-      (_setErrorCallback = Module['_setErrorCallback'] = wasmExports['l'])(a0));
+      (_setErrorCallback = Module['_setErrorCallback'] = wasmExports['m'])(a0));
     var _getMainDesc = (Module['_getMainDesc'] = (a0) =>
-      (_getMainDesc = Module['_getMainDesc'] = wasmExports['n'])(a0));
+      (_getMainDesc = Module['_getMainDesc'] = wasmExports['o'])(a0));
     var _isMainDescChanged = (Module['_isMainDescChanged'] = () =>
-      (_isMainDescChanged = Module['_isMainDescChanged'] = wasmExports['o'])());
+      (_isMainDescChanged = Module['_isMainDescChanged'] = wasmExports['p'])());
     var _getVarsDesc = (Module['_getVarsDesc'] = (a0) =>
-      (_getVarsDesc = Module['_getVarsDesc'] = wasmExports['p'])(a0));
+      (_getVarsDesc = Module['_getVarsDesc'] = wasmExports['q'])(a0));
     var _isVarsDescChanged = (Module['_isVarsDescChanged'] = () =>
-      (_isVarsDescChanged = Module['_isVarsDescChanged'] = wasmExports['q'])());
+      (_isVarsDescChanged = Module['_isVarsDescChanged'] = wasmExports['r'])());
     var _getActions = (Module['_getActions'] = (a0) =>
-      (_getActions = Module['_getActions'] = wasmExports['r'])(a0));
+      (_getActions = Module['_getActions'] = wasmExports['s'])(a0));
     var _malloc = (Module['_malloc'] = (a0) =>
-      (_malloc = Module['_malloc'] = wasmExports['s'])(a0));
+      (_malloc = Module['_malloc'] = wasmExports['t'])(a0));
     var _selectAction = (Module['_selectAction'] = (a0) =>
-      (_selectAction = Module['_selectAction'] = wasmExports['t'])(a0));
+      (_selectAction = Module['_selectAction'] = wasmExports['u'])(a0));
     var _executeSelAction = (Module['_executeSelAction'] = () =>
-      (_executeSelAction = Module['_executeSelAction'] = wasmExports['u'])());
+      (_executeSelAction = Module['_executeSelAction'] = wasmExports['v'])());
     var _isActionsChanged = (Module['_isActionsChanged'] = () =>
-      (_isActionsChanged = Module['_isActionsChanged'] = wasmExports['v'])());
+      (_isActionsChanged = Module['_isActionsChanged'] = wasmExports['w'])());
     var _getObjects = (Module['_getObjects'] = (a0) =>
-      (_getObjects = Module['_getObjects'] = wasmExports['w'])(a0));
+      (_getObjects = Module['_getObjects'] = wasmExports['x'])(a0));
     var _selectObject = (Module['_selectObject'] = (a0) =>
-      (_selectObject = Module['_selectObject'] = wasmExports['x'])(a0));
+      (_selectObject = Module['_selectObject'] = wasmExports['y'])(a0));
     var _isObjectsChanged = (Module['_isObjectsChanged'] = () =>
-      (_isObjectsChanged = Module['_isObjectsChanged'] = wasmExports['y'])());
+      (_isObjectsChanged = Module['_isObjectsChanged'] = wasmExports['z'])());
     var _loadGameData = (Module['_loadGameData'] = (a0, a1, a2) =>
-      (_loadGameData = Module['_loadGameData'] = wasmExports['z'])(a0, a1, a2));
+      (_loadGameData = Module['_loadGameData'] = wasmExports['A'])(a0, a1, a2));
     var _restartGame = (Module['_restartGame'] = () =>
-      (_restartGame = Module['_restartGame'] = wasmExports['A'])());
+      (_restartGame = Module['_restartGame'] = wasmExports['B'])());
     var _saveGameData = (Module['_saveGameData'] = (a0) =>
-      (_saveGameData = Module['_saveGameData'] = wasmExports['B'])(a0));
-    var _free = (Module['_free'] = (a0) => (_free = Module['_free'] = wasmExports['C'])(a0));
+      (_saveGameData = Module['_saveGameData'] = wasmExports['C'])(a0));
+    var _free = (Module['_free'] = (a0) => (_free = Module['_free'] = wasmExports['D'])(a0));
     var _loadSavedGameData = (Module['_loadSavedGameData'] = (a0, a1) =>
-      (_loadSavedGameData = Module['_loadSavedGameData'] = wasmExports['D'])(a0, a1));
+      (_loadSavedGameData = Module['_loadSavedGameData'] = wasmExports['E'])(a0, a1));
     var _execString = (Module['_execString'] = (a0, a1) =>
-      (_execString = Module['_execString'] = wasmExports['E'])(a0, a1));
+      (_execString = Module['_execString'] = wasmExports['F'])(a0, a1));
     var _execExpression = (Module['_execExpression'] = (a0) =>
-      (_execExpression = Module['_execExpression'] = wasmExports['F'])(a0));
+      (_execExpression = Module['_execExpression'] = wasmExports['G'])(a0));
     var _execCounter = (Module['_execCounter'] = () =>
-      (_execCounter = Module['_execCounter'] = wasmExports['G'])());
+      (_execCounter = Module['_execCounter'] = wasmExports['H'])());
     var _execLoc = (Module['_execLoc'] = (a0) =>
-      (_execLoc = Module['_execLoc'] = wasmExports['H'])(a0));
+      (_execLoc = Module['_execLoc'] = wasmExports['I'])(a0));
     var _execUserInput = (Module['_execUserInput'] = (a0) =>
-      (_execUserInput = Module['_execUserInput'] = wasmExports['I'])(a0));
+      (_execUserInput = Module['_execUserInput'] = wasmExports['J'])(a0));
     var _getLastErrorNum = (Module['_getLastErrorNum'] = () =>
-      (_getLastErrorNum = Module['_getLastErrorNum'] = wasmExports['J'])());
+      (_getLastErrorNum = Module['_getLastErrorNum'] = wasmExports['K'])());
     var _getLastErrorLoc = (Module['_getLastErrorLoc'] = (a0) =>
-      (_getLastErrorLoc = Module['_getLastErrorLoc'] = wasmExports['K'])(a0));
+      (_getLastErrorLoc = Module['_getLastErrorLoc'] = wasmExports['L'])(a0));
     var _getLastErrorActIndex = (Module['_getLastErrorActIndex'] = () =>
-      (_getLastErrorActIndex = Module['_getLastErrorActIndex'] = wasmExports['L'])());
+      (_getLastErrorActIndex = Module['_getLastErrorActIndex'] = wasmExports['M'])());
     var _getLastErrorLine = (Module['_getLastErrorLine'] = () =>
-      (_getLastErrorLine = Module['_getLastErrorLine'] = wasmExports['M'])());
+      (_getLastErrorLine = Module['_getLastErrorLine'] = wasmExports['N'])());
     var _getErrorDesc = (Module['_getErrorDesc'] = (a0, a1) =>
-      (_getErrorDesc = Module['_getErrorDesc'] = wasmExports['N'])(a0, a1));
+      (_getErrorDesc = Module['_getErrorDesc'] = wasmExports['O'])(a0, a1));
     var _getVarStringValue = (Module['_getVarStringValue'] = (a0, a1, a2) =>
-      (_getVarStringValue = Module['_getVarStringValue'] = wasmExports['O'])(a0, a1, a2));
+      (_getVarStringValue = Module['_getVarStringValue'] = wasmExports['P'])(a0, a1, a2));
     var _getVarNumValue = (Module['_getVarNumValue'] = (a0, a1) =>
-      (_getVarNumValue = Module['_getVarNumValue'] = wasmExports['P'])(a0, a1));
+      (_getVarNumValue = Module['_getVarNumValue'] = wasmExports['Q'])(a0, a1));
     var _getVarStringValueByKey = (Module['_getVarStringValueByKey'] = (a0, a1, a2) =>
-      (_getVarStringValueByKey = Module['_getVarStringValueByKey'] = wasmExports['Q'])(a0, a1, a2));
+      (_getVarStringValueByKey = Module['_getVarStringValueByKey'] = wasmExports['R'])(a0, a1, a2));
     var _getVarNumValueByKey = (Module['_getVarNumValueByKey'] = (a0, a1) =>
-      (_getVarNumValueByKey = Module['_getVarNumValueByKey'] = wasmExports['R'])(a0, a1));
+      (_getVarNumValueByKey = Module['_getVarNumValueByKey'] = wasmExports['S'])(a0, a1));
     var _getVarSize = (Module['_getVarSize'] = (a0) =>
-      (_getVarSize = Module['_getVarSize'] = wasmExports['S'])(a0));
+      (_getVarSize = Module['_getVarSize'] = wasmExports['T'])(a0));
     var _initCallBacks = (Module['_initCallBacks'] = () =>
-      (_initCallBacks = Module['_initCallBacks'] = wasmExports['T'])());
+      (_initCallBacks = Module['_initCallBacks'] = wasmExports['U'])());
     var _setCallBack = (Module['_setCallBack'] = (a0, a1) =>
-      (_setCallBack = Module['_setCallBack'] = wasmExports['U'])(a0, a1));
+      (_setCallBack = Module['_setCallBack'] = wasmExports['V'])(a0, a1));
     var _freeItemsList = (Module['_freeItemsList'] = (a0) =>
-      (_freeItemsList = Module['_freeItemsList'] = wasmExports['V'])(a0));
+      (_freeItemsList = Module['_freeItemsList'] = wasmExports['W'])(a0));
     var _freeSaveBuffer = (Module['_freeSaveBuffer'] = (a0) =>
-      (_freeSaveBuffer = Module['_freeSaveBuffer'] = wasmExports['W'])(a0));
+      (_freeSaveBuffer = Module['_freeSaveBuffer'] = wasmExports['X'])(a0));
     var _freeStringsBuffer = (Module['_freeStringsBuffer'] = (a0) =>
-      (_freeStringsBuffer = Module['_freeStringsBuffer'] = wasmExports['X'])(a0));
+      (_freeStringsBuffer = Module['_freeStringsBuffer'] = wasmExports['Y'])(a0));
     var _enableDebugMode = (Module['_enableDebugMode'] = () =>
-      (_enableDebugMode = Module['_enableDebugMode'] = wasmExports['Y'])());
+      (_enableDebugMode = Module['_enableDebugMode'] = wasmExports['Z'])());
     var _disableDebugMode = (Module['_disableDebugMode'] = () =>
-      (_disableDebugMode = Module['_disableDebugMode'] = wasmExports['Z'])());
+      (_disableDebugMode = Module['_disableDebugMode'] = wasmExports['_'])());
     var _getCurStateLoc = (Module['_getCurStateLoc'] = (a0) =>
-      (_getCurStateLoc = Module['_getCurStateLoc'] = wasmExports['_'])(a0));
+      (_getCurStateLoc = Module['_getCurStateLoc'] = wasmExports['$'])(a0));
     var _getCurStateLine = (Module['_getCurStateLine'] = () =>
-      (_getCurStateLine = Module['_getCurStateLine'] = wasmExports['$'])());
+      (_getCurStateLine = Module['_getCurStateLine'] = wasmExports['aa'])());
     var _getCurStateActIndex = (Module['_getCurStateActIndex'] = () =>
-      (_getCurStateActIndex = Module['_getCurStateActIndex'] = wasmExports['aa'])());
+      (_getCurStateActIndex = Module['_getCurStateActIndex'] = wasmExports['ba'])());
     var _getLocationsList = (Module['_getLocationsList'] = (a0) =>
-      (_getLocationsList = Module['_getLocationsList'] = wasmExports['ba'])(a0));
+      (_getLocationsList = Module['_getLocationsList'] = wasmExports['ca'])(a0));
     var _getLocationCode = (Module['_getLocationCode'] = (a0, a1) =>
-      (_getLocationCode = Module['_getLocationCode'] = wasmExports['ca'])(a0, a1));
+      (_getLocationCode = Module['_getLocationCode'] = wasmExports['da'])(a0, a1));
     var _getActionCode = (Module['_getActionCode'] = (a0, a1, a2) =>
-      (_getActionCode = Module['_getActionCode'] = wasmExports['da'])(a0, a1, a2));
-    var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['ea'])();
-    var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['fa'])();
-    var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['ga'])();
-    var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['ha'])();
+      (_getActionCode = Module['_getActionCode'] = wasmExports['ea'])(a0, a1, a2));
+    var __run_checks = (Module['__run_checks'] = () =>
+      (__run_checks = Module['__run_checks'] = wasmExports['fa'])());
+    var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['ga'])();
+    var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['ha'])();
+    var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['ia'])();
+    var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['ja'])();
     var ___set_stack_limits = (Module['___set_stack_limits'] = (a0, a1) =>
-      (___set_stack_limits = Module['___set_stack_limits'] = wasmExports['ia'])(a0, a1));
-    var _asyncify_start_unwind = (a0) => (_asyncify_start_unwind = wasmExports['ja'])(a0);
-    var _asyncify_stop_unwind = () => (_asyncify_stop_unwind = wasmExports['ka'])();
-    var _asyncify_start_rewind = (a0) => (_asyncify_start_rewind = wasmExports['la'])(a0);
-    var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports['ma'])();
+      (___set_stack_limits = Module['___set_stack_limits'] = wasmExports['ka'])(a0, a1));
+    var _asyncify_start_unwind = (a0) => (_asyncify_start_unwind = wasmExports['la'])(a0);
+    var _asyncify_stop_unwind = () => (_asyncify_stop_unwind = wasmExports['ma'])();
+    var _asyncify_start_rewind = (a0) => (_asyncify_start_rewind = wasmExports['na'])(a0);
+    var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports['oa'])();
     Module['addFunction'] = addFunction;
     Module['Asyncify'] = Asyncify;
     var calledRun;

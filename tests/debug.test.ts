@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, expect, it } from 'vitest';
+import { Mock, beforeEach, describe, vi, expect, it, afterEach } from 'vitest';
 import { DebugRecord, QspAPI } from '../src';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 
@@ -9,6 +9,11 @@ describe('debug', () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+  });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
   });
 
   it('should read list of locations', () => {

@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -9,6 +9,11 @@ describe('dynamics', () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+  });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
   });
 
   test('DYNAMIC', () => {
@@ -32,7 +37,7 @@ after_2 = args[2]
     `,
     );
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$before_0')).toBe('test');
     expect(api.readVariable('before_1')).toBe(2);
     expect(api.readVariable('before_2')).toBe(4);
@@ -68,7 +73,7 @@ after_result = result
     `,
     );
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$before_0')).toBe('test');
     expect(api.readVariable('before_1')).toBe(2);
     expect(api.readVariable('before_2')).toBe(4);

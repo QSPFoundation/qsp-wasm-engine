@@ -98,4 +98,6 @@ export interface QspWasmModule extends EmscriptenModule {
   _getLocationsList( count: Ptr): Ptr;
   _getLocationCode(name: CharsPtr, count: Ptr): Ptr;
   _getActionCode(name: CharsPtr, index: number, count: Ptr): Ptr;
+
+  __run_checks(): void;
 }

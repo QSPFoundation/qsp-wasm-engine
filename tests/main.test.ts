@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -13,52 +13,57 @@ describe('Main panel', () => {
     mainChanged = vi.fn();
     api.on('main_changed', mainChanged);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   test('*p should print text without line break', async () => {
     runTestFile(api, `*p 'works'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
   });
 
   test('*pl should print text with line break', async () => {
     runTestFile(api, `*pl 'works'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works\r\n');
   });
 
   test('*nl should print text with line break in front', async () => {
     runTestFile(api, `*nl 'works'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('\r\nworks');
   });
 
   test('$MAINTXT should return text from main panel', async () => {
     runTestFile(api, `*p 'works' & $text = $MAINTXT`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$text')).toBe('works');
   });
 
   test('*CLEAR should clear main description', async () => {
     runTestFile(api, `*p 'works'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
     api.execCode('*CLEAR');
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(2);
     expect(mainChanged).toHaveBeenCalledWith('');
   });
 
   test('*CLR should clear main description', async () => {
     runTestFile(api, `*p 'works'`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
     api.execCode('*CLR');
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(2);
     expect(mainChanged).toHaveBeenCalledWith('');
   });
@@ -74,7 +79,7 @@ func('foo')
 # foo
 `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('test\r\ntest\r\n');
   });
@@ -88,7 +93,7 @@ func('foo')
       *NL '456'
       '78'`,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('123\r\n\r\n45678\r\n');
     expect(api.readVariable('$txt')).toBe('1');

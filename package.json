@@ -9,17 +9,20 @@
   "unpkg": "./dist/wasm-engine.umd.js",
   "exports": {
     ".": "./dist/wasm-engine.modern.js",
-    "./qsp-engine.wasm": "./dist/qsp-engine.wasm"
+    "./wasm-engine-debug": "./dist/wasm-engine-debug.modern.js",
+    "./qsp-engine.wasm": "./dist/qsp-engine.wasm",
+    "./qsp-engine-debug.wasm": "./dist/qsp-engine-debug.wasm"
   },
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "prebuild": "rimraf ./dist && mkdir dist && cp ./src/qsplib/public/qsp-engine.wasm ./dist/qsp-engine.wasm",
+    "prebuild": "rimraf ./dist && mkdir dist && cp ./src/qsplib/public/qsp-engine.wasm ./dist/qsp-engine.wasm && cp ./src/qsplib/public/qsp-engine-debug.wasm ./dist/qsp-engine-debug.wasm",
     "build": "microbundle",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:debug": "DEBUG=1 vitest run",
     "prepublish": "npm run build",
     "release": "np",
     "lint": "eslint . && tsc --noEmit"

@@ -44,3 +44,37 @@ set_target_properties(qsp-engine PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -s FILESYSTEM=0 \
     -s EXPORT_NAME=createQspModule \
     -s DYNAMIC_EXECUTION=0")
+
+add_executable(qsp-engine-debug ${SOURCES})
+target_include_directories(qsp-engine-debug PRIVATE "${CMAKE_BINARY_DIR}/qsp-src" "${CMAKE_BINARY_DIR}/oniguruma-src" "${CMAKE_BINARY_DIR}/qsp-build")
+target_link_libraries(qsp-engine-debug PRIVATE qsp onig)
+
+target_compile_options(qsp-engine-debug PRIVATE -fsanitize=address)
+target_link_options(qsp-engine-debug PRIVATE -fsanitize=address)
+
+set_target_properties(qsp-engine-debug PROPERTIES LINK_FLAGS "-Wno-parentheses \
+    -Wno-empty-body \
+    -Wno-unsequenced \
+    -Wcast-align \
+    -Wover-aligned \
+    -fsanitize=address \
+    -gsource-map \
+    -O1 \
+    -sASSERTIONS \
+    -s EXPORT_ES6=1 \
+    -s WASM=1 \
+    -s RESERVED_FUNCTION_POINTERS=20 \
+    -s ASYNCIFY \
+    -s EXPORTED_RUNTIME_METHODS='[addFunction, Asyncify]' \
+    -s EXPORTED_FUNCTIONS='[_malloc, _free]' \
+    -s ENVIRONMENT='web,worker,webview,node' \
+    -s STACK_SIZE=5242880 \
+    -s ASYNCIFY_STACK_SIZE=16384 \
+    -s MODULARIZE=1 \
+    -s INVOKE_RUN=0 \
+    -s WARN_UNALIGNED=1 \
+    -s STACK_OVERFLOW_CHECK=2 \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s FILESYSTEM=0 \
+    -s EXPORT_NAME=createQspModule \
+    -s DYNAMIC_EXECUTION=0")

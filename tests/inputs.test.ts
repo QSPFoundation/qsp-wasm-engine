@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 import { QspPanel } from '../src';
@@ -11,26 +11,31 @@ describe('Main panel', () => {
     error = vi.fn();
     api.on('error', error);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   test('SHOWINPUT should toggle user cmd visibility', () => {
     const onPanelVisibility = vi.fn();
     api.on('panel_visibility', onPanelVisibility);
     runTestFile(api, `SHOWINPUT 0`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, 0);
   });
 
   test('USER_TEXT should return text from user cmd', () => {
     api.updateUserInput('works');
     runTestFile(api, `$text = USER_TEXT`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$text')).toBe('works');
   });
 
   test('USRTXT should return text from user cmd', () => {
     api.updateUserInput('works');
     runTestFile(api, `$text = USRTXT`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('$text')).toBe('works');
   });
 
@@ -39,7 +44,7 @@ describe('Main panel', () => {
     api.on('user_input', userInput);
     api.updateUserInput('works');
     runTestFile(api, `$textBefore = USRTXT & CMDCLEAR & $textAfter = USRTXT`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(userInput).toHaveBeenCalledWith('');
     expect(api.readVariable('$textBefore')).toBe('works');
     expect(api.readVariable('$textAfter')).toBe('');
@@ -50,7 +55,7 @@ describe('Main panel', () => {
     api.on('user_input', userInput);
     api.updateUserInput('works');
     runTestFile(api, `$textBefore = USRTXT & CMDCLR & $textAfter = USRTXT`);
-    expect(error).not.toHaveBeenCalled();
+
     expect(userInput).toHaveBeenCalledWith('');
     expect(api.readVariable('$textBefore')).toBe('works');
     expect(api.readVariable('$textAfter')).toBe('');
@@ -59,10 +64,15 @@ describe('Main panel', () => {
   test('INPUT should interrupt execution flow and receive entered text', () => {
     const onInput = vi.fn();
     api.on('input', onInput);
-    runTestFile(api, `$text = $input('Question?')`);
-    expect(error).not.toHaveBeenCalled();
+    const mainChanged = vi.fn();
+    api.on('main_changed', mainChanged);
+    runTestFile(api, `*p '1' & $text = $input('Question?') & *p '2'`);
+   
+    expect(mainChanged).toHaveBeenCalledWith('1');
     expect(onInput).toHaveBeenCalledWith('Question?', expect.any(Function));
+
     onInput.mock.calls[0][1]('Answer');
     expect(api.readVariable('$text')).toBe('Answer');
+    expect(mainChanged).toHaveBeenCalledWith('12');
   });
 });

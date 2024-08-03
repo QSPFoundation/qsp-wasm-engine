@@ -6,7 +6,12 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['src/qsplib/public/qsp-engine.js', 'dist/*', 'src/qsplib/build/*'],
+    ignores: [
+      'src/qsplib/public/qsp-engine.js',
+      'src/qsplib/public/qsp-engine-debug.js',
+      'dist/*',
+      'src/qsplib/build/*',
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

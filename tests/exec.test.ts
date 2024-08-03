@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, it, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, it, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src';
 
@@ -10,6 +10,11 @@ describe('exec', () => {
     error = vi.fn();
     api.on('error', error);
   });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
+  });
 
   it('should trigger callback', () => {
     const onSystemCmd = vi.fn();
@@ -17,7 +22,7 @@ describe('exec', () => {
 
     runTestFile(api, `exec('test')`);
 
-    expect(error).not.toHaveBeenCalled();
+
     expect(onSystemCmd).toHaveBeenCalledWith('test');
   });
 
@@ -27,7 +32,6 @@ describe('exec', () => {
 
     runTestFile(api, `*p 'before' & exec('test') & *p '-after'`);
 
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledTimes(2);
     expect(onMain).toHaveBeenCalledWith('before');
     expect(onMain).toHaveBeenCalledWith('before-after');

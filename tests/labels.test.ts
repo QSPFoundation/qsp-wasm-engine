@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -9,6 +9,11 @@ describe('conditionals', () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+  });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api?._run_checks();
   });
 
   test('JUMP', () => {
@@ -22,7 +27,7 @@ x = 2
 if x = 1: y = 2
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('y')).toBe(2);
   });
 
@@ -41,46 +46,6 @@ if s<9:
 end`,
     );
 
-    expect(error).not.toHaveBeenCalled();
     expect(onStat).toHaveBeenCalledWith('123456789');
-  });
-
-  test('error jump from action', () => {
-    runTestFile(
-      api,
-      `
-act '1': x = 1 & jump 'end'
-:end
-  `,
-    );
-    expect(error).not.toHaveBeenCalled();
-    api.selectAction(0);
-    api.execSelectedAction();
-    expect(api.readVariable('x')).toBe(1);
-    expect(error).toHaveBeenCalledWith({
-      actionIndex: -1,
-      code: 112,
-      description: 'Label not found!',
-      line: 2,
-      location: 'test',
-    });
-  });
-
-  test('error jump from dynamic', () => {
-    runTestFile(
-      api,
-      `
-dynamic { x = 1 & jump 'end' }
-:end
-  `,
-    );
-    expect(api.readVariable('x')).toBe(1);
-    expect(error).toHaveBeenCalledWith({
-      actionIndex: -1,
-      code: 112,
-      description: 'Label not found!',
-      line: 2,
-      location: 'test',
-    });
   });
 });

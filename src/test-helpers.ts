@@ -1,13 +1,20 @@
 import path from 'path';
 import fs from 'fs';
 import { readQsps, writeQsp } from '@qsp/converters';
-import { initQspEngine } from './lib/qsp-engine';
 import { QspAPI } from './contracts/api';
 
-const wasm = fs.readFileSync(path.resolve('./src/qsplib/public/qsp-engine.wasm'));
+import { initDebugQspEngine } from './lib/qsp-engine-debug';
+import { initQspEngine } from './lib/qsp-engine';
+
+const wasmPath = process.env.DEBUG
+  ? './src/qsplib/public/qsp-engine-debug.wasm'
+  : './src/qsplib/public/qsp-engine.wasm';
+const wasm = fs.readFileSync(path.resolve(wasmPath));
 
 export async function prepareApi() {
-  const api = await initQspEngine(wasm.buffer);
+  const api = process.env.DEBUG
+    ? await initDebugQspEngine(wasm.buffer)
+    : await initQspEngine(wasm.buffer);
   return api;
 }
 
@@ -28,5 +35,11 @@ ${textData}
 export function nextTick() {
   return new Promise((resolve) => {
     setTimeout(resolve, 0);
+  });
+}
+
+export function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
 }

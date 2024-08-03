@@ -1,4 +1,4 @@
-import { Mock, beforeEach, describe, vi, test, expect } from 'vitest';
+import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
@@ -11,6 +11,11 @@ describe('api', () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+  });
+  afterEach(() => {
+    api._cleanup();
+    expect(error).not.toHaveBeenCalled();
+    api._run_checks();
   });
 
   test('GOTO', () => {
@@ -33,7 +38,7 @@ nl 'target stats'
 act '2': x
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(onMain).toHaveBeenCalledWith('main');
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -45,7 +50,6 @@ act '2': x
 
     api.execCode(`GOTO 'target', 1, 'test'`);
 
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('target main');
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -79,7 +83,7 @@ nl 'target stats'
 act '2': x
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(onMain).toHaveBeenCalledWith('main');
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -91,7 +95,6 @@ act '2': x
 
     api.execCode(`GT 'target', 1, 'test'`);
 
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('target main');
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -125,7 +128,6 @@ nl 'target stats'
 act '2': x
     `,
     );
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -137,7 +139,6 @@ act '2': x
 
     api.execCode(`XGOTO 'target', 1, 'test'`);
 
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -171,7 +172,7 @@ nl 'target stats'
 act '2': x
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(onMain).toHaveBeenCalledWith('main');
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -183,7 +184,6 @@ act '2': x
 
     api.execCode(`XGT 'target', 1, 'test'`);
 
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -219,7 +219,7 @@ first = args[0]
 $second = $args[1]
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(onMain).toHaveBeenCalledWith('main');
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -231,7 +231,6 @@ $second = $args[1]
 
     api.execCode(`GOSUB 'target', 1, 'test'`);
 
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -271,7 +270,7 @@ first = args[0]
 $second = $args[1]
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(onMain).toHaveBeenCalledWith('main');
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -283,7 +282,6 @@ $second = $args[1]
 
     api.execCode(`GS 'target', 1, 'test'`);
 
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -323,7 +321,6 @@ first = args[0]
 $second = $args[1]
     `,
     );
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main');
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -335,7 +332,6 @@ $second = $args[1]
 
     api.execCode(`func('target', 1, 'test')`);
 
-    expect(error).not.toHaveBeenCalled();
     expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
@@ -363,7 +359,6 @@ x = func('process')
 result = 5
     `,
     );
-    expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(5);
   });
 
@@ -377,7 +372,6 @@ $x = func('process')
 $result = 'test'
     `,
     );
-    expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('$x')).toBe('test');
   });
 
@@ -407,7 +401,6 @@ act '2':
 end
     `,
     );
-    expect(error).not.toHaveBeenCalled();
     api.selectAction(0);
     api.execSelectedAction();
     expect(api.readVariable('$args_0')).toBe('test');
@@ -427,9 +420,10 @@ act '2':
 end
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     api.selectAction(0);
     api.execSelectedAction();
+  
     expect(api.readVariable('$args_0')).toBe('test');
     expect(api.readVariable('args_1')).toBe(12);
   });
@@ -445,7 +439,7 @@ first = args[0]
 $second = $args[1]
     `,
     );
-    expect(error).not.toHaveBeenCalled();
+
     expect(api.readVariable('first')).toBe(1);
     expect(api.readVariable('$second')).toBe('test');
   });
@@ -460,7 +454,6 @@ x = @process
 result = 5
     `,
     );
-    expect(error).not.toHaveBeenCalled();
     expect(api.readVariable('x')).toBe(5);
   });
 });
