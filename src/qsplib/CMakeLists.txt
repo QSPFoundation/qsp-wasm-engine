@@ -26,6 +26,7 @@ set_target_properties(qsp-engine PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -Wno-unsequenced \
     -Wcast-align \
     -Wover-aligned \
+    -Wdeprecated-non-prototype \
     -O3 \
     -s EXPORT_ES6=1 \
     -s WASM=1 \
@@ -57,6 +58,7 @@ set_target_properties(qsp-engine-debug PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -Wno-unsequenced \
     -Wcast-align \
     -Wover-aligned \
+    -Wdeprecated-non-prototype \
     -fsanitize=address \
     -gsource-map \
     -O1 \

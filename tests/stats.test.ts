@@ -64,7 +64,13 @@ describe('stats panel', () => {
   });
 
   test('$STATTXT should return text from main panel', async () => {
-    runTestFile(api, `p 'works' & $text =  $STATTXT`);
+    runTestFile(api, `p 'works' & $text = $STATTXT`);
+
+    expect(api.readVariable('$text')).toBe('works');
+  });
+
+  test('$STATTXT() should return text from main panel', async () => {
+    runTestFile(api, `p 'works' & $text = $STATTXT()`);
 
     expect(api.readVariable('$text')).toBe('works');
   });

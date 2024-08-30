@@ -16,7 +16,7 @@ describe('Main panel', () => {
     api?._run_checks();
   });
 
-  test.skip('no leak on dynamic with error', () => {
+  test('no leak on dynamic with error', () => {
     runTestFile(
       api,
       `
@@ -26,11 +26,13 @@ describe('Main panel', () => {
       `,
     );
     expect(error).toHaveBeenCalled();
+    error.mockReset();
   });
 
-  test("no leak on exec expression", () => {
-    api.execExpression("x = 1");
+  test('no leak on tuple unpack', () => {
+    api.execCode("local ,='4','5'");
 
-    expect(api.readVariable('x')).toBe(1);
-  })
+    expect(error).toHaveBeenCalled();
+    error.mockReset();
+  });
 });

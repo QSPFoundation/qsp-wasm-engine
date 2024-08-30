@@ -1,5 +1,5 @@
-import { QspAPI, QspVariableType } from '../contracts/api';
-import { QspErrorData, QspPanel } from '../contracts/common';
+import { QspAPI, QspTuple, QspVariableType } from '../contracts/api';
+import { QspPanel } from '../contracts/common';
 import { QspEventKeys, QspEventListeners, QspEvents } from '../contracts/events';
 import { Ptr, QspCallType, QspWasmModule, StringPtr } from '../contracts/wasm-module';
 import {
@@ -14,14 +14,17 @@ import {
   withStringWrite,
   writeString,
   writeUTF32String,
+  readError,
+  allocPointer,
+  derefPointer,
+  withVariantRead,
+  allocErrorInfoPointer,
 } from './pointers';
 
 export class QspAPIImpl implements QspAPI {
   private listeners = new Map<QspEventKeys, QspEventListeners[]>();
   private variableWatchers = new Set<() => void>();
-  private variableValues = new Map<string, string | number>();
-  private expressionWatchers = new Set<() => void>();
-  private expressionValues = new Map<string, number>();
+  private variableValues = new Map<string, string | number | QspTuple>();
 
   private time: number = Date.now();
 
@@ -49,13 +52,32 @@ export class QspAPIImpl implements QspAPI {
 
   watchVariable<Name extends string>(
     name: Name,
+    callback: (value: QspVariableType<Name>) => void,
+  ): () => void {
+    let value: QspVariableType<Name> = this.readVariable(name);
+    callback(value);
+    const updater = () => {
+      const newValue = this.readVariable(name);
+      if (value !== newValue) {
+        value = newValue;
+        callback(value);
+      }
+    };
+    this.variableWatchers.add(updater);
+    return () => {
+      this.variableWatchers.delete(updater);
+    };
+  }
+
+  watchVariableByIndex<Name extends string>(
+    name: Name,
     index: number,
     callback: (value: QspVariableType<Name>) => void,
   ): () => void {
-    let value: QspVariableType<Name> = this.readVariable(name, index);
+    let value: QspVariableType<Name> = this.readVariableByIndex(name, index);
     callback(value);
     const updater = () => {
-      const newValue = this.readVariable(name, index);
+      const newValue = this.readVariableByIndex(name, index);
       if (value !== newValue) {
         value = newValue;
         callback(value);
@@ -84,32 +106,6 @@ export class QspAPIImpl implements QspAPI {
     return () => {
       this.variableWatchers.delete(updater);
     };
-  }
-
-  watchExpression(expr: string, callback: (value: number) => void): () => void {
-    let value = this.evalExpression(expr);
-    callback(value);
-    const updater = () => {
-      const newValue = this.evalExpression(expr);
-      if (value !== newValue) {
-        value = newValue;
-        callback(value);
-      }
-    };
-    this.expressionWatchers.add(updater);
-    return () => {
-      this.expressionWatchers.delete(updater);
-    };
-  }
-
-  private evalExpression(expr: string): number {
-    if (this.expressionValues.has(expr)) {
-      return this.expressionValues.get(expr) as number;
-    }
-    this.execExpression(`qspider_result = ${expr}`);
-    const value = this.readVariable('qspider_result', 0, false);
-    this.expressionValues.set(expr, value);
-    return value;
   }
 
   private emit<E extends keyof QspEvents, CB extends QspEvents[E] = QspEvents[E]>(
@@ -175,64 +171,55 @@ export class QspAPIImpl implements QspAPI {
     return newPtr;
   }
 
-  readVariable<Name extends string>(
-    name: Name,
-    index?: number,
-    useCache = false,
-  ): QspVariableType<Name> {
-    const cacheKey = `${name}[${index || 0}]`;
+  readVariable<Name extends string>(name: Name, useCache = false): QspVariableType<Name> {
+    const nameUpper = name.toUpperCase();
+    const cacheKey = `${nameUpper}[0]`;
     if (useCache && this.variableValues.has(cacheKey)) {
       return this.variableValues.get(cacheKey) as QspVariableType<Name>;
     }
-    if (name.startsWith('$')) {
-      const value = this.readVariableString(name, index) as QspVariableType<Name>;
-      this.variableValues.set(cacheKey, value);
-      return value;
-    }
-    const value = this.readVariableNumber(name, index) as QspVariableType<Name>;
+    const namePtr = this.getStaticStringPointer(nameUpper);
+    const value = withVariantRead(this.module, name, (resPtr) =>
+      this.module._getVarValue(namePtr, resPtr),
+    ) as QspVariableType<Name>;
     this.variableValues.set(cacheKey, value);
     return value;
   }
 
-  readVariableByKey<Name extends string>(name: Name, key: string): QspVariableType<Name> {
-    const cacheKey = `${name}[${key}]`;
-    if (this.variableValues.has(cacheKey)) {
+  readVariableByIndex<Name extends string>(
+    name: Name,
+    index: number,
+    useCache = false,
+  ): QspVariableType<Name> {
+    const nameUpper = name.toUpperCase();
+    const cacheKey = `${nameUpper}[${index}]`;
+    if (useCache && this.variableValues.has(cacheKey)) {
       return this.variableValues.get(cacheKey) as QspVariableType<Name>;
     }
-    if (name.startsWith('$')) {
-      const value = this.readVariableStringByKey(name, key) as QspVariableType<Name>;
-      this.variableValues.set(cacheKey, value);
-      return value;
-    }
-    const value = this.readVariableNumberByKey(name, key) as QspVariableType<Name>;
+    const namePtr = this.getStaticStringPointer(nameUpper);
+    const value = withVariantRead(this.module, name, (resPtr) =>
+      this.module._getVarValueByIndex(namePtr, index, resPtr),
+    ) as QspVariableType<Name>;
     this.variableValues.set(cacheKey, value);
     return value;
   }
 
-  readVariableNumber(name: string, index = 0): number {
-    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
-    return this.module._getVarNumValue(namePtr, index);
-  }
-
-  readVariableNumberByKey(name: string, key: string): number {
-    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
-    const keyPtr = this.getStaticStringPointer(key.toLocaleUpperCase());
-    return this.module._getVarNumValueByKey(namePtr, keyPtr);
-  }
-
-  readVariableString(name: string, index = 0): string {
-    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
-    return withStringRead(this.module, (ptr) =>
-      this.module._getVarStringValue(namePtr, index, ptr),
-    );
-  }
-
-  readVariableStringByKey(name: string, key: string): string {
-    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
-    const keyPtr = this.getStaticStringPointer(key.toLocaleUpperCase());
-    return withStringRead(this.module, (ptr) =>
-      this.module._getVarStringValueByKey(namePtr, keyPtr, ptr),
-    );
+  readVariableByKey<Name extends string>(
+    name: Name,
+    key: string,
+    useCache = false,
+  ): QspVariableType<Name> {
+    const nameUpper = name.toUpperCase();
+    const cacheKey = `${nameUpper}["${key}"]`;
+    if (useCache && this.variableValues.has(cacheKey)) {
+      return this.variableValues.get(cacheKey) as QspVariableType<Name>;
+    }
+    const namePtr = this.getStaticStringPointer(nameUpper);
+    const keyPtr = this.getStaticStringPointer(key);
+    const value = withVariantRead(this.module, name, (resPtr) =>
+      this.module._getVarValueByKey(namePtr, keyPtr, resPtr),
+    ) as QspVariableType<Name>;
+    this.variableValues.set(cacheKey, value);
+    return value;
   }
 
   readVariableSize(name: string): number {
@@ -241,11 +228,8 @@ export class QspAPIImpl implements QspAPI {
   }
 
   execCode(code: string, isRefresh = true): void {
+    console.log("execCode", code);
     withStringWrite(this.module, code, (ptr) => this.module._execString(ptr, isRefresh ? 1 : 0));
-  }
-
-  execExpression(code: string): void {
-    withStringWrite(this.module, code, (ptr) => this.module._execExpression(ptr));
   }
 
   execCounter(): void {
@@ -286,7 +270,6 @@ export class QspAPIImpl implements QspAPI {
 
   private init(): void {
     this.module._init();
-    this.module._initCallBacks();
 
     this.registerCallbacks();
   }
@@ -326,23 +309,15 @@ export class QspAPIImpl implements QspAPI {
     callback: (...args: never) => unknown,
     signature: string,
   ): void {
-    this.module._setCallBack(type, this.module.addFunction(callback, signature));
+    this.module._setCallback(type, this.module.addFunction(callback, signature));
   }
 
   onError = (): void => {
-    const errorData = this.readError();
-    if (errorData) {
-      this.emit('error', errorData);
-    } else {
-      this.emit('error', {
-        code: -1,
-        description: 'Unknown error',
-        location: '',
-        actionIndex: -1,
-        line: -1,
-      });
-    }
-    // this.onRefresh(true);
+    const ptr = allocErrorInfoPointer(this.module);
+    this.module._getLastError(ptr);
+    const error = readError(this.module, ptr);
+    this.emit('error', error);
+    this.module._free(ptr);
   };
 
   onRefresh = (isRedraw: boolean): void => {
@@ -436,9 +411,16 @@ export class QspAPIImpl implements QspAPI {
 
   onDebug = (strPtr: StringPtr): void => {
     const code = readString(this.module, strPtr);
-    const loc = withStringRead(this.module, (ptr) => this.module._getCurStateLoc(ptr));
-    const line = this.module._getCurStateLine();
-    const actIndex = this.module._getCurStateActIndex();
+
+    const actIndexPtr = allocPointer(this.module);
+    const linePtr = allocPointer(this.module);
+    const loc = withStringRead(this.module, (ptr) =>
+      this.module._getCurStateData(ptr, actIndexPtr, linePtr),
+    );
+    const line = derefPointer(this.module, linePtr);
+    this.module._free(linePtr);
+    const actIndex = derefPointer(this.module, actIndexPtr);
+    this.module._free(actIndexPtr);
 
     return asAsync(this.module, (done) => {
       this.emit(
@@ -522,7 +504,6 @@ export class QspAPIImpl implements QspAPI {
 
   clearCache() {
     this.variableValues.clear();
-    this.expressionValues.clear();
   }
 
   _run_checks() {
@@ -532,7 +513,6 @@ export class QspAPIImpl implements QspAPI {
   _cleanup() {
     this.clearCache();
     this.variableWatchers.clear();
-    this.expressionWatchers.clear();
     for (const ptr of this.staticStrings.values()) {
       this.module._free(ptr);
     }
@@ -544,21 +524,6 @@ export class QspAPIImpl implements QspAPI {
     for (const updater of this.variableWatchers.values()) {
       updater();
     }
-    for (const updater of this.expressionWatchers.values()) {
-      updater();
-    }
-  }
-
-  private readError(): QspErrorData | null {
-    const code = this.module._getLastErrorNum();
-    if (!code) return null;
-    return {
-      code,
-      location: withStringRead(this.module, (ptr) => this.module._getLastErrorLoc(ptr)),
-      description: withStringRead(this.module, (ptr) => this.module._getErrorDesc(ptr, code)),
-      actionIndex: this.module._getLastErrorActIndex(),
-      line: this.module._getLastErrorLine(),
-    };
   }
 
   toJSON(): string {

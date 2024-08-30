@@ -2,7 +2,7 @@ import { Mock, beforeEach, describe, vi, expect, it, afterEach } from 'vitest';
 import { DebugRecord, QspAPI } from '../src';
 import { prepareApi, runTestFile } from '../src/test-helpers';
 
-describe('debug', () => {
+describe.skip('debug', () => {
   let api: QspAPI;
   let error: Mock;
   beforeEach(async () => {

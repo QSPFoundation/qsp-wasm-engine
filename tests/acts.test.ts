@@ -111,6 +111,8 @@ end`,
   });
 
   test('$CURACTS should return acts list as code', () => {
+    const statChanged = vi.fn();
+    api.on('stats_changed', statChanged);
     runTestFile(
       api,
       `
@@ -119,11 +121,11 @@ act '2':
   p 2
   p 3
 end
-$acts = $CURACTS
+p $CURACTS
 `,
     );
 
-    expect(api.readVariable('$acts')).toEqual(`ACT '1': P 1\r\nACT '2':\r\nP 2\r\nP 3\r\nEND\r\n`);
+    expect(statChanged).toHaveBeenCalledWith(`ACT '1': P 1\r\nACT '2':\r\nP 2\r\nP 3\r\nEND\r\n`);
   });
 
   test('$SELACT should return currently selected action', () => {

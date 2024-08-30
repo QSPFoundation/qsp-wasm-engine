@@ -2,7 +2,7 @@ import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest'
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
-describe('stats panel', () => {
+describe('variables', () => {
   let api: QspAPI;
   let error: Mock;
   beforeEach(async () => {

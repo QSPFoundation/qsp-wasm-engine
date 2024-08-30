@@ -15,25 +15,11 @@ typedef int (*QSP_CALLBACK)();
 #define _UNICODE
 #endif
 
-#include "qsp/declarations.h"
 #include "qsp/bindings/default/qsp_default.h"
 
-#include "qsp/callbacks.h"
-#include "qsp/common.h"
-#include "qsp/game.h"
-#include "qsp/locations.h"
-#include "qsp/actions.h"
-#include "qsp/objects.h"
-#include "qsp/text.h"
-#include "qsp/time.h"
-#include "qsp/coding.h"
-#include "qsp/statements.h"
-#include "qsp/mathops.h"
-#include "qsp/variables.h"
-#include "qsp/errors.h"
-
 EMSCRIPTEN_KEEPALIVE
-const char *__asan_default_options() {
+const char *__asan_default_options()
+{
   return "detect_stack_use_after_return=1:print_stats=1";
 }
 
@@ -50,7 +36,7 @@ void init()
 EMSCRIPTEN_KEEPALIVE
 void dispose()
 {
-  QSPDeInit();
+  QSPTerminate();
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -103,14 +89,8 @@ QSP_BOOL isVarsDescChanged()
 EMSCRIPTEN_KEEPALIVE
 QSPListItem *getActions(int *count)
 {
-  *count = qspCurActionsCount;
-  QSPListItem *items = (QSPListItem *)malloc(qspCurActionsCount * sizeof(QSPListItem));
-  int i;
-  for (i = 0; i < qspCurActionsCount; ++i)
-  {
-    items[i].Name = qspCurActions[i].Desc;
-    items[i].Image = qspCurActions[i].Image;
-  }
+  QSPListItem *items = (QSPListItem *)malloc(MAX_LIST_ITEMS * sizeof(QSPListItem));
+  *count = QSPGetActions(items, MAX_LIST_ITEMS);
   return items;
 }
 
@@ -140,14 +120,8 @@ QSP_BOOL isActionsChanged()
 EMSCRIPTEN_KEEPALIVE
 QSPListItem *getObjects(int *count)
 {
-  *count = qspCurObjectsCount;
-  int i;
-  QSPListItem *items = (QSPListItem *)malloc(qspCurObjectsCount * sizeof(QSPListItem));
-  for (i = 0; i < qspCurObjectsCount; ++i)
-  {
-    items[i].Name = qspCurObjects[i].Desc;
-    items[i].Image = qspCurObjects[i].Image;
-  }
+  QSPListItem *items = (QSPListItem *)malloc(MAX_LIST_ITEMS * sizeof(QSPListItem));
+  *count = QSPGetObjects(items, MAX_LIST_ITEMS);
   return items;
 }
 
@@ -223,19 +197,10 @@ void loadSavedGameData(const void *data, int dataSize)
 EMSCRIPTEN_KEEPALIVE
 void execString(QSP_CHAR *s, QSP_BOOL isRefresh)
 {
-  if (!QSPExecString(qspStringFromC(s), isRefresh))
+  if (!QSPExecString(QSPStringFromC(s), isRefresh))
   {
     onError();
   }
-}
-
-EMSCRIPTEN_KEEPALIVE
-void execExpression(QSP_CHAR *s)
-{
-  QSPLineOfCode *strs;
-  int linesCount = qspPreprocessData(qspStringFromC(s), &strs);
-  qspExecCode(strs, 0, linesCount, 0, 0);
-  qspFreePrepLines(strs, linesCount);
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -250,7 +215,7 @@ void execCounter()
 EMSCRIPTEN_KEEPALIVE
 void execLoc(QSP_CHAR *name)
 {
-  if (!QSPExecLocationCode(qspStringFromC(name), QSP_TRUE))
+  if (!QSPExecLocationCode(QSPStringFromC(name), QSP_TRUE))
   {
     onError();
   }
@@ -259,7 +224,7 @@ void execLoc(QSP_CHAR *name)
 EMSCRIPTEN_KEEPALIVE
 void execUserInput(QSP_CHAR *s)
 {
-  QSPSetInputStrText(qspStringFromC(s));
+  QSPSetInputStrText(QSPStringFromC(s));
 
   if (!QSPExecUserInput(QSP_TRUE))
   {
@@ -269,119 +234,53 @@ void execUserInput(QSP_CHAR *s)
 
 /* Errors */
 EMSCRIPTEN_KEEPALIVE
-int getLastErrorNum()
+void getLastError(QSPErrorInfo *lastError)
 {
-  return qspErrorNum;
+  QSPErrorInfo errorInfo = QSPGetLastErrorData();
+
+  lastError->ErrorNum = errorInfo.ErrorNum;
+  lastError->ErrorDesc = errorInfo.ErrorDesc;
+  lastError->ActIndex = errorInfo.ActIndex;
+  lastError->TopLineNum = errorInfo.TopLineNum;
+  lastError->IntLineNum = errorInfo.IntLineNum;
+  lastError->LocName = errorInfo.LocName;
+  lastError->IntLine = errorInfo.IntLine;
 }
 
 EMSCRIPTEN_KEEPALIVE
-void getLastErrorLoc(QSPString *errorLoc)
+QSP_BOOL getVarValue(QSP_CHAR *name, QSPVariant *res)
 {
-  *errorLoc = (qspErrorLoc >= 0 && qspErrorLoc < qspLocsCount ? qspLocs[qspErrorLoc].Name : qspNullString);
+  return QSPGetVarValue(QSPStringFromC(name), 0, res);
 }
 
 EMSCRIPTEN_KEEPALIVE
-int getLastErrorActIndex()
+QSP_BOOL getVarValueByIndex(QSP_CHAR *name, int index, QSPVariant *res)
 {
-  return qspErrorActIndex;
+  return QSPGetVarValue(QSPStringFromC(name), index, res);
 }
 
 EMSCRIPTEN_KEEPALIVE
-int getLastErrorLine()
+QSP_BOOL getVarValueByKey(QSP_CHAR *name, QSP_CHAR *key, QSPVariant *res)
 {
-  return qspErrorLine;
-}
-
-EMSCRIPTEN_KEEPALIVE
-QSPString getErrorDesc(int errorNum)
-{
-  return QSPGetErrorDesc(errorNum);
-}
-
-EMSCRIPTEN_KEEPALIVE
-void getVarStringValue(QSP_CHAR *name, int ind, QSPString *strVal)
-{
-  int numVal;
-
-  if (!QSPGetVarValues(qspStringFromC(name), ind, &numVal, strVal))
-  {
-    *strVal = qspNullString;
-  }
-}
-
-EMSCRIPTEN_KEEPALIVE
-int getVarNumValue(QSP_CHAR *name, int ind)
-{
-  QSPString strVal;
-  int numVal = 0;
-
-  if (QSPGetVarValues(qspStringFromC(name), ind, &numVal, &strVal))
-  {
-    return numVal;
-  }
-  return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-void getVarStringValueByKey(QSP_CHAR *name, QSP_CHAR *key, QSPString *strVal)
-{
-  QSPString varName = qspStringFromC(name);
-  QSPVar *var;
-  var = qspVarReference(varName, QSP_FALSE);
-  if (!var)
-  {
-    *strVal = qspNullString;
-    return;
-  }
-  int ind = qspGetVarTextIndex(var, qspStringFromC(key), QSP_FALSE);
-  int numVal;
-
-  if (!QSPGetVarValues(varName, ind, &numVal, strVal))
-  {
-    *strVal = qspNullString;
-  }
-}
-
-EMSCRIPTEN_KEEPALIVE
-int getVarNumValueByKey(QSP_CHAR *name, QSP_CHAR *key)
-{
-  QSPString varName = qspStringFromC(name);
-  QSPVar *var;
-  var = qspVarReference(varName, QSP_FALSE);
-  if (!var)
-  {
-    return 0;
-  }
-  int ind = qspGetVarTextIndex(var, qspStringFromC(key), QSP_FALSE);
-  QSPString strVal;
-  int numVal = 0;
-
-  if (QSPGetVarValues(varName, ind, &numVal, &strVal))
-  {
-    return numVal;
-  }
-  return 0;
+  int index = 0;
+  QSPString qspName = QSPStringFromC(name);
+  QSPGetVarIndexByString(qspName, QSPStringFromC(key), &index);
+  return QSPGetVarValue(qspName, index, res);
 }
 
 EMSCRIPTEN_KEEPALIVE
 int getVarSize(QSP_CHAR *name)
 {
-  int numVal = 0;
-  QSPGetVarValuesCount(qspStringFromC(name), &numVal);
-  return numVal;
+  int res = 0;
+  QSPGetVarValuesCount(QSPStringFromC(name), &res);
+  return res;
 }
 
 /* callbacks */
 EMSCRIPTEN_KEEPALIVE
-void initCallBacks()
+void setCallback(int type, QSP_CALLBACK func)
 {
-  qspInitCallBacks();
-}
-
-EMSCRIPTEN_KEEPALIVE
-void setCallBack(int type, QSP_CALLBACK func)
-{
-  qspSetCallBack(type, func);
+  QSPSetCallback(type, func);
 }
 
 /* Struct utils */
@@ -417,74 +316,63 @@ void disableDebugMode()
 }
 
 EMSCRIPTEN_KEEPALIVE
-void getCurStateLoc(QSPString *loc)
+void getCurStateData(QSPString *loc, int *actIndex, int *lineNum)
 {
-  *loc = (qspRealCurLoc >= 0 && qspRealCurLoc < qspLocsCount ? qspLocs[qspRealCurLoc].Name : qspNullString);
+  QSPGetCurStateData(loc, actIndex, lineNum);
 }
 
-EMSCRIPTEN_KEEPALIVE
-int getCurStateLine()
-{
-  return qspRealLine;
-}
+// TODO update when new api is ready
+// EMSCRIPTEN_KEEPALIVE
+// QSPString *getLocationsList(int *count)
+// {
+//   *count = qspLocsCount;
+//   QSPString *lines = (QSPString *)malloc(qspLocsCount * sizeof(QSPString));
+//   int i;
+//   for (i = 0; i < qspLocsCount; ++i)
+//   {
+//     lines[i] = qspLocs[i].Name;
+//   }
+//   return lines;
+// }
 
-EMSCRIPTEN_KEEPALIVE
-int getCurStateActIndex()
-{
-  return qspRealActIndex;
-}
+// EMSCRIPTEN_KEEPALIVE
+// QSPString *getLocationCode(QSP_CHAR *name, int *count)
+// {
+//   int locInd = qspLocIndex(QSPStringFromC(name));
+//   if (locInd >= 0)
+//   {
+//     QSPLocation *loc = qspLocs + locInd;
 
-EMSCRIPTEN_KEEPALIVE
-QSPString *getLocationsList(int *count)
-{
-  *count = qspLocsCount;
-  QSPString *lines = (QSPString *)malloc(qspLocsCount * sizeof(QSPString));
-  int i;
-  for (i = 0; i < qspLocsCount; ++i)
-  {
-    lines[i] = qspLocs[i].Name;
-  }
-  return lines;
-}
+//     *count = loc->OnVisitLinesCount;
+//     QSPString *lines = (QSPString *)malloc(loc->OnVisitLinesCount * sizeof(QSPString));
+//     int i;
+//     for (i = 0; i < loc->OnVisitLinesCount; ++i)
+//     {
+//       lines[i] = loc->OnVisitLines[i].Str;
+//     }
+//     return lines;
+//   }
+// }
 
-EMSCRIPTEN_KEEPALIVE
-QSPString *getLocationCode(QSP_CHAR *name, int *count)
-{
-  int locInd = qspLocIndex(qspStringFromC(name));
-  if (locInd >= 0)
-  {
-    QSPLocation *loc = qspLocs + locInd;
+// EMSCRIPTEN_KEEPALIVE
+// QSPString *getActionCode(QSP_CHAR *name, int index, int *count)
+// {
+//   int locInd = qspLocIndex(QSPStringFromC(name));
 
-    *count = loc->OnVisitLinesCount;
-    QSPString *lines = (QSPString *)malloc(loc->OnVisitLinesCount * sizeof(QSPString));
-    int i;
-    for (i = 0; i < loc->OnVisitLinesCount; ++i)
-    {
-      lines[i] = loc->OnVisitLines[i].Str;
-    }
-    return lines;
-  }
-}
-
-EMSCRIPTEN_KEEPALIVE
-QSPString *getActionCode(QSP_CHAR *name, int index, int *count)
-{
-  int locInd = qspLocIndex(qspStringFromC(name));
-
-  if (locInd >= 0 && index >= 0 && index < QSP_MAXACTIONS)
-  {
-    QSPLocation *loc = qspLocs + locInd;
-    QSPLocAct *act = loc->Actions + index;
-    *count = act->OnPressLinesCount;
-    QSPString *lines = (QSPString *)malloc(act->OnPressLinesCount * sizeof(QSPString));
-    int i;
-    for (i = 0; i < act->OnPressLinesCount; ++i)
-    {
-      lines[i] = act->OnPressLines[i].Str;
-    }
-    return lines;
-  }
-}
+//   if (locInd >= 0 && index >= 0 && index < QSP_MAXACTIONS)
+//   {
+//     QSPLocation *loc = qspLocs + locInd;
+//     QSPLocAct *act = loc->Actions + index;
+//     *count = act->OnPressLinesCount;
+//     QSPString *lines = (QSPString *)malloc(act->OnPressLinesCount * sizeof(QSPString));
+//     int i;
+//     for (i = 0; i < act->OnPressLinesCount; ++i)
+//     {
+//       lines[i] = act->OnPressLines[i].Str;
+//     }
+//     return lines;
+//   }
+// }
 
 EMSCRIPTEN_KEEPALIVE
 void _run_checks()

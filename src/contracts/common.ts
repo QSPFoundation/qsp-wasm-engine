@@ -1,9 +1,11 @@
 export interface QspErrorData {
-  code: number;
+  errorCode: number;
   description: string;
   location: string;
-  actionIndex: number;
+  actionIndex: number;  
   line: number;
+  localLine: number;
+  lineSrc: string;
 }
 
 export interface QspListItem {

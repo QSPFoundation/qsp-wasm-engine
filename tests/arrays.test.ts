@@ -24,8 +24,8 @@ $arr[1] = 'test'
 arr[1] = 1
   `,
     );
-    expect(api.readVariable('$arr', 1)).toBe('');
-    expect(api.readVariable('arr', 1)).toBe(1);
+    expect(api.readVariableByIndex('$arr', 1)).toBe('');
+    expect(api.readVariableByIndex('arr', 1)).toBe(1);
   });
 
   test('overriding number value with string', () => {
@@ -36,8 +36,8 @@ arr[1] = 1
 $arr[1] = 'test'
   `,
     );
-    expect(api.readVariable('$arr', 1)).toBe('test');
-    expect(api.readVariable('arr', 1)).toBe(0);
+    expect(api.readVariableByIndex('$arr', 1)).toBe('test');
+    expect(api.readVariableByIndex('arr', 1)).toBe(0);
   });
 
   test('last element assignment', () => {
@@ -50,9 +50,9 @@ $objs[] = 'Доска'
 `,
     );
 
-    expect(api.readVariable('$objs', 0)).toBe('Напильник');
-    expect(api.readVariable('$objs', 1)).toBe('Топор');
-    expect(api.readVariable('$objs', 2)).toBe('Доска');
+    expect(api.readVariableByIndex('$objs', 0)).toBe('Напильник');
+    expect(api.readVariableByIndex('$objs', 1)).toBe('Топор');
+    expect(api.readVariableByIndex('$objs', 2)).toBe('Доска');
   });
 
   test('last element read', () => {
@@ -90,25 +90,25 @@ $a = $objs[]
   test('killvar whole array', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(2);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(2);
     api.execCode(`killvar 'a'`);
     
-    expect(api.readVariable('a', 0)).toBe(0);
-    expect(api.readVariable('a', 1)).toBe(0);
+    expect(api.readVariableByIndex('a', 0)).toBe(0);
+    expect(api.readVariableByIndex('a', 1)).toBe(0);
   });
 
   test('killvar array index', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(2);
-    expect(api.readVariable('a', 2)).toBe(3);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(2);
+    expect(api.readVariableByIndex('a', 2)).toBe(3);
     api.execCode(`killvar 'a', 1`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(3);
-    expect(api.readVariable('a', 2)).toBe(0);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(3);
+    expect(api.readVariableByIndex('a', 2)).toBe(0);
   });
 
   test('killvar array key', async () => {
@@ -128,57 +128,57 @@ $a = $objs[]
   test('copyarr whole array', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(2);
-    expect(api.readVariable('a', 2)).toBe(3);
-    expect(api.readVariable('b', 0)).toBe(0);
-    expect(api.readVariable('b', 1)).toBe(0);
-    expect(api.readVariable('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(2);
+    expect(api.readVariableByIndex('a', 2)).toBe(3);
+    expect(api.readVariableByIndex('b', 0)).toBe(0);
+    expect(api.readVariableByIndex('b', 1)).toBe(0);
+    expect(api.readVariableByIndex('b', 2)).toBe(0);
     api.execCode(`copyarr 'b', 'a'`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(2);
-    expect(api.readVariable('a', 2)).toBe(3);
-    expect(api.readVariable('b', 0)).toBe(1);
-    expect(api.readVariable('b', 1)).toBe(2);
-    expect(api.readVariable('b', 2)).toBe(3);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(2);
+    expect(api.readVariableByIndex('a', 2)).toBe(3);
+    expect(api.readVariableByIndex('b', 0)).toBe(1);
+    expect(api.readVariableByIndex('b', 1)).toBe(2);
+    expect(api.readVariableByIndex('b', 2)).toBe(3);
   });
 
   test('copyarr with start index', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(2);
-    expect(api.readVariable('a', 2)).toBe(3);
-    expect(api.readVariable('b', 0)).toBe(0);
-    expect(api.readVariable('b', 1)).toBe(0);
-    expect(api.readVariable('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(2);
+    expect(api.readVariableByIndex('a', 2)).toBe(3);
+    expect(api.readVariableByIndex('b', 0)).toBe(0);
+    expect(api.readVariableByIndex('b', 1)).toBe(0);
+    expect(api.readVariableByIndex('b', 2)).toBe(0);
     api.execCode(`copyarr 'b', 'a', 1`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(2);
-    expect(api.readVariable('a', 2)).toBe(3);
-    expect(api.readVariable('b', 0)).toBe(2);
-    expect(api.readVariable('b', 1)).toBe(3);
-    expect(api.readVariable('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(2);
+    expect(api.readVariableByIndex('a', 2)).toBe(3);
+    expect(api.readVariableByIndex('b', 0)).toBe(2);
+    expect(api.readVariableByIndex('b', 1)).toBe(3);
+    expect(api.readVariableByIndex('b', 2)).toBe(0);
   });
   test('copyarr with count', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(2);
-    expect(api.readVariable('a', 2)).toBe(3);
-    expect(api.readVariable('b', 0)).toBe(0);
-    expect(api.readVariable('b', 1)).toBe(0);
-    expect(api.readVariable('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(2);
+    expect(api.readVariableByIndex('a', 2)).toBe(3);
+    expect(api.readVariableByIndex('b', 0)).toBe(0);
+    expect(api.readVariableByIndex('b', 1)).toBe(0);
+    expect(api.readVariableByIndex('b', 2)).toBe(0);
     api.execCode(`copyarr 'b', 'a', 1, 1`);
 
-    expect(api.readVariable('a', 0)).toBe(1);
-    expect(api.readVariable('a', 1)).toBe(2);
-    expect(api.readVariable('a', 2)).toBe(3);
-    expect(api.readVariable('b', 0)).toBe(2);
-    expect(api.readVariable('b', 1)).toBe(0);
-    expect(api.readVariable('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('a', 0)).toBe(1);
+    expect(api.readVariableByIndex('a', 1)).toBe(2);
+    expect(api.readVariableByIndex('a', 2)).toBe(3);
+    expect(api.readVariableByIndex('b', 0)).toBe(2);
+    expect(api.readVariableByIndex('b', 1)).toBe(0);
+    expect(api.readVariableByIndex('b', 2)).toBe(0);
   });
 
   test('arrsize', () => {

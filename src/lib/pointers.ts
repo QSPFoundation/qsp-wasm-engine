@@ -1,22 +1,31 @@
-import { QspListItem } from '../contracts/common';
-import { CharsPtr, Ptr, QspWasmModule, StringPtr } from '../contracts/wasm-module';
+import { QspErrorData, QspListItem } from '../contracts/common';
+import { CharsPtr, ErrorPtr, Ptr, QspWasmModule, StringPtr, VariantPointer } from '../contracts/wasm-module';
+import { QspTuple } from '../index-debug';
 
 export const POINTER_SIZE = 4; // pointers are 4 bytes in C
 
 export function allocStringPointer(module: QspWasmModule): Ptr {
-  return module._malloc(POINTER_SIZE * 2);
+  return module._malloc(POINTER_SIZE * 2) as Ptr;
+}
+
+export function allocVariantPointer(module: QspWasmModule): VariantPointer {
+  return module._malloc(POINTER_SIZE * 3) as VariantPointer;
+}
+
+export function allocErrorInfoPointer(module: QspWasmModule): ErrorPtr {
+  return module._malloc(POINTER_SIZE * 10) as ErrorPtr;
 }
 
 export function allocPointer(module: QspWasmModule): Ptr {
-  return module._malloc(POINTER_SIZE);
+  return module._malloc(POINTER_SIZE) as Ptr;
 }
 
 export function derefPointer(module: QspWasmModule, ptr: Ptr): Ptr {
-  return readI32Value(module, ptr);
+  return readI32Value(module, ptr) as Ptr;
 }
 
 export function movePointer(ptr: Ptr, times = 1): Ptr {
-  return ptr + POINTER_SIZE * times;
+  return (ptr + POINTER_SIZE * times) as Ptr;
 }
 
 export function freePointer(module: QspWasmModule, ptr: Ptr): void {
@@ -38,7 +47,7 @@ export function readString(module: QspWasmModule, ptr: StringPtr): string {
 
 export function writeString(module: QspWasmModule, value: string): CharsPtr {
   const length = lengthBytesUTF32(value);
-  const ptr = module._malloc(length + 4);
+  const ptr = module._malloc(length + 4) as CharsPtr;
   writeUTF32String(module, value, ptr, length + 4);
   return ptr;
 }
@@ -93,7 +102,7 @@ export function withBufferWrite(
   callback: (ptr: Ptr, size: number) => void,
 ): void {
   const bytes = new Uint8Array(data);
-  const ptr = module._malloc(bytes.length);
+  const ptr = module._malloc(bytes.length) as Ptr;
   module.HEAPU8.set(bytes, ptr);
   callback(ptr, bytes.length);
   module._free(ptr);
@@ -162,6 +171,10 @@ function readI32Value(module: QspWasmModule, ptr: Ptr): number {
   return module.HEAP32[ptr >> 2];
 }
 
+function readByte(module: QspWasmModule, ptr: Ptr): number {
+  return module.HEAP8[ptr];
+}
+
 function lengthBytesUTF32(str: string): number {
   let len = 0;
   for (let i = 0; i < str.length; ++i) {
@@ -188,7 +201,7 @@ export function writeUTF32String(
       codeUnit = (65536 + ((codeUnit & 1023) << 10)) | (trailSurrogate & 1023);
     }
     module.HEAP32[outPtr >> 2] = codeUnit;
-    outPtr += 4;
+    outPtr = (outPtr + 4) as Ptr;
     if (outPtr + 4 > endPtr) break;
   }
   module.HEAP32[outPtr >> 2] = 0;
@@ -210,4 +223,63 @@ function readUTF32String(module: QspWasmModule, ptr: Ptr, maxBytesToRead: number
     }
   }
   return str.join('');
+}
+
+const QSP_TYPE_TUPLE = 0;
+const QSP_TYPE_NUM = 1;
+const QSP_TYPE_STR = 2;
+const QSP_TYPE_UNDEF = 5;
+
+export function withVariantRead(
+  module: QspWasmModule,
+  name: string,
+  callback: (ptr: VariantPointer) => void,
+): string | number | QspTuple {
+  const ptr = allocVariantPointer(module);
+  console.log({ name, ptr });
+  callback(ptr);
+  const result = readVariable(module, ptr, name);
+  freePointer(module, ptr);
+  return result;
+}
+
+export function readVariable(
+  module: QspWasmModule,
+  variant: VariantPointer,
+  name: string,
+): string | number | QspTuple {  
+  const type = readByte(module, movePointer(variant, 2));
+  switch (type) {
+    case QSP_TYPE_TUPLE:
+      return name.startsWith('%') ? readTuple(module, variant, name) : name.startsWith('$') ? '' : 0;
+    case QSP_TYPE_NUM:
+      return name.startsWith('%') ? [] : name.startsWith('$') ? '' : readI32Value(module, variant);
+    case QSP_TYPE_STR:
+      return name.startsWith('%') ? [] : name.startsWith('$') ? readString(module, variant) : 0;
+    case QSP_TYPE_UNDEF:
+      return name.startsWith('%') ? [] : name.startsWith('$') ? '' : 0;
+  }
+  return '';
+}
+
+function readTuple(module: QspWasmModule, variant: VariantPointer, name: string): QspTuple {
+  const values: QspTuple = [];
+  const list = derefPointer(module, variant);
+  const count = readI32Value(module, movePointer(variant));
+  for (let i = 0; i < count; ++i) {
+    values.push(readVariable(module, movePointer(list, i * 3), name));
+  }
+  return values;
+}
+
+export function readError(module: QspWasmModule, errorPtr: ErrorPtr): QspErrorData {
+  return {
+    errorCode: readI32Value(module, errorPtr),
+    description: readString(module, movePointer(errorPtr)),
+    location: readString(module, movePointer(errorPtr, 3)),
+    actionIndex: readI32Value(module, movePointer(errorPtr, 5)),
+    line: readI32Value(module, movePointer(errorPtr, 6)),
+    localLine: readI32Value(module, movePointer(errorPtr, 7)),
+    lineSrc: readString(module, movePointer(errorPtr, 8)),
+  };
 }

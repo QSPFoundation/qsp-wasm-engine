@@ -27,7 +27,7 @@ describe('api', () => {
   it('should read numeric variable by index', async () => {
     runTestFile(api, `test[2] = 254`);
 
-    expect(api.readVariable('test', 2)).toBe(254);
+    expect(api.readVariableByIndex('test', 2)).toBe(254);
   });
   it('should read numeric variable by key', () => {
     runTestFile(api, `test[0] = 11 & test['test'] = 254`);
@@ -55,7 +55,7 @@ describe('api', () => {
   it('should read string variable by index', async () => {
     runTestFile(api, `$test[2] = '254'`);
 
-    expect(api.readVariable('$test', 2)).toBe('254');
+    expect(api.readVariableByIndex('$test', 2)).toBe('254');
   });
 
   it('should read string variable by key', async () => {
@@ -92,13 +92,13 @@ describe('api', () => {
   });
 
   it('should read version', () => {
-    expect(api.version()).toEqual('5.8.0');
+    expect(api.version()).toEqual('5.9.0');
   });
 
   it('should watch variable by index', async () => {
     runTestFile(api, ``);
     const watchVariables = vi.fn();
-    api.watchVariable('test', 1, watchVariables);
+    api.watchVariableByIndex('test', 1, watchVariables);
     await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(0);
     api.execCode(`test[1] = 123`);
@@ -112,7 +112,7 @@ describe('api', () => {
     const msg = vi.fn();
     api.on('msg', msg);
 
-    api.watchVariable('test', 1, watchVariables);
+    api.watchVariableByIndex('test', 1, watchVariables);
     await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(0);
     api.execCode(`test[1] = 123 & msg "test"`);
@@ -130,68 +130,5 @@ describe('api', () => {
     api.execCode(`test['key'] = 123`);
     await delay(10);
     expect(watchVariables).toHaveBeenCalledWith(123);
-  });
-
-  it('should watch expression', async () => {
-    runTestFile(api, ``);
-    const watchExpression = vi.fn();
-    api.watchExpression('x > 0', watchExpression);
-    await delay(10);
-    expect(watchExpression).toHaveBeenCalledWith(0);
-    watchExpression.mockReset();
-    api.execCode('x = 5');
-    await delay(10);
-    expect(watchExpression).toHaveBeenCalledWith(1);
-  });
-
-  it('should not error when watching expressions with msg/input call', async () => {
-    runTestFile(api, ``);
-    const watchExpression = vi.fn();
-    api.watchExpression('x > 0', watchExpression);
-    const msg = vi.fn();
-    api.on("msg", msg);
-    await delay(10);
-
-    api.execCode(`msg "test"`);
-    expect(error).not.toHaveBeenCalled();
-    msg.mock.calls[0][1]();
-  });
-
-  it('should not fail if watch expression is called when execution is paused (waiting for msg callback for example)', async () => {
-    runTestFile(api, `x = 1`);
-    const msg = vi.fn();
-    api.on('msg', msg);
-    const watchExpression = vi.fn();
-    api.execCode(`'before' & msg "here" & 'after'`);
-
-    api.watchExpression('x > 0', watchExpression);
-
-    expect(watchExpression).toHaveBeenCalledWith(1);
-
-    msg.mock.calls[0][1]();
-
-    await delay(10);
-    expect(error).not.toHaveBeenCalled();
-  });
-
-  it('should not fail with watch expression and several updates with msg', async () => {
-    runTestFile(api, `x = 1`);
-    const msg = vi.fn();
-    api.on('msg', msg);
-    const watchExpression = vi.fn();
-    api.watchExpression('x > 0', watchExpression);
-
-    api.execCode(`'before' & msg "test 1" & 'between' & msg "test 2" & 'after'`);
-
-    await delay(10);
-
-    msg.mock.calls[0][1]();
-
-    await delay(10);
-
-    msg.mock.calls[1][1]();
-
-    await delay(10);
-    expect(watchExpression).toHaveBeenCalledWith(1);
   });
 });

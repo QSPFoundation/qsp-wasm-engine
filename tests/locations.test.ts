@@ -59,8 +59,8 @@ act '2': x
       },
     ]);
 
-    expect(api.readVariable('args', 0)).toBe(1);
-    expect(api.readVariable('$args', 1)).toBe('test');
+    expect(api.readVariableByIndex('args', 0)).toBe(1);
+    expect(api.readVariableByIndex('$args', 1)).toBe('test');
   });
 
   test('GT', () => {
@@ -104,8 +104,8 @@ act '2': x
       },
     ]);
 
-    expect(api.readVariable('args', 0)).toBe(1);
-    expect(api.readVariable('$args', 1)).toBe('test');
+    expect(api.readVariableByIndex('args', 0)).toBe(1);
+    expect(api.readVariableByIndex('$args', 1)).toBe('test');
   });
 
   test('XGOTO', () => {
@@ -148,8 +148,8 @@ act '2': x
       },
     ]);
 
-    expect(api.readVariable('args', 0)).toBe(1);
-    expect(api.readVariable('$args', 1)).toBe('test');
+    expect(api.readVariableByIndex('args', 0)).toBe(1);
+    expect(api.readVariableByIndex('$args', 1)).toBe('test');
   });
 
   test('XGT', () => {
@@ -193,8 +193,8 @@ act '2': x
       },
     ]);
 
-    expect(api.readVariable('args', 0)).toBe(1);
-    expect(api.readVariable('$args', 1)).toBe('test');
+    expect(api.readVariableByIndex('args', 0)).toBe(1);
+    expect(api.readVariableByIndex('$args', 1)).toBe('test');
   });
 
   test('GOSUB', () => {

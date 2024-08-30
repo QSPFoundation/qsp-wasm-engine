@@ -46,6 +46,12 @@ describe('Main panel', () => {
     expect(api.readVariable('$text')).toBe('works');
   });
 
+  test('$MAINTXT() should return text from main panel', async () => {
+    runTestFile(api, `*p 'works' & $text = $MAINTXT()`);
+
+    expect(api.readVariable('$text')).toBe('works');
+  });
+
   test('*CLEAR should clear main description', async () => {
     runTestFile(api, `*p 'works'`);
 

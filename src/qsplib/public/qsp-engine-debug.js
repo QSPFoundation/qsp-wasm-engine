@@ -54,33 +54,21 @@ var createQspModule = (() => {
       '_saveGameData',
       '_loadSavedGameData',
       '_execString',
-      '_execExpression',
       '_execCounter',
       '_execLoc',
       '_execUserInput',
-      '_getLastErrorNum',
-      '_getLastErrorLoc',
-      '_getLastErrorActIndex',
-      '_getLastErrorLine',
-      '_getErrorDesc',
-      '_getVarStringValue',
-      '_getVarNumValue',
-      '_getVarStringValueByKey',
-      '_getVarNumValueByKey',
+      '_getLastError',
+      '_getVarValue',
+      '_getVarValueByIndex',
+      '_getVarValueByKey',
       '_getVarSize',
-      '_initCallBacks',
-      '_setCallBack',
+      '_setCallback',
       '_freeItemsList',
       '_freeSaveBuffer',
       '_freeStringsBuffer',
       '_enableDebugMode',
       '_disableDebugMode',
-      '_getCurStateLoc',
-      '_getCurStateLine',
-      '_getCurStateActIndex',
-      '_getLocationsList',
-      '_getLocationCode',
-      '_getActionCode',
+      '_getCurStateData',
       '__run_checks',
       '__ZN6__asan9FakeStack17AddrIsInFakeStackEm',
       '__ZN6__asan9FakeStack8AllocateEmmm',
@@ -2991,52 +2979,29 @@ var createQspModule = (() => {
 
     var _execString = (Module['_execString'] = createExportWrapper('execString', 2));
 
-    var _execExpression = (Module['_execExpression'] = createExportWrapper('execExpression', 1));
-
     var _execCounter = (Module['_execCounter'] = createExportWrapper('execCounter', 0));
 
     var _execLoc = (Module['_execLoc'] = createExportWrapper('execLoc', 1));
 
     var _execUserInput = (Module['_execUserInput'] = createExportWrapper('execUserInput', 1));
 
-    var _getLastErrorNum = (Module['_getLastErrorNum'] = createExportWrapper('getLastErrorNum', 0));
+    var _getLastError = (Module['_getLastError'] = createExportWrapper('getLastError', 1));
 
-    var _getLastErrorLoc = (Module['_getLastErrorLoc'] = createExportWrapper('getLastErrorLoc', 1));
+    var _getVarValue = (Module['_getVarValue'] = createExportWrapper('getVarValue', 2));
 
-    var _getLastErrorActIndex = (Module['_getLastErrorActIndex'] = createExportWrapper(
-      'getLastErrorActIndex',
-      0,
-    ));
-
-    var _getLastErrorLine = (Module['_getLastErrorLine'] = createExportWrapper(
-      'getLastErrorLine',
-      0,
-    ));
-
-    var _getErrorDesc = (Module['_getErrorDesc'] = createExportWrapper('getErrorDesc', 2));
-
-    var _getVarStringValue = (Module['_getVarStringValue'] = createExportWrapper(
-      'getVarStringValue',
+    var _getVarValueByIndex = (Module['_getVarValueByIndex'] = createExportWrapper(
+      'getVarValueByIndex',
       3,
     ));
 
-    var _getVarNumValue = (Module['_getVarNumValue'] = createExportWrapper('getVarNumValue', 2));
-
-    var _getVarStringValueByKey = (Module['_getVarStringValueByKey'] = createExportWrapper(
-      'getVarStringValueByKey',
+    var _getVarValueByKey = (Module['_getVarValueByKey'] = createExportWrapper(
+      'getVarValueByKey',
       3,
-    ));
-
-    var _getVarNumValueByKey = (Module['_getVarNumValueByKey'] = createExportWrapper(
-      'getVarNumValueByKey',
-      2,
     ));
 
     var _getVarSize = (Module['_getVarSize'] = createExportWrapper('getVarSize', 1));
 
-    var _initCallBacks = (Module['_initCallBacks'] = createExportWrapper('initCallBacks', 0));
-
-    var _setCallBack = (Module['_setCallBack'] = createExportWrapper('setCallBack', 2));
+    var _setCallback = (Module['_setCallback'] = createExportWrapper('setCallback', 2));
 
     var _freeItemsList = (Module['_freeItemsList'] = createExportWrapper('freeItemsList', 1));
 
@@ -3054,23 +3019,7 @@ var createQspModule = (() => {
       0,
     ));
 
-    var _getCurStateLoc = (Module['_getCurStateLoc'] = createExportWrapper('getCurStateLoc', 1));
-
-    var _getCurStateLine = (Module['_getCurStateLine'] = createExportWrapper('getCurStateLine', 0));
-
-    var _getCurStateActIndex = (Module['_getCurStateActIndex'] = createExportWrapper(
-      'getCurStateActIndex',
-      0,
-    ));
-
-    var _getLocationsList = (Module['_getLocationsList'] = createExportWrapper(
-      'getLocationsList',
-      1,
-    ));
-
-    var _getLocationCode = (Module['_getLocationCode'] = createExportWrapper('getLocationCode', 2));
-
-    var _getActionCode = (Module['_getActionCode'] = createExportWrapper('getActionCode', 3));
+    var _getCurStateData = (Module['_getCurStateData'] = createExportWrapper('getCurStateData', 3));
 
     var __run_checks = (Module['__run_checks'] = createExportWrapper('_run_checks', 0));
 
@@ -3158,13 +3107,15 @@ var createQspModule = (() => {
 
     var dynCall_ii = (Module['dynCall_ii'] = createExportWrapper('dynCall_ii', 2));
 
-    var dynCall_viii = (Module['dynCall_viii'] = createExportWrapper('dynCall_viii', 4));
+    var dynCall_vii = (Module['dynCall_vii'] = createExportWrapper('dynCall_vii', 3));
 
     var dynCall_iii = (Module['dynCall_iii'] = createExportWrapper('dynCall_iii', 3));
 
-    var dynCall_iiiii = (Module['dynCall_iiiii'] = createExportWrapper('dynCall_iiiii', 5));
-
     var dynCall_iiii = (Module['dynCall_iiii'] = createExportWrapper('dynCall_iiii', 4));
+
+    var dynCall_viii = (Module['dynCall_viii'] = createExportWrapper('dynCall_viii', 4));
+
+    var dynCall_iiiii = (Module['dynCall_iiiii'] = createExportWrapper('dynCall_iiiii', 5));
 
     var dynCall_i = (Module['dynCall_i'] = createExportWrapper('dynCall_i', 1));
 
@@ -3189,8 +3140,6 @@ var createQspModule = (() => {
     ));
 
     var dynCall_iidiiii = (Module['dynCall_iidiiii'] = createExportWrapper('dynCall_iidiiii', 7));
-
-    var dynCall_vii = (Module['dynCall_vii'] = createExportWrapper('dynCall_vii', 3));
 
     var dynCall_viiii = (Module['dynCall_viiii'] = createExportWrapper('dynCall_viiii', 5));
 

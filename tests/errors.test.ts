@@ -29,9 +29,11 @@ act '1': x = 1 & jump 'end'
     expect(api.readVariable('x')).toBe(1);
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
-      code: 112,
+      errorCode: 112,
       description: 'Label not found!',
       line: 2,
+      localLine: 2,
+      lineSrc: " X = 1 & JUMP 'end'",
       location: 'test',
     });
   });
@@ -47,9 +49,11 @@ dynamic { x = 1 & jump 'end' }
     expect(api.readVariable('x')).toBe(1);
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
-      code: 112,
+      errorCode: 112,
       description: 'Label not found!',
       line: 2,
+      localLine: 1,
+      lineSrc: "X = 1 & JUMP 'end'",
       location: 'test',
     });
   });

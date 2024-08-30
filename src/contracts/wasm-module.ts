@@ -1,9 +1,12 @@
-export type CharsPtr = number;
-export type BufferPtr = number;
-export type Ptr = number;
-export type IntPtr = number;
-export type FunctionPtr = number;
-export type StringPtr = number;
+type Brand<T> = T & {readonly brand: unique symbol}
+export type CharsPtr = Brand<number>;
+export type BufferPtr = Brand<number>;
+export type Ptr = Brand<number>;
+export type IntPtr = Brand<number>;
+export type FunctionPtr = Brand<number>;
+export type StringPtr = Brand<number>;
+export type ErrorPtr = Brand<number>;
+export type VariantPointer = Brand<number>;
 export type Bool = 0 | 1;
 
 export enum QspCallType {
@@ -54,12 +57,12 @@ export interface QspWasmModule extends EmscriptenModule {
   _getVarsDesc(ptr: Ptr): void;
   _isVarsDescChanged(): Bool;
 
-  _getActions(list: Ptr): number;
+  _getActions(list: Ptr): Ptr;
   _selectAction(index: number): void;
   _executeSelAction(): void;
   _isActionsChanged(): Bool;
 
-  _getObjects(list: Ptr): number;
+  _getObjects(list: Ptr): Ptr;
   _selectObject(index: number): void;
   _isObjectsChanged(): Bool;
 
@@ -69,31 +72,22 @@ export interface QspWasmModule extends EmscriptenModule {
   _loadSavedGameData(data: BufferPtr, size: number): void;
 
   _execString(input: CharsPtr, isRefresh: Bool): void;
-  _execExpression(input: CharsPtr): void;
   _execCounter(): void;
   _execUserInput(input: CharsPtr): void;
   _execLoc(input: CharsPtr): void;
 
-  _getLastErrorNum(): number;
-  _getLastErrorLoc(ptr: Ptr): void;
-  _getLastErrorActIndex(): number;
-  _getLastErrorLine(): number;
-  _getErrorDesc(ptr: Ptr, errorNum: number): void;
+  _getLastError(ptr: ErrorPtr): void;
 
-  _getVarStringValue(name: CharsPtr, index: number, result: Ptr): void;
-  _getVarNumValue(name: CharsPtr, index: number): number;
-  _getVarStringValueByKey(name: CharsPtr, key: CharsPtr, result: Ptr): void;
-  _getVarNumValueByKey(name: CharsPtr, key: CharsPtr): number;
   _getVarSize(name: CharsPtr): number;
+  _getVarValue(name: CharsPtr, result: VariantPointer): Bool;
+  _getVarValueByIndex(name: CharsPtr, index: number, result: VariantPointer): Bool;
+  _getVarValueByKey(name: CharsPtr, key: CharsPtr, result: VariantPointer): Bool;
 
-  _initCallBacks(): void;
-  _setCallBack(type: QspCallType, fnPtr: FunctionPtr): void;
+  _setCallback(type: QspCallType, fnPtr: FunctionPtr): void;
 
   _enableDebugMode(): void;
+  _getCurStateData(location: StringPtr, actIndex: Ptr, line: Ptr): void;
   _disableDebugMode(): void;
-  _getCurStateLoc(ptr: Ptr): void;
-  _getCurStateLine(): number;
-  _getCurStateActIndex(): number;
 
   _getLocationsList( count: Ptr): Ptr;
   _getLocationCode(name: CharsPtr, count: Ptr): Ptr;

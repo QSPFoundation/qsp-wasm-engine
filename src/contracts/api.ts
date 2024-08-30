@@ -1,6 +1,11 @@
 import { QspEvents } from './events';
 
-export type QspVariableType<Name extends string> = Name extends `$${infer _A}` ? string : number;
+export type QspTuple = Array<string | number | QspTuple>;
+export type QspVariableType<Name extends string> = Name extends `$${infer _A}`
+  ? string
+  : Name extends `%${infer _A}`
+    ? QspTuple
+    : number;
 
 export interface QspAPI {
   on<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
@@ -13,15 +18,19 @@ export interface QspAPI {
   selectAction(index: number): void;
   execSelectedAction(): void;
   selectObject(index: number): void;
-  readVariable<Name extends string>(name: Name, index?: number): QspVariableType<Name>;
+  readVariable<Name extends string>(name: Name): QspVariableType<Name>;
+  readVariableByIndex<Name extends string>(name: Name, index: number): QspVariableType<Name>;
   readVariableByKey<Name extends string>(name: Name, key: string): QspVariableType<Name>;
   readVariableSize(name: string): number;
   execCode(code: string): void;
-  execExpression(expr: string): void;
   execCounter(): void;
   updateUserInput(code: string): void;
   execLoc(name: string): void;
   watchVariable<Name extends string>(
+    name: Name,
+    callback: (value: QspVariableType<Name>) => void,
+  ): () => void;
+  watchVariableByIndex<Name extends string>(
     name: Name,
     index: number,
     callback: (value: QspVariableType<Name>) => void,
@@ -31,7 +40,6 @@ export interface QspAPI {
     key: string,
     callback: (value: QspVariableType<Name>) => void,
   ): () => void;
-  watchExpression(expr: string, callback: (value: number) => void): () => void;
   clearCache(): void;
 
   enableDebugMode(): void;

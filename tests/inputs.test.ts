@@ -3,7 +3,7 @@ import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 import { QspPanel } from '../src';
 
-describe('Main panel', () => {
+describe('user inputs panel', () => {
   let api: QspAPI;
   let error: Mock;
   beforeEach(async () => {
