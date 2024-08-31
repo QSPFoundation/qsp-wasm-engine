@@ -61,6 +61,19 @@ if x = 1: y = 1 else y = 3
 
     expect(api.readVariable('y')).toBe(3);
   });
+
+  test('single line elseif ', () => {
+    runTestFile(
+      api,
+      `
+x = 2 & y = 2
+if x = 1: y = 1 elseif x = 2: y = 4 else y = 3
+    `,
+    );
+
+    expect(api.readVariable('y')).toBe(4);
+  });
+
   test('single line else if ', () => {
     runTestFile(
       api,
