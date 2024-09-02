@@ -414,4 +414,103 @@ $res = $arr[1,3]
       expect(api.readVariable('res')).toBe(-1);
     });
   });
+
+  describe('SORTARR', () => {
+    test('sorting numeric array', () => {
+      runTestFile(
+        api,
+        `
+        a[] = 2
+        a[] = -1
+        a[] = 5
+        a[] = 3
+
+        SORTARR('a')
+        `,
+      );
+
+      expect(api.readVariableByIndex('a', 0)).toEqual(-1);
+      expect(api.readVariableByIndex('a', 1)).toEqual(2);
+      expect(api.readVariableByIndex('a', 2)).toEqual(3);
+      expect(api.readVariableByIndex('a', 3)).toEqual(5);
+    });
+
+    test('sorting numeric array desc', () => {
+      runTestFile(
+        api,
+        `
+        a[] = 2
+        a[] = -1
+        a[] = 5
+        a[] = 3
+
+        SORTARR('a', 1)
+        `,
+      );
+
+      expect(api.readVariableByIndex('a', 0)).toEqual(5);
+      expect(api.readVariableByIndex('a', 1)).toEqual(3);
+      expect(api.readVariableByIndex('a', 2)).toEqual(2);
+      expect(api.readVariableByIndex('a', 3)).toEqual(-1);
+    });
+
+    test('sort string array', () => {
+      runTestFile(
+        api,
+        `
+        $a[] = 'b'
+        $a[] = 'a'
+        $a[] = 'c'
+
+        SORTARR('$a')
+        `,
+      );
+
+      expect(api.readVariableByIndex('$a', 0)).toEqual('a');
+      expect(api.readVariableByIndex('$a', 1)).toEqual('b');
+      expect(api.readVariableByIndex('$a', 2)).toEqual('c');
+    });
+
+    test('sort string array desc', () => {
+      runTestFile(
+        api,
+        `
+        $a[] = 'b'
+        $a[] = 'a'
+        $a[] = 'c'
+
+        SORTARR('$a', 1)
+        `,
+      );
+
+      expect(api.readVariableByIndex('$a', 0)).toEqual('c');
+      expect(api.readVariableByIndex('$a', 1)).toEqual('b');
+      expect(api.readVariableByIndex('$a', 2)).toEqual('a');
+    });
+
+    test('sorting mized values should error', () => {
+      runTestFile(
+        api,
+        `
+        a[] = 2
+        $a[] = 'b'
+        $a[] = 'a'
+        $a[] = 'c'
+
+        SORTARR('$a')
+        `,
+      );
+
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Type mismatch!',
+        errorCode: 101,
+        line: 7,
+        lineSrc: "SORTARR('$a')",
+        localLine: 7,
+        location: 'test',
+      });
+      error.mockReset();
+    });
+  });
 });

@@ -224,4 +224,14 @@ describe('strings', () => {
       expect(api.readVariable('res')).toBe(result);
     });
   });
+
+  describe('SCANSTR', () => {
+    test('extracting tokens from string', () => {
+      runTestFile(api, `scanstr '$s', 'ffff|bbbb|ccccc', '[^|]+'`);
+
+      expect(api.readVariableByIndex('$s', 0)).toBe('ffff');
+      expect(api.readVariableByIndex('$s', 1)).toBe('bbbb');
+      expect(api.readVariableByIndex('$s', 2)).toBe('ccccc');
+    })
+  })
 });
