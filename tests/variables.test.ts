@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../src/test-helpers';
+import { prepareApi, runTestFile, runTestFileWithGoto } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
 describe('variables', () => {
@@ -88,7 +88,6 @@ lf = f
     `,
     );
 
-
     expect(api.readVariable('a')).toBe(1);
     expect(api.readVariable('la')).toBe(11);
     expect(api.readVariable('b')).toBe(2);
@@ -103,7 +102,7 @@ lf = f
     expect(api.readVariable('lf')).toBe(16);
   });
 
-  test('local variables in nested calls', () => {
+  test('local variables in nested calls is preserved (shadowing global)', () => {
     runTestFile(
       api,
       `
@@ -145,4 +144,64 @@ res[$args[0]] = a[0]
     expect(api.readVariableByKey('size', 'first')).toBe(1);
     expect(api.readVariableByKey('size', 'second')).toBe(1);
   });
+
+  test('local variables are not visible in actions (unlike args)', () => {
+    const onMain = vi.fn();
+    api.on('main_changed', onMain);
+
+    runTestFileWithGoto(
+      api,
+      `
+      local a = 1
+      args[0] = 1
+      act '1': a
+      `,
+    );
+
+    api.selectAction(0);
+    api.execSelectedAction();
+
+    expect(onMain).toHaveBeenCalledWith('0\r\n');
+  });
+
+  test('local variables inside actions', () => {
+    const onMain = vi.fn();
+    api.on('main_changed', onMain);
+
+    runTestFile(
+      api,
+      `i=99
+act "local i":
+    local i = 449933
+    *pl i
+end
+act "global i":
+    *pl i
+end`,
+    );
+
+    api.selectAction(0);
+    api.execSelectedAction();
+
+    expect(onMain).toHaveBeenCalledWith('449933\r\n');
+
+    api.selectAction(1);
+    api.execSelectedAction();
+
+    expect(onMain).toHaveBeenCalledWith('449933\r\n99\r\n');
+  });
+
+  test('local variables avaliable whith flow stop in callbacks', () => {
+    const onMsg = vi.fn();
+    api.on('msg', onMsg);
+
+    runTestFile(
+      api,
+      `local i=99 & msg ''`
+    );
+
+    expect(api.readVariable('i')).toBe(99);
+    onMsg.mock.calls[0][1]();
+    expect(api.readVariable('i')).toBe(0);
+  })
 });

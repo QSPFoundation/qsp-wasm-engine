@@ -24,6 +24,12 @@ export function runTestFile(api: QspAPI, src: string) {
   api.execLoc('test');
 }
 
+export function runTestFileWithGoto(api: QspAPI, src: string) {
+  const binary = writeQsp(readQsps(prepareTest(src)));
+  api.openGame(binary, true);
+  api.execCode('gt "test"');
+}
+
 export function prepareTest(textData: string): string {
   return `#start
 ---

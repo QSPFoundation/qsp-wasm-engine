@@ -1,10 +1,8 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../src/test-helpers';
+import { prepareApi, runTestFile, runTestFileWithGoto } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
-// TODO После обработки локации предыдущие значения ARGS и RESULT восстанавливаются.
-
-describe('api', () => {
+describe('locations', () => {
   let api: QspAPI;
   let error: Mock;
   beforeEach(async () => {
@@ -18,24 +16,26 @@ describe('api', () => {
     api._run_checks();
   });
 
-  test('GOTO', () => {
+  test('GOTO should change locations', () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFile(
+    runTestFileWithGoto(
       api,
       `
 *p 'main'
 p 'stats'
+$location = $curloc
 act '1': x
 ---
 # target
 *p 'target main'
 nl 'target stats'
 act '2': x
+$gt_location = $curloc
     `,
     );
 
@@ -47,6 +47,7 @@ act '2': x
         name: '1',
       },
     ]);
+    expect(api.readVariable('$location')).toBe('test');
 
     api.execCode(`GOTO 'target', 1, 'test'`);
 
@@ -61,26 +62,29 @@ act '2': x
 
     expect(api.readVariableByIndex('args', 0)).toBe(1);
     expect(api.readVariableByIndex('$args', 1)).toBe('test');
+    expect(api.readVariable('$gt_location')).toBe('target');
   });
 
-  test('GT', () => {
+  test('GT should change locations', () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFile(
+    runTestFileWithGoto(
       api,
       `
 *p 'main'
 p 'stats'
 act '1': x
+$location = $curloc
 ---
 # target
 *p 'target main'
 nl 'target stats'
 act '2': x
+$gt_location = $curloc
     `,
     );
 
@@ -92,6 +96,7 @@ act '2': x
         name: '1',
       },
     ]);
+    expect(api.readVariable('$location')).toBe('test');
 
     api.execCode(`GT 'target', 1, 'test'`);
 
@@ -106,6 +111,7 @@ act '2': x
 
     expect(api.readVariableByIndex('args', 0)).toBe(1);
     expect(api.readVariableByIndex('$args', 1)).toBe('test');
+    expect(api.readVariable('$gt_location')).toBe('target');
   });
 
   test('XGOTO', () => {
@@ -115,17 +121,19 @@ act '2': x
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFile(
+    runTestFileWithGoto(
       api,
       `
 *p 'main'
 p 'stats'
 act '1': x
+$location = $curloc
 ---
 # target
 *nl 'target main'
 nl 'target stats'
 act '2': x
+$xgt_location = $curloc
     `,
     );
     expect(onMain).toHaveBeenCalledWith('main');
@@ -136,6 +144,7 @@ act '2': x
         name: '1',
       },
     ]);
+    expect(api.readVariable('$location')).toBe('test');
 
     api.execCode(`XGOTO 'target', 1, 'test'`);
 
@@ -150,6 +159,7 @@ act '2': x
 
     expect(api.readVariableByIndex('args', 0)).toBe(1);
     expect(api.readVariableByIndex('$args', 1)).toBe('test');
+    expect(api.readVariable('$xgt_location')).toBe('target');
   });
 
   test('XGT', () => {
@@ -159,17 +169,19 @@ act '2': x
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFile(
+    runTestFileWithGoto(
       api,
       `
 *p 'main'
 p 'stats'
 act '1': x
+$location = $curloc
 ---
 # target
 *nl 'target main'
 nl 'target stats'
 act '2': x
+$xgt_location = $curloc
     `,
     );
 
@@ -181,6 +193,7 @@ act '2': x
         name: '1',
       },
     ]);
+    expect(api.readVariable('$location')).toBe('test');
 
     api.execCode(`XGT 'target', 1, 'test'`);
 
@@ -195,25 +208,29 @@ act '2': x
 
     expect(api.readVariableByIndex('args', 0)).toBe(1);
     expect(api.readVariableByIndex('$args', 1)).toBe('test');
+    expect(api.readVariable('$xgt_location')).toBe('target');
   });
 
-  test('GOSUB', () => {
+  test('GOSUB should execute location without changing it', () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFile(
+    
+    runTestFileWithGoto(
       api,
       `
 *p 'main'
 p 'stats'
+$location = $curloc
 act '1': x
 ---
 # target
 *nl 'target main'
 nl 'target stats'
+$gs_location = $curloc
 act '2': x
 first = args[0]
 $second = $args[1]
@@ -228,6 +245,7 @@ $second = $args[1]
         name: '1',
       },
     ]);
+    expect(api.readVariable('$location')).toBe('test');
 
     api.execCode(`GOSUB 'target', 1, 'test'`);
 
@@ -246,25 +264,28 @@ $second = $args[1]
 
     expect(api.readVariable('first')).toBe(1);
     expect(api.readVariable('$second')).toBe('test');
+    expect(api.readVariable('$gs_location')).toBe('test');
   });
 
-  test('GS', () => {
+  test('GS should execute location without changing it', () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFile(
+    runTestFileWithGoto(
       api,
       `
 *p 'main'
 p 'stats'
+$location = $curloc
 act '1': x
 ---
 # target
 *nl 'target main'
 nl 'target stats'
+$gs_location = $curloc
 act '2': x
 first = args[0]
 $second = $args[1]
@@ -279,6 +300,7 @@ $second = $args[1]
         name: '1',
       },
     ]);
+    expect(api.readVariable('$location')).toBe('test');
 
     api.execCode(`GS 'target', 1, 'test'`);
 
@@ -297,6 +319,7 @@ $second = $args[1]
 
     expect(api.readVariable('first')).toBe(1);
     expect(api.readVariable('$second')).toBe('test');
+    expect(api.readVariable('$gs_location')).toBe('test');
   });
 
   test('FUNC', () => {
@@ -349,7 +372,7 @@ $second = $args[1]
     expect(api.readVariable('$second')).toBe('test');
   });
 
-  test('FUNC RESULT', () => {
+  test('FUNC with RESULT', () => {
     runTestFile(
       api,
       `
@@ -362,7 +385,7 @@ result = 5
     expect(api.readVariable('x')).toBe(5);
   });
 
-  test('FUNC $RESULT', () => {
+  test('FUNC with $RESULT', () => {
     runTestFile(
       api,
       `
@@ -375,7 +398,7 @@ $result = 'test'
     expect(api.readVariable('$x')).toBe('test');
   });
 
-  test('EXIT', () => {
+  test('EXIT should stop code execution', () => {
     runTestFile(
       api,
       `
@@ -388,7 +411,7 @@ x = 2
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('GOTO arguments in actions', () => {
+  test('GOTO arguments should be avaliable in actions', () => {
     runTestFile(
       api,
       `
@@ -456,4 +479,37 @@ result = 5
     );
     expect(api.readVariable('x')).toBe(5);
   });
+
+  test('restoring args and result', () => {
+    runTestFile(
+      api,
+      `
+gs 'first', 'fir', 1
+---
+# first
+$first_0_before = $args[0]
+first_1_before = args[1]
+result = 1
+
+gs 'second', 'sec', 2
+
+$first_0_after = $args[0]
+first_1_after = args[1]
+first_result = result
+---
+#second
+$second_0 = $args[0]
+second_1 = args[1]
+result = 2
+      `
+    ); 
+
+    expect(api.readVariable('$first_0_before')).toBe('fir');
+    expect(api.readVariable('first_1_before')).toBe(1);
+    expect(api.readVariable('$first_0_after')).toBe('fir');
+    expect(api.readVariable('first_1_after')).toBe(1);
+    expect(api.readVariable('first_result')).toBe(1);
+    expect(api.readVariable('$second_0')).toBe('sec');
+    expect(api.readVariable('second_1')).toBe(2);
+  })
 });

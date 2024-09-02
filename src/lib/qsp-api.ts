@@ -228,7 +228,6 @@ export class QspAPIImpl implements QspAPI {
   }
 
   execCode(code: string, isRefresh = true): void {
-    console.log("execCode", code);
     withStringWrite(this.module, code, (ptr) => this.module._execString(ptr, isRefresh ? 1 : 0));
   }
 

@@ -25,6 +25,9 @@ describe('objects', () => {
     api.on('panel_visibility', panelVisibility);
     runTestFile(api, `SHOWOBJS 0`);
     expect(panelVisibility).toHaveBeenCalledWith(QspPanel.OBJS, 0);
+
+    api.execCode(`SHOWOBJS 1`);
+    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.OBJS, 1);
   });
 
   test('ADDOBJ should add object to end of list', () => {
@@ -42,6 +45,21 @@ describe('objects', () => {
     ]);
   });
 
+  test('ADDOBJ should add objects with same name', () => {
+    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'first'`);
+
+    expect(objectsChanged).toHaveBeenCalledWith([
+      {
+        name: 'first',
+        image: '',
+      },
+      {
+        name: 'first',
+        image: '',
+      },
+    ]);
+  });
+
   test('ADDOBJ should add object with image', () => {
     runTestFile(api, `ADDOBJ 'first', '1.png'`);
 
@@ -53,7 +71,7 @@ describe('objects', () => {
     ]);
   });
 
-  test('ADDOBJ should add object into specified position', () => {
+  test('ADDOBJ should add object into specified position (1 based)', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second', '', 1`);
 
     expect(objectsChanged).toHaveBeenCalledWith([
@@ -109,6 +127,46 @@ describe('objects', () => {
     ]);
   });
 
+  test('$CUROBJS should return list of objects', () => {
+    const statChanged = vi.fn();
+    api.on('stats_changed', statChanged);
+    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & p $CUROBJS`);
+
+    expect(statChanged).toHaveBeenCalledWith(`ADDOBJ 'first'\r\nADDOBJ 'second'\r\n`);
+  });
+
+  test('objects should be restored from $CUROBJS', () => {
+    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & $objs = $CUROBJS`);
+
+    expect(objectsChanged).toHaveBeenCalledWith([
+      {
+        name: 'first',
+        image: '',
+      },
+      {
+        name: 'second',
+        image: '',
+      },
+    ]);
+    objectsChanged.mockReset();
+
+    api.execCode('KILLOBJ');
+    expect(objectsChanged).toHaveBeenCalledWith([]);
+
+    api.execCode('dynamic $objs');
+
+    expect(objectsChanged).toHaveBeenCalledWith([
+      {
+        name: 'first',
+        image: '',
+      },
+      {
+        name: 'second',
+        image: '',
+      },
+    ]);
+  });
+
   test('DELOBJ should delete object by name', () => {
     runTestFile(api, `ADDOBJ 'first', '1.png'`);
 
@@ -137,6 +195,30 @@ describe('objects', () => {
     api.execCode(`DEL OBJ 'first'`);
     expect(error).not.toHaveBeenCalled();
     expect(objectsChanged).toHaveBeenCalledWith([]);
+  });
+
+  test('DELOBJ deletes first object in list if there are several object with same name', () => {
+    runTestFile(api, `ADDOBJ 'first', '1.png' & ADDOBJ 'first', '2.png'`);
+
+    expect(objectsChanged).toHaveBeenCalledWith([
+      {
+        name: 'first',
+        image: '1.png',
+      },
+      {
+        name: 'first',
+        image: '2.png',
+      },
+    ]);
+    objectsChanged.mockClear();
+    api.execCode(`DELOBJ 'first'`);
+    expect(error).not.toHaveBeenCalled();
+    expect(objectsChanged).toHaveBeenCalledWith([
+      {
+        name: 'first',
+        image: '2.png',
+      },
+    ]);
   });
 
   test('KILLOBJ should delete object by index', () => {
@@ -228,9 +310,29 @@ describe('objects', () => {
     expect(api.readVariable('$last')).toBe('second');
   });
 
-  test('$GETOBJ should return empty string if no object position', () => {
+  test('$GETOBJ should return empty string if no object in position', () => {
     runTestFile(api, `$first = $GETOBJ(1)`);
 
     expect(api.readVariable('$first')).toBe('');
+  });
+
+  test('UNSELECT shoudl unselect object', () => {
+    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second'`);
+
+    api.selectObject(1);
+    api.execCode('$obj = $SELOBJ');
+    expect(api.readVariable('$obj')).toBe('second');
+    api.execCode('UNSELECT & $obj = $SELOBJ');
+    expect(api.readVariable('$obj')).toBe('');
+  });
+
+  test('UNSEL shoudl unselect object', () => {
+    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second'`);
+
+    api.selectObject(1);
+    api.execCode('$obj = $SELOBJ');
+    expect(api.readVariable('$obj')).toBe('second');
+    api.execCode('UNSEL & $obj = $SELOBJ');
+    expect(api.readVariable('$obj')).toBe('');
   });
 });

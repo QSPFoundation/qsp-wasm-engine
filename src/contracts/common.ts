@@ -16,7 +16,7 @@ export interface QspListItem {
 export enum QspPanel {
   ACTS,
   OBJS,
-  VARS,
+  STAT,
   INPUT,
 }
 

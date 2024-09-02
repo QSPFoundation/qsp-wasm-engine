@@ -2,8 +2,6 @@ import { Mock, beforeEach, describe, vi, it, expect, afterEach } from 'vitest';
 import { delay, prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
-
-
 // TODO add save/load test
 describe('api', () => {
   let api: QspAPI;

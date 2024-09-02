@@ -23,6 +23,9 @@ describe('user inputs panel', () => {
     runTestFile(api, `SHOWINPUT 0`);
 
     expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, 0);
+
+    api.execCode(`SHOWINPUT 1`);
+    expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, 1);
   });
 
   test('USER_TEXT should return text from user cmd', () => {
@@ -55,6 +58,17 @@ describe('user inputs panel', () => {
     api.on('user_input', userInput);
     api.updateUserInput('works');
     runTestFile(api, `$textBefore = USRTXT & CMDCLR & $textAfter = USRTXT`);
+
+    expect(userInput).toHaveBeenCalledWith('');
+    expect(api.readVariable('$textBefore')).toBe('works');
+    expect(api.readVariable('$textAfter')).toBe('');
+  });
+
+  test('CLS should return text from user cmd', () => {
+    const userInput = vi.fn();
+    api.on('user_input', userInput);
+    api.updateUserInput('works');
+    runTestFile(api, `$textBefore = USRTXT & CLS & $textAfter = USRTXT`);
 
     expect(userInput).toHaveBeenCalledWith('');
     expect(api.readVariable('$textBefore')).toBe('works');

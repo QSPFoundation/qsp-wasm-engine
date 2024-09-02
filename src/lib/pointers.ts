@@ -236,7 +236,6 @@ export function withVariantRead(
   callback: (ptr: VariantPointer) => void,
 ): string | number | QspTuple {
   const ptr = allocVariantPointer(module);
-  console.log({ name, ptr });
   callback(ptr);
   const result = readVariable(module, ptr, name);
   freePointer(module, ptr);
@@ -246,28 +245,40 @@ export function withVariantRead(
 export function readVariable(
   module: QspWasmModule,
   variant: VariantPointer,
-  name: string,
+  name?: string,
 ): string | number | QspTuple {  
   const type = readByte(module, movePointer(variant, 2));
   switch (type) {
     case QSP_TYPE_TUPLE:
-      return name.startsWith('%') ? readTuple(module, variant, name) : name.startsWith('$') ? '' : 0;
+      if (name) {
+        return name.startsWith('%') ? readTuple(module, variant) : name.startsWith('$') ? '' : 0;
+      }
+      return readTuple(module, variant);
     case QSP_TYPE_NUM:
-      return name.startsWith('%') ? [] : name.startsWith('$') ? '' : readI32Value(module, variant);
+      if (name) {
+        return name.startsWith('%') ? [] : name.startsWith('$') ? '' : readI32Value(module, variant);
+      }
+      return readI32Value(module, variant);
     case QSP_TYPE_STR:
-      return name.startsWith('%') ? [] : name.startsWith('$') ? readString(module, variant) : 0;
+      if (name) {
+        return name.startsWith('%') ? [] : name.startsWith('$') ? readString(module, variant) : 0;
+      }
+      return readString(module, variant);
     case QSP_TYPE_UNDEF:
-      return name.startsWith('%') ? [] : name.startsWith('$') ? '' : 0;
+      if (name) {
+        return name.startsWith('%') ? [] : name.startsWith('$') ? '' : 0;
+      }
+      break;
   }
   return '';
 }
 
-function readTuple(module: QspWasmModule, variant: VariantPointer, name: string): QspTuple {
+function readTuple(module: QspWasmModule, variant: VariantPointer): QspTuple {
   const values: QspTuple = [];
   const list = derefPointer(module, variant);
   const count = readI32Value(module, movePointer(variant));
   for (let i = 0; i < count; ++i) {
-    values.push(readVariable(module, movePointer(list, i * 3), name));
+    values.push(readVariable(module, movePointer(list, i * 3)));
   }
   return values;
 }

@@ -16,15 +16,15 @@ describe('strings', () => {
     api?._run_checks();
   });
 
-  describe.each([
-    [`'ac' = 'ac'`, 1],
-    [`'ac' = 'ab'`, 0],
-    [`'bc' > 'ac'`, 1],
-    [`'ac' > 'ab'`, 1],
-    [`'b'  > 'ab'`, 1],
-    [`'ab' > 'a'`, 1],
-  ])('string compare', (input, result) => {
-    test(input, () => {
+  describe('string compare', () => {
+    test.each([
+      [`'ac' = 'ac'`, 1],
+      [`'ac' = 'ab'`, 0],
+      [`'bc' > 'ac'`, 1],
+      [`'ac' > 'ab'`, 1],
+      [`'b'  > 'ab'`, 1],
+      [`'ab' > 'a'`, 1],
+    ])('%s -> %i', (input, result) => {
       runTestFile(api, `res = ${input}`);
 
       expect(api.readVariable('res')).toBe(result);
@@ -49,15 +49,25 @@ describe('strings', () => {
     expect(api.readVariable('res')).toBe(4);
   });
 
-  describe.each([
-    [`$MID('abcd', 1, 2)`, 'ab'],
-    [`$MID('abcd', 2, 3)`, 'bcd'],
-    [`$MID('abcd', 2)`, 'bcd'],
-  ])('MID', (input, result) => {
-    test(input, () => {
-      runTestFile(api, `$res = ${input}`);
+  describe('$MID', () => {
+    test('cutting string from middle', () => {
+      runTestFile(api, `$res = $MID('abcd', 2, 2)`);
+      expect(api.readVariable('$res')).toBe('bc');
+    });
 
-      expect(api.readVariable('$res')).toBe(result);
+    test('cutting string from end', () => {
+      runTestFile(api, `$res = $MID('abcd', 3)`);
+      expect(api.readVariable('$res')).toBe('cd');
+    });
+
+    test('cutting string from start', () => {
+      runTestFile(api, `$res = $MID('abcd', 0, 2)`);
+      expect(api.readVariable('$res')).toBe('ab');
+    });
+
+    test('returns empty string if index bigger string start', () => {
+      runTestFile(api, `$res = $MID('abcd', 5, 2)`);
+      expect(api.readVariable('$res')).toBe('');
     });
   });
 
@@ -67,10 +77,22 @@ describe('strings', () => {
     expect(api.readVariable('$res')).toBe('TEXT#');
   });
 
+  test('UCASE cyrilic', () => {
+    runTestFile(api, `$res = $UCASE('Привет, Алиса!')`);
+
+    expect(api.readVariable('$res')).toBe('ПРИВЕТ, АЛИСА!');
+  });
+
   test('LCASE', () => {
     runTestFile(api, `$res = $LCASE('TexT#')`);
 
     expect(api.readVariable('$res')).toBe('text#');
+  });
+
+  test('LCASE cyrilic', () => {
+    runTestFile(api, `$res =$lcase('Привет, Алиса!')`);
+
+    expect(api.readVariable('$res')).toBe('привет, алиса!');
   });
 
   test('TRIM', () => {
@@ -79,49 +101,76 @@ describe('strings', () => {
     expect(api.readVariable('$res')).toBe('TRIM TEST');
   });
 
-  describe.each([
-    [`$REPLACE('test', '12', '4')`, 'test'],
-    [`$REPLACE('test', 'e', 's')`, 'tsst'],
-    [`$REPLACE('test', 't', '34')`, '34es34'],
-    [`$REPLACE('test', 't')`, 'es'],
-  ])('REPLACE', (input, result) => {
-    test(input, () => {
-      runTestFile(api, `$res = ${input}`);
+  describe('$REPLACE', () => {
+    test('replaces string', () => {
+      runTestFile(api, `$res = $REPLACE('test', 'e', 's')`);
+      expect(api.readVariable('$res')).toBe('tsst');
+    });
 
-      expect(api.readVariable('$res')).toBe(result);
+    test('replaces all occurrences', () => {
+      runTestFile(api, `$res = $REPLACE('test', 't', '34')`);
+      expect(api.readVariable('$res')).toBe('34es34');
+    });
+
+    test('returns initial string if replacement not found', () => {
+      runTestFile(api, `$res = $REPLACE('test', '1', '2')`);
+      expect(api.readVariable('$res')).toBe('test');
+    });
+
+    test('removes occurences if last parm not provided', () => {
+      runTestFile(api, `$res = $REPLACE('test', 't')`);
+      expect(api.readVariable('$res')).toBe('es');
+    });
+
+    test('works with cyrilic', () => {
+      runTestFile(api, `$res = $REPLACE('Привет, Алиса!', 'Алиса', 'Катя')`);
+      expect(api.readVariable('$res')).toBe('Привет, Катя!');
     });
   });
 
-  describe.each([
-    [`INSTR('ABCDefgh','BC',1)`, 2],
-    [`INSTR('ABCDefgh','Be',1)`, 0],
-    [`INSTR('abcdef','abc')`, 1],
-  ])('INSTR', (input, result) => {
-    test(input, () => {
+  describe('INSTR', () => {
+    test.each([
+      [`INSTR('ABCDefgh','BC',1)`, 2],
+      [`INSTR('ABCDefgh','Be',1)`, 0],
+      [`INSTR('abcdef','abc')`, 1],
+      [`INSTR('abcdef','abd')`, 0],
+    ])('%s -> %i', (input, result) => {
       runTestFile(api, `res = ${input}`);
 
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
-  describe.each([
-    [`ISNUM('9999')`, 1],
-    [`ISNUM(' 9999 ')`, 1],
-    [`ISNUM(' -888')`, 1],
-    [`ISNUM('777a6')`, 0],
-    [`ISNUM('')`, 0],
-  ])('ISNUM', (input, result) => {
-    test(input, () => {
-      runTestFile(api, `res = ${input}`);
+  describe('ISNUM', () => {
+    test.each([
+      [`9999`, 1],
+      [` 9999 `, 1],
+      [` -888`, 1],
+      [`777a6`, 0],
+      [``, 0],
+    ])('ISNUM("%s") -> %i', (input, result) => {
+      runTestFile(api, `res = ISNUM("${input}")`);
 
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
-  test('VAL', () => {
+  test('VAL with number in string', () => {
     runTestFile(api, `res = VAL('123')`);
 
     expect(api.readVariable('res')).toBe(123);
+  });
+
+  test('VAL with mised string', () => {
+    runTestFile(api, `res = VAL('123a')`);
+
+    expect(api.readVariable('res')).toBe(0);
+  });
+
+  test('VAL with empty string', () => {
+    runTestFile(api, `res = VAL('')`);
+
+    expect(api.readVariable('res')).toBe(0);
   });
 
   test('STR', () => {
@@ -130,46 +179,46 @@ describe('strings', () => {
     expect(api.readVariable('$res')).toBe('123');
   });
 
-  describe.each([
-    [`STRFIND(' идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 0)`, ''],
-    [`STRFIND('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 1)`, 'идти'],
-    [`STRFIND('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 2)`, 'к'],
-    [`STRFIND('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 3)`, 'пещере'],
-    [`STRFIND('идти к дому', 'к\\s(\\S+)', 0)`, 'к дому'],
-    [`STRFIND('идти к дому', 'к\\s(\\S+)')`, 'к дому'],
-    [`STRFIND('идти к дому', 'к\\s(\\S+)', 1)`, 'дому'],
-    [`STRFIND('идти к своему дому', 'к\\s(\\S+)', 1)`, 'своему'],
-  ])('STRFIND', (input, result) => {
-    test(input, () => {
+  describe('STRFIND', () => {
+    test.each([
+      [`STRFIND(' идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 0)`, ''],
+      [`STRFIND('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 1)`, 'идти'],
+      [`STRFIND('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 2)`, 'к'],
+      [`STRFIND('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 3)`, 'пещере'],
+      [`STRFIND('идти к дому', 'к\\s(\\S+)', 0)`, 'к дому'],
+      [`STRFIND('идти к дому', 'к\\s(\\S+)')`, 'к дому'],
+      [`STRFIND('идти к дому', 'к\\s(\\S+)', 1)`, 'дому'],
+      [`STRFIND('идти к своему дому', 'к\\s(\\S+)', 1)`, 'своему'],
+    ])('%s -> %s', (input, result) => {
       runTestFile(api, `$res = ${input}`);
 
       expect(api.readVariable('$res')).toBe(result);
     });
   });
 
-  describe.each([
-    [`STRCOMP(' идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$')`, 0],
-    [`STRCOMP('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$')`, 1],
-  ])('STRCOMP', (input, result) => {
-    test(input, () => {
+  describe('STRCOMP', () => {
+    test.each([
+      [`STRCOMP(' идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$')`, 0],
+      [`STRCOMP('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$')`, 1],
+    ])('%s -> %i', (input, result) => {
       runTestFile(api, `res = ${input}`);
 
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
-  describe.each([
-    [`STRPOS(' идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 0)`, 0],
-    [`STRPOS('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 1)`, 1],
-    [`STRPOS('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 2)`, 6],
-    [`STRPOS('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 3)`, 8],
-    [`STRPOS('идти к пещере', '^(\\S+)\\s(\\S+)(\\s(\\S+))?$', 4)`, 8],
-    [`STRPOS('идти к дому', 'к\\s(\\S+)', 0)`, 6],
-    [`STRPOS('идти к дому', 'к\\s(\\S+)')`, 6],
-    [`STRPOS('идти к дому', 'к\\s(\\S+)', 1)`, 8],
-    [`STRPOS('идти к своему дому', 'к\\s(\\S+)', 1)`, 8],
-  ])('STRPOS', (input, result) => {
-    test(input, () => {
+  describe('STRPOS', () => {
+    test.each([
+      [`STRPOS(' идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 0)`, 0],
+      [`STRPOS('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 1)`, 1],
+      [`STRPOS('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 2)`, 6],
+      [`STRPOS('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$', 3)`, 8],
+      [`STRPOS('идти к пещере', '^(\\S+)\\s(\\S+)(\\s(\\S+))?$', 4)`, 8],
+      [`STRPOS('идти к дому', 'к\\s(\\S+)', 0)`, 6],
+      [`STRPOS('идти к дому', 'к\\s(\\S+)')`, 6],
+      [`STRPOS('идти к дому', 'к\\s(\\S+)', 1)`, 8],
+      [`STRPOS('идти к своему дому', 'к\\s(\\S+)', 1)`, 8],
+    ])('%s -> %i', (input, result) => {
       runTestFile(api, `res = ${input}`);
 
       expect(api.readVariable('res')).toBe(result);

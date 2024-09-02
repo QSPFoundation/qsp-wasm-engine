@@ -19,62 +19,95 @@ describe('Main panel', () => {
     api?._run_checks();
   });
 
-  test('*p should print text without line break', async () => {
+  test('*p should print text without line break', () => {
     runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
   });
 
-  test('*pl should print text with line break', async () => {
+  test('*pl should print text with line break', () => {
     runTestFile(api, `*pl 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works\r\n');
   });
 
-  test('*nl should print text with line break in front', async () => {
+  test('*nl should print text with line break in front', () => {
     runTestFile(api, `*nl 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('\r\nworks');
   });
 
-  test('$MAINTXT should return text from main panel', async () => {
+  test('MAINTXT should return text from main panel', () => {
+    runTestFile(api, `*p 'works' & $text = MAINTXT`);
+
+    expect(api.readVariable('$text')).toBe('works');
+  });
+
+  test('$MAINTXT should return text from main panel', () => {
     runTestFile(api, `*p 'works' & $text = $MAINTXT`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('$MAINTXT() should return text from main panel', async () => {
+  test('$MAINTXT() should return text from main panel', () => {
     runTestFile(api, `*p 'works' & $text = $MAINTXT()`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('*CLEAR should clear main description', async () => {
+  test('*CLEAR should clear main description', () => {
     runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
+
     api.execCode('*CLEAR');
 
     expect(mainChanged).toHaveBeenCalledTimes(2);
     expect(mainChanged).toHaveBeenCalledWith('');
   });
 
-  test('*CLR should clear main description', async () => {
+  test('*CLR should clear main description', () => {
     runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works');
+
     api.execCode('*CLR');
 
     expect(mainChanged).toHaveBeenCalledTimes(2);
     expect(mainChanged).toHaveBeenCalledWith('');
   });
 
-  test('implicit output', async () => {
+  test('CLS should clear main description', () => {
+    runTestFile(api, `*p 'works'`);
+
+    expect(mainChanged).toHaveBeenCalledTimes(1);
+    expect(mainChanged).toHaveBeenCalledWith('works');
+
+    api.execCode('CLS');
+
+    expect(mainChanged).toHaveBeenCalledTimes(2);
+    expect(mainChanged).toHaveBeenCalledWith('');
+  });
+
+  test('implicit output to main', () => {
+    runTestFile(
+      api,
+      `
+        'test1'
+        1
+        'test2'
+      `
+    )
+    expect(mainChanged).toHaveBeenCalledTimes(1);
+    expect(mainChanged).toHaveBeenCalledWith('test1\r\n1\r\ntest2\r\n');
+  })
+
+  test('implicit output is not working with functions that does not return', async () => {
     runTestFile(
       api,
       `

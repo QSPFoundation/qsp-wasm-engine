@@ -30,15 +30,29 @@ describe('time', () => {
     api.on('wait', onWait);
     const onStatsChanged = vi.fn();
     api.on('stats_changed', onStatsChanged);
-    runTestFile(api, `WAIT 1000 & p 'after wait'`);
-    expect(onStatsChanged).toHaveBeenCalledWith('');
+    runTestFile(api, `pl 'before wait' & WAIT 1000 & p 'after wait'`);
+    expect(onStatsChanged).toHaveBeenCalledWith('before wait\r\n');
     expect(onWait).toHaveBeenCalledWith(1000, expect.any(Function));
     onWait.mock.calls[0][1]();
-    expect(onStatsChanged).toHaveBeenCalledWith('after wait');
+    expect(onStatsChanged).toHaveBeenCalledWith('before wait\r\nafter wait');
   });
 
-  test.skip('MSECSCOUNT should return msec passed from game start', () => {
-    // TODO find out way to test this
+  test.only('MSECSCOUNT should return msec passed from game start', async () => {
+    vi.useFakeTimers();
+
+    api = await prepareApi();
+    api.on('error', error);
+    runTestFile(api, `res = MSECSCOUNT`);
+
+    expect(api.readVariable('res')).toBe(0);
+
+    vi.advanceTimersByTime(2000);
+
+    api.execCode(`res = MSECSCOUNT`);
+
+    expect(api.readVariable('res')).toBe(2000);
+
+    vi.useRealTimers();
   });
 
   test('SETTIMER should change counter frequency', () => {
@@ -64,6 +78,8 @@ p 'works'
 
     api.execCounter();
     expect(onStatsChanged).toHaveBeenCalledWith('works');
+    api.execCounter();
+    expect(onStatsChanged).toHaveBeenCalledWith('worksworks');
   });
 
   test('several counters should be supported', () => {

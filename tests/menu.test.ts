@@ -2,7 +2,7 @@ import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest'
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
-describe('objects', () => {
+describe('menu', () => {
   let api: QspAPI;
   let error: Mock;
   let menu: Mock;
@@ -23,8 +23,8 @@ describe('objects', () => {
     runTestFile(
       api,
       `
-$stone[0]='Взять камень:takestone'
-$stone[1]='Кинуть камень:throwstone'
+$stone[0]='Take stone:takestone'
+$stone[1]='Throw stone:throwstone'
 menu '$stone'
 `,
     );
@@ -33,11 +33,11 @@ menu '$stone'
     expect(menu).toHaveBeenCalledWith(
       [
         {
-          name: 'Взять камень',
+          name: 'Take stone',
           image: '',
         },
         {
-          name: 'Кинуть камень',
+          name: 'Throw stone',
           image: '',
         },
       ],
@@ -50,8 +50,8 @@ menu '$stone'
     runTestFile(
       api,
       `
-$stone[0]='Взять камень:takestone'
-$stone[1]='Кинуть камень:throwstone'
+$stone[0]='Take stone:takestone'
+$stone[1]='Throw stone:throwstone'
 menu 'stone'
 `,
     );
@@ -60,11 +60,11 @@ menu 'stone'
     expect(menu).toHaveBeenCalledWith(
       [
         {
-          name: 'Взять камень',
+          name: 'Take stone',
           image: '',
         },
         {
-          name: 'Кинуть камень',
+          name: 'Throw stone',
           image: '',
         },
       ],
@@ -77,7 +77,7 @@ menu 'stone'
     runTestFile(
       api,
       `
-$stone[0]='Взять камень:takestone:1.png'
+$stone[0]='Take stone:takestone:1.png'
 menu '$stone'
 `,
     );
@@ -86,7 +86,7 @@ menu '$stone'
     expect(menu).toHaveBeenCalledWith(
       [
         {
-          name: 'Взять камень',
+          name: 'Take stone',
           image: '1.png',
         },
       ],
@@ -99,8 +99,8 @@ menu '$stone'
     runTestFile(
       api,
       `
-$stone[0]='Взять камень:takestone'
-$stone[2]='Взять камень:takestone'
+$stone[0]='Take stone:takestone'
+$stone[2]='Take stone:takestone'
 menu '$stone'
 `,
     );
@@ -109,7 +109,7 @@ menu '$stone'
     expect(menu).toHaveBeenCalledWith(
       [
         {
-          name: 'Взять камень',
+          name: 'Take stone',
           image: '',
         },
       ],
@@ -122,9 +122,9 @@ menu '$stone'
     runTestFile(
       api,
       `
-$stone[0]='Взять камень:takestone'
+$stone[0]='Take stone:takestone'
 $stone[1]='-:-'
-$stone[2]='Кинуть камень:throwstone'
+$stone[2]='Throw stone:throwstone'
 menu '$stone'
 `,
     );
@@ -133,7 +133,7 @@ menu '$stone'
     expect(menu).toHaveBeenCalledWith(
       [
         {
-          name: 'Взять камень',
+          name: 'Take stone',
           image: '',
         },
         {
@@ -141,7 +141,7 @@ menu '$stone'
           image: '',
         },
         {
-          name: 'Кинуть камень',
+          name: 'Throw stone',
           image: '',
         },
       ],
@@ -156,8 +156,8 @@ menu '$stone'
     runTestFile(
       api,
       `
-$stone[0]='Взять камень:takestone'
-$stone[1]='Кинуть камень:throwstone'
+$stone[0]='Take stone:takestone'
+$stone[1]='Throw stone:throwstone'
 menu '$stone'
 ---
 # takestone
@@ -171,11 +171,11 @@ p 'thrown'
     expect(menu).toHaveBeenCalledWith(
       [
         {
-          name: 'Взять камень',
+          name: 'Take stone',
           image: '',
         },
         {
-          name: 'Кинуть камень',
+          name: 'Throw stone',
           image: '',
         },
       ],
@@ -192,8 +192,8 @@ p 'thrown'
     runTestFile(
       api,
       `
-$stone[0]='Взять камень:stone'
-$stone[1]='Кинуть камень:stone'
+$stone[0]='Take stone:stone'
+$stone[1]='Throw stone:stone'
 menu '$stone'
 ---
 # stone
@@ -205,4 +205,26 @@ r = args[0]
 
     expect(api.readVariable('r')).toBe(2);
   });
+
+  test('name can contain : as searching for : starts from end', () => {
+    runTestFile(
+      api,
+      `
+$stone[0]='Take: stone:takestone:'
+menu 'stone'
+`,
+    );
+
+
+    expect(menu).toHaveBeenCalledWith(
+      [
+        {
+          name: 'Take: stone',
+          image: '',
+        },
+      ],
+      expect.any(Function),
+    );
+    menu.mock.calls[0][1](-1);
+  })
 });

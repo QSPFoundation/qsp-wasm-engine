@@ -2,7 +2,7 @@ import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest'
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
-describe('strings', () => {
+describe('system locations', () => {
   let api: QspAPI;
   let error: Mock;
   beforeEach(async () => {
@@ -156,6 +156,15 @@ $sel = $SELACT
     api.selectAction(1);
 
     expect(api.readVariable('$sel')).toBe('2');
+
+    api.selectAction(0);
+
+    expect(api.readVariable('$sel')).toBe('1');
+
+    api.execCode(`$sel = ''`);
+    api.selectAction(-1);
+
+    expect(api.readVariable('$sel')).toBe('');
   });
 
   test('$USERCOM', () => {

@@ -167,4 +167,54 @@ end
 
     expect(api.readVariable('out')).toBe(7);
   });
+
+  test('wrong condition form', () => {
+    runTestFile(
+      api,
+      `
+if abcd=3: k1=34
+    k2=35 & ! this will be executed because if is single line
+end 
+      `,
+    );
+
+    expect(api.readVariable('k1')).toBe(0);
+    expect(api.readVariable('k2')).toBe(35);
+  });
+
+  test('end in single line if will show error', () => {
+    runTestFile(
+      api,
+      `
+      if abcd=3: k1=34 else k1=25 end
+      `,
+    );
+    expect(error).toHaveBeenCalledWith({
+      actionIndex: -1,
+      description: 'Unknown action!',
+      errorCode: 118,
+      line: 2,
+      lineSrc: 'IF ABCD=3: K1=34 ELSE K1=25 END',
+      localLine: 2,
+      location: 'test',
+    });
+    error.mockReset();
+  });
+
+  // TODO: confirm
+  test('error for else if', () => {
+    runTestFile(
+      api,
+      `
+absd=6
+if absd=3:
+  k=34
+else if absd=6: k1=25
+end
+      `,
+    );
+
+    expect(api.readVariable('k')).toBe(0);
+    expect(api.readVariable('k1')).toBe(25);
+  });
 });

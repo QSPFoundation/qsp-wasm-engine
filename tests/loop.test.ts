@@ -29,7 +29,7 @@ loop while i > 1: x += 1
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('loop should stop if condition is change inside loop', () => {
+  test('loop should stop if condition is changed inside loop', () => {
     runTestFile(
       api,
       `
@@ -59,10 +59,45 @@ loop i = 1 while i < 10 step i += 2: x+=1
       `
 i = 5
 loop local i = 1 while i < 10 step i+=2: x+=1
+z = i
 `,
     );
 
     expect(api.readVariable('x')).toBe(5);
     expect(api.readVariable('i')).toBe(5);
+    expect(api.readVariable('z')).toBe(5);
+  });
+
+  test('processing arrays with loop', () => {
+    runTestFile(
+      api,
+      `
+mass[] = 23
+mass[2] = 45
+summ=0
+loop local i, size = 0, arrsize('mass') while i < size step i += 1:
+    summ += mass[i]
+end
+      `,
+    );
+
+    expect(api.readVariable('summ')).toBe(68);
+  })
+
+  test('EXIT stop whole location not just loop', () => {
+    runTestFile(
+      api,
+      `
+        y = 1
+        loop local i = 1 while i < 10 step i+=1:
+          x+=i
+          if i = 5: exit
+        end
+        y = 2
+      `,
+    );
+
+    expect(api.readVariable('x')).toBe(15);
+    expect(api.readVariable('y')).toBe(1);
   });
 });

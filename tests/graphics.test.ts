@@ -2,7 +2,7 @@ import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest'
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
-describe('stats panel', () => {
+describe('graphics', () => {
   let api: QspAPI;
   let error: Mock;
   beforeEach(async () => {
@@ -41,6 +41,7 @@ describe('stats panel', () => {
     api.on('actions_changed', actsChanged);
     const objsChanged = vi.fn();
     api.on('objects_changed', objsChanged);
+    
     api.execCode('REFINT');
 
 

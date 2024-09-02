@@ -46,6 +46,7 @@ describe('stats panel', () => {
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
     expect(statsChanged).toHaveBeenCalledWith('works');
+
     api.execCode('CLEAR');
 
     expect(statsChanged).toHaveBeenCalledTimes(2);
@@ -57,7 +58,20 @@ describe('stats panel', () => {
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
     expect(statsChanged).toHaveBeenCalledWith('works');
+
     api.execCode('CLR');
+
+    expect(statsChanged).toHaveBeenCalledTimes(2);
+    expect(statsChanged).toHaveBeenCalledWith('');
+  });
+
+  test('CLS should clear main description', async () => {
+    runTestFile(api, `p 'works'`);
+
+    expect(statsChanged).toHaveBeenCalledTimes(1);
+    expect(statsChanged).toHaveBeenCalledWith('works');
+    
+    api.execCode('CLS');
 
     expect(statsChanged).toHaveBeenCalledTimes(2);
     expect(statsChanged).toHaveBeenCalledWith('');
@@ -79,6 +93,9 @@ describe('stats panel', () => {
     const panelVisibilityChanged = vi.fn();
     api.on('panel_visibility', panelVisibilityChanged);
     runTestFile(api, `SHOWSTAT 0`);
-    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, 0);
+    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.STAT, 0);
+
+    api.execCode(`SHOWSTAT 1`);
+    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.STAT, 1);
   });
 });
