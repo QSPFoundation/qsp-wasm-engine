@@ -17,34 +17,40 @@ describe('tuples', () => {
   });
 
   describe('defining tuple', () => {
+    test('default tuple value', () => {
+      runTestFile(api, ``);
+
+      expect(api.readVariable('%a')).toEqual([]);
+    });
+
     test('defining tuple with parentesis', () => {
-      runTestFile(api, `%a = (1, 2, 3)`);
-      expect(api.readVariable('%a')).toEqual([1, 2, 3]);
+      runTestFile(api, `%a = ("a", "b", "c")`);
+      expect(api.readVariable('%a')).toEqual(['a', 'b', 'c']);
     });
 
     test('nested tuple with parentesis', () => {
-      runTestFile(api, `%a = (1, (2, 3))`);
-      expect(api.readVariable('%a')).toEqual([1, [2, 3]]);
+      runTestFile(api, `%a = ("a", ("b", "c"))`);
+      expect(api.readVariable('%a')).toEqual(['a', ['b', 'c']]);
     });
 
     test('defining tuple with brackets', () => {
-      runTestFile(api, `%a = [1, 2, 3]`);
-      expect(api.readVariable('%a')).toEqual([1, 2, 3]);
+      runTestFile(api, `%a = ["a", "b", "c"]`);
+      expect(api.readVariable('%a')).toEqual(['a', 'b', 'c']);
     });
 
     test('nested tuple with brackets', () => {
-      runTestFile(api, `%a = [1, [2, 3]]`);
-      expect(api.readVariable('%a')).toEqual([1, [2, 3]]);
+      runTestFile(api, `%a = ["1", ["2", "3"]]`);
+      expect(api.readVariable('%a')).toEqual(['1', ['2', '3']]);
     });
 
     test('defining tuple with comma', () => {
-      runTestFile(api, `%a = 1, 2, 3`);
-      expect(api.readVariable('%a')).toEqual([1, 2, 3]);
+      runTestFile(api, `%a = "a", "b", "c"`);
+      expect(api.readVariable('%a')).toEqual(['a', 'b', 'c']);
     });
 
     test('mixing brackets and parentesis', () => {
-      runTestFile(api, `%a = [1, (2, 3)]`);
-      expect(api.readVariable('%a')).toEqual([1, [2, 3]]);
+      runTestFile(api, `%a = ["a", ("b", "c")]`);
+      expect(api.readVariable('%a')).toEqual(['a', ['b', 'c']]);
     });
 
     test('strings and numbers', () => {
@@ -63,28 +69,28 @@ describe('tuples', () => {
     });
 
     test('nested tuple with single item', () => {
-      runTestFile(api, `%a = (1, [2]) & %b = (1, (1))`);
-      expect(api.readVariable('%a')).toEqual([1, [2]]);
-      expect(api.readVariable('%b')).toEqual([1, 1]);
+      runTestFile(api, `%a = ("a", ["b"]) & %b = ("a", ("b"))`);
+      expect(api.readVariable('%a')).toEqual(['a', ['b']]);
+      expect(api.readVariable('%b')).toEqual(['a', 'b']);
     });
 
     test('nested single item in parenthesis will not create a tuple', () => {
-      runTestFile(api, `%a = (1, (1))`);
+      runTestFile(api, `%a = ("a", ("a"))`);
 
-      expect(api.readVariable('%a')).toEqual([1, 1]);
+      expect(api.readVariable('%a')).toEqual(['a', 'a']);
     });
 
     test('array of tuples', () => {
       runTestFile(
         api,
         `
-        %a[] = [1, 2, 3]
-        %a[] = [2, 3, 4]
+        %a[] = ["a", "b", "c"]
+        %a[] = ["b", "c", "d"]
         `,
       );
 
-      expect(api.readVariableByIndex('%a', 0)).toEqual([1, 2, 3]);
-      expect(api.readVariableByIndex('%a', 1)).toEqual([2, 3, 4]);
+      expect(api.readVariableByIndex('%a', 0)).toEqual(['a', 'b', 'c']);
+      expect(api.readVariableByIndex('%a', 1)).toEqual(['b', 'c', 'd']);
     });
   });
 
@@ -119,24 +125,25 @@ describe('tuples', () => {
       runTestFile(
         api,
         `
-      %a = [1, 2, 3]
-      b, %c = %a`,
+      %a = ["a", 2, "b", 3]
+      $b, %c = %a`,
       );
 
-      expect(api.readVariable('b')).toEqual(1);
-      expect(api.readVariable('%c')).toEqual([2, 3]);
+      expect(api.readVariable('$b')).toEqual('a');
+      expect(api.readVariable('%c')).toEqual([2, 'b', 3]);
     });
 
     test('rest tuple should be empty if there were no values left', () => {
       runTestFile(
         api,
-        `%a = [1, 2]
-        b, c, d, %rest = %a`,
+        `%a = ["a", "c"]
+        $b, $c, d, $f, %rest = %a`,
       );
 
-      expect(api.readVariable('b')).toEqual(1);
-      expect(api.readVariable('c')).toEqual(2);
+      expect(api.readVariable('$b')).toEqual('a');
+      expect(api.readVariable('$c')).toEqual('c');
       expect(api.readVariable('d')).toEqual(0);
+      expect(api.readVariable('$f')).toEqual('');
       expect(api.readVariable('%rest')).toEqual([]);
     });
 
@@ -157,8 +164,8 @@ describe('tuples', () => {
       runTestFile(
         api,
         `
-      b[1, 2] = 3
-      a = b[1, 2]
+      b["1", "2"] = 3
+      a = b["1", "2"]
       `,
       );
 
@@ -169,8 +176,8 @@ describe('tuples', () => {
       runTestFile(
         api,
         `
-      b[1, (2, 3)] = 3
-      a = b[1, (2, 3)]
+      b[1, ("2", 3)] = 3
+      a = b[1, ("2", 3)]
       `,
       );
 
@@ -227,6 +234,32 @@ describe('tuples', () => {
     ])('%s = %s', (a, _, result) => {
       console.log({ a, result });
       runTestFile(api, `%res = ${a}`);
+
+      expect(api.readVariable('%res')).toEqual(result);
+    });
+
+    test.each([
+      ['[8, 4]', '+=', 4, [12, 8]],
+      ['[8, 4]', '-=', 4, [4, 0]],
+      ['[8, 4]', '*=', 4, [32, 16]],
+      ['[8, 4]', '/=', 4, [2, 1]],
+      [
+        '[8, 4]',
+        '+=',
+        '[1 ,2]',
+        [
+          [9, 10],
+          [5, 6],
+        ],
+      ],
+      ['["aa", "bb"]', '+=', '"bb"', ['aabb', 'bbbb']],
+    ])('%s %s %s = %s', (a, op, b, result) => {
+      runTestFile(
+        api,
+        `
+        %res = ${a}
+        %res ${op} ${b}`,
+      );
 
       expect(api.readVariable('%res')).toEqual(result);
     });
@@ -313,13 +346,13 @@ describe('tuples', () => {
       runTestFile(
         api,
         `
-gs 'other', [1, 2]
+gs 'other', ["a", "b"]
 ---
 # other
 %res = %args[0]`,
       );
 
-      expect(api.readVariable('%res')).toEqual([1, 2]);
+      expect(api.readVariable('%res')).toEqual(['a', 'b']);
     });
 
     test('returning tuple from function', () => {
@@ -329,30 +362,30 @@ gs 'other', [1, 2]
 %res = func('other')
 ---
 # other
-%result = [1, 2]`,
+%result = ["1", "2"]`,
       );
 
-      expect(api.readVariable('%res')).toEqual([1, 2]);
+      expect(api.readVariable('%res')).toEqual(['1', '2']);
     });
 
     test('unpacking returning tuple from function', () => {
       runTestFile(
         api,
         `
-a, b = func('other')
+$a, $b = func('other')
 ---
 # other
-%result = [1, 2]`,
+%result = ["1", "2"]`,
       );
 
-      expect(api.readVariable('a')).toEqual(1);
-      expect(api.readVariable('b')).toEqual(2);
+      expect(api.readVariable('$a')).toEqual('1');
+      expect(api.readVariable('$b')).toEqual('2');
     });
 
     test('returning tuple from dyneval', () => {
-      runTestFile(api, `%res = dyneval('%result = [1, 2]')`);
+      runTestFile(api, `%res = dyneval('%result = ["1", "2"]')`);
 
-      expect(api.readVariable('%res')).toEqual([1, 2]);
+      expect(api.readVariable('%res')).toEqual(['1', '2']);
     });
   });
 
@@ -396,7 +429,7 @@ a, b = func('other')
     runTestFile(
       api,
       `
-      %a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+      %a = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"]
       `,
     );
 
@@ -405,7 +438,8 @@ a, b = func('other')
       description: "Incorrect arguments' count!",
       errorCode: 119,
       line: 2,
-      lineSrc: '%A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]',
+      lineSrc:
+        '%A = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"]',
       localLine: 2,
       location: 'test',
     });
@@ -416,15 +450,43 @@ a, b = func('other')
     runTestFile(
       api,
       `
-      %a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-      %b = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+      %a = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+      %b = ["16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"]
       %res = (%a & %b)
       `,
     );
 
     expect(api.readVariable('%res')).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
-      27, 28, 29, 30,
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '10',
+      '11',
+      '12',
+      '13',
+      '14',
+      '15',
+      '16',
+      '17',
+      '18',
+      '19',
+      '20',
+      '21',
+      '22',
+      '23',
+      '24',
+      '25',
+      '26',
+      '27',
+      '28',
+      '29',
+      '30',
     ]);
   });
 });

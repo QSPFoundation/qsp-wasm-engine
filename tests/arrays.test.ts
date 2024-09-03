@@ -77,17 +77,17 @@ $a = $objs[]
   });
 
   test('killvar all variables', () => {
-    runTestFile(api, `a = 1 & b = 2`);
+    runTestFile(api, `a = 1 & $b = "xx"`);
 
     expect(api.readVariable('a')).toBe(1);
-    expect(api.readVariable('b')).toBe(2);
+    expect(api.readVariable('$b')).toBe('xx');
     api.execCode(`killvar`);
 
     expect(api.readVariable('a')).toBe(0);
-    expect(api.readVariable('b')).toBe(0);
+    expect(api.readVariable('$b')).toBe('');
   });
 
-  test('killvar whole array', () => {
+  test('killvar whole number array', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2`);
 
     expect(api.readVariableByIndex('a', 0)).toBe(1);
@@ -98,7 +98,19 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 1)).toBe(0);
   });
 
-  test('killvar array index', () => {
+  test('killvar whole string array', () => {
+    runTestFile(api, `$a[0] = "zz" & $a[1] = "xx"`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('zz');
+    expect(api.readVariableByIndex('$a', 1)).toBe('xx');
+
+    api.execCode(`killvar 'a'`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('');
+    expect(api.readVariableByIndex('$a', 1)).toBe('');
+  });
+
+  test('killvar array index in numeric array', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3`);
 
     expect(api.readVariableByIndex('a', 0)).toBe(1);
@@ -111,7 +123,21 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 2)).toBe(0);
   });
 
-  test('killvar array key', () => {
+  test('killvar array index in string array', () => {
+    runTestFile(api, `$a[0] = "aa" & $a[1] = "bb" & $a[2] = "cc"`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$a', 1)).toBe('bb');
+    expect(api.readVariableByIndex('$a', 2)).toBe('cc');
+
+    api.execCode(`killvar 'a', 1`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$a', 1)).toBe('cc');
+    expect(api.readVariableByIndex('$a', 2)).toBe('');
+  });
+
+  test('killvar array key in number array', () => {
     runTestFile(api, `a['test'] = 1 & a['other'] = 2`);
 
     expect(api.readVariableByKey('a', 'test')).toBe(1);
@@ -123,19 +149,31 @@ $a = $objs[]
     expect(api.readVariableByKey('a', 'other')).toBe(2);
   });
 
+  test('killvar array key in string array', () => {
+    runTestFile(api, `$a['test'] = "aa" & $a['other'] = "zz"`);
+
+    expect(api.readVariableByKey('$a', 'test')).toBe('aa');
+    expect(api.readVariableByKey('$a', 'other')).toBe('zz');
+
+    api.execCode(`killvar 'a', 'test'`);
+
+    expect(api.readVariableByKey('$a', 'test')).toBe('');
+    expect(api.readVariableByKey('$a', 'other')).toBe('zz');
+  });
+
   test('killall clears all variables', () => {
-    runTestFile(api, `a = 1 & b = 2`);
+    runTestFile(api, `a = 1 & $b = "xx"`);
 
     expect(api.readVariable('a')).toBe(1);
-    expect(api.readVariable('b')).toBe(2);
+    expect(api.readVariable('$b')).toBe('xx');
 
     api.execCode(`killall`);
 
     expect(api.readVariable('a')).toBe(0);
-    expect(api.readVariable('b')).toBe(0);
+    expect(api.readVariable('$b')).toBe('');
   });
 
-  test('copyarr whole array', () => {
+  test('copyarr whole numeric array', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3`);
 
     expect(api.readVariableByIndex('a', 0)).toBe(1);
@@ -155,7 +193,27 @@ $a = $objs[]
     expect(api.readVariableByIndex('b', 2)).toBe(3);
   });
 
-  test('copyarr with start index', () => {
+  test('copyarr whole string array', () => {
+    runTestFile(api, `$a[0] = "aa" & $a[1] = "bb" & $a[2] = "cc"`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$a', 1)).toBe('bb');
+    expect(api.readVariableByIndex('$a', 2)).toBe('cc');
+    expect(api.readVariableByIndex('$b', 0)).toBe('');
+    expect(api.readVariableByIndex('$b', 1)).toBe('');
+    expect(api.readVariableByIndex('$b', 2)).toBe('');
+
+    api.execCode(`copyarr 'b', 'a'`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$a', 1)).toBe('bb');
+    expect(api.readVariableByIndex('$a', 2)).toBe('cc');
+    expect(api.readVariableByIndex('$b', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$b', 1)).toBe('bb');
+    expect(api.readVariableByIndex('$b', 2)).toBe('cc');
+  });
+
+  test('copyarr with start index in numeric array', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3`);
 
     expect(api.readVariableByIndex('a', 0)).toBe(1);
@@ -174,7 +232,28 @@ $a = $objs[]
     expect(api.readVariableByIndex('b', 1)).toBe(3);
     expect(api.readVariableByIndex('b', 2)).toBe(0);
   });
-  test('copyarr with count', () => {
+
+  test('copyarr with start index in numeric array', () => {
+    runTestFile(api, `$a[0] = "aa" & $a[1] = "bb" & $a[2] = "cc"`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$a', 1)).toBe('bb');
+    expect(api.readVariableByIndex('$a', 2)).toBe('cc');
+    expect(api.readVariableByIndex('$b', 0)).toBe('');
+    expect(api.readVariableByIndex('$b', 1)).toBe('');
+    expect(api.readVariableByIndex('$b', 2)).toBe('');
+
+    api.execCode(`copyarr 'b', 'a', 1`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$a', 1)).toBe('bb');
+    expect(api.readVariableByIndex('$a', 2)).toBe('cc');
+    expect(api.readVariableByIndex('$b', 0)).toBe('bb');
+    expect(api.readVariableByIndex('$b', 1)).toBe('cc');
+    expect(api.readVariableByIndex('$b', 2)).toBe('');
+  });
+
+  test('copyarr with count in numeric array', () => {
     runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3`);
 
     expect(api.readVariableByIndex('a', 0)).toBe(1);
@@ -192,6 +271,26 @@ $a = $objs[]
     expect(api.readVariableByIndex('b', 0)).toBe(2);
     expect(api.readVariableByIndex('b', 1)).toBe(0);
     expect(api.readVariableByIndex('b', 2)).toBe(0);
+  });
+
+  test('copyarr with count in string array', () => {
+    runTestFile(api, `$a[0] = "aa" & $a[1] = "bb" & $a[2] = "cc"`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$a', 1)).toBe('bb');
+    expect(api.readVariableByIndex('$a', 2)).toBe('cc');
+    expect(api.readVariableByIndex('$b', 0)).toBe('');
+    expect(api.readVariableByIndex('$b', 1)).toBe('');
+    expect(api.readVariableByIndex('$b', 2)).toBe('');
+
+    api.execCode(`copyarr 'b', 'a', 1, 1`);
+
+    expect(api.readVariableByIndex('$a', 0)).toBe('aa');
+    expect(api.readVariableByIndex('$a', 1)).toBe('bb');
+    expect(api.readVariableByIndex('$a', 2)).toBe('cc');
+    expect(api.readVariableByIndex('$b', 0)).toBe('bb');
+    expect(api.readVariableByIndex('$b', 1)).toBe('');
+    expect(api.readVariableByIndex('$b', 2)).toBe('');
   });
 
   test('copyarr on number array copies string values', () => {
@@ -216,33 +315,54 @@ $a = $objs[]
 
   describe('ARRSIZE', () => {
     test('return array size', () => {
-      runTestFile(api, `a[0] = 1 & a[1] = 2 & a[2] = 3 & s = arrsize('a')`);
+      runTestFile(api, `$a[0] = "aa" & $a[1] = "bb" & $a[2] = "cc" & s = arrsize('a')`);
 
       expect(api.readVariable('s')).toBe(3);
     });
 
     test('return array size with mixed values', () => {
-      runTestFile(api, `a[] = 1 & $a[] = 2 & a[] = 3 & s = arrsize('$a')`);
+      runTestFile(api, `a[] = 1 & $a[] = "aa" & a[] = 3 & s = arrsize('$a')`);
 
       expect(api.readVariable('s')).toBe(3);
     });
   });
 
   describe('ARRPOS', () => {
-    test('return index when found', () => {
+    test('return index when found for numbers', () => {
       runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=4 & r = arrpos('mass',2)`);
 
       expect(api.readVariable('r')).toBe(1);
     });
 
-    test('return index skiping several elements', () => {
+    test('return index when found for strings', () => {
+      runTestFile(api, `$mass[0]="aa" & $mass[1]="bb" & $mass[2]="cc" & r = arrpos('$mass',"bb")`);
+
+      expect(api.readVariable('r')).toBe(1);
+    });
+
+    test('return index skiping several elements for numbers', () => {
       runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=4 & mass[3]=2 & r = arrpos('mass',2,2)`);
 
       expect(api.readVariable('r')).toBe(3);
     });
 
-    test('return -1 when not found', () => {
+    test('return index skiping several elements for strings', () => {
+      runTestFile(
+        api,
+        `$mass[0]="aa" & $mass[1]="bb" & $mass[3]="bb" & r = arrpos('$mass',"bb", 2)`,
+      );
+
+      expect(api.readVariable('r')).toBe(3);
+    });
+
+    test('return -1 when not found for numbers', () => {
       runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=4 & r = arrpos('mass',10)`);
+
+      expect(api.readVariable('r')).toBe(-1);
+    });
+
+    test('return -1 when not found for strings', () => {
+      runTestFile(api, `$mass[0]="aa" & $mass[1]="bb" & $mass[3]="bb" & r = arrpos('$mass',"zz")`);
 
       expect(api.readVariable('r')).toBe(-1);
     });
@@ -254,71 +374,66 @@ $a = $objs[]
     expect(api.readVariable('r')).toBe(-1);
   });
 
-  test('arrpos skip', () => {
-    runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=1 & r = arrpos('mass',1,1)`);
-
-    expect(api.readVariable('r')).toBe(2);
-  });
-
-  test('arrpos string', () => {
-    runTestFile(api, `$mass[0]='a' & $mass[1]='b' & $mass[2]='c' & r = arrpos('$mass','b')`);
-
-    expect(api.readVariable('r')).toBe(1);
-  });
-
-  test('arrpos string not found', () => {
-    runTestFile(api, `$mass[0]='a' & $mass[1]='b' & $mass[2]='c' & r = arrpos('$mass','f')`);
-
-    expect(api.readVariable('r')).toBe(-1);
-  });
-
   test('arrpos string search for empty string', () => {
     runTestFile(api, `$mass[0]='a' & $mass[1]='b' & $mass[2]='c' & r = arrpos('$mass','')`);
 
     expect(api.readVariable('r')).toBe(-1);
   });
 
-  test('arrpos string skip', () => {
-    runTestFile(api, `$mass[0]='a' & $mass[1]='b' & $mass[2]='a' & r = arrpos('$mass','a',1)`);
+  describe('ARRCOMP', () => {
+    test('finds index by regexp', () => {
+      runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'c1' & r = arrcomp('$a', 'b\\d')`);
 
-    expect(api.readVariable('r')).toBe(2);
-  });
+      expect(api.readVariable('r')).toBe(1);
+    });
 
-  test('arrcomp', () => {
-    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'c1' & r = arrcomp('$a', 'b\\d')`);
+    test('returns -1 when not found', () => {
+      runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'c1' & r = arrcomp('$a', 'f\\d')`);
 
-    expect(api.readVariable('r')).toBe(1);
-  });
+      expect(api.readVariable('r')).toBe(-1);
+    });
 
-  test('arrcomp not found', () => {
-    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'c1' & r = arrcomp('$a', 'f\\d')`);
+    test('can skip elements', () => {
+      runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'a1' & r = arrcomp('$a', 'a\\d', 1)`);
 
-    expect(api.readVariable('r')).toBe(-1);
-  });
-
-  test('arrcomp skip', () => {
-    runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'a1' & r = arrcomp('$a', 'a\\d', 1)`);
-
-    expect(api.readVariable('r')).toBe(2);
+      expect(api.readVariable('r')).toBe(2);
+    });
   });
 
   describe('ARRITEM', () => {
-    test('finding element numeric index', () => {
+    test('finding element numeric index in numeric array', () => {
       runTestFile(api, `arr[123]=256 & res = arritem('arr',123)`);
 
       expect(api.readVariable('res')).toBe(256);
     });
+    test('finding element numeric index in string array', () => {
+      runTestFile(api, `$arr[123]="cc" & $res = arritem('$arr', 123)`);
 
-    test('finding element by string index', () => {
+      expect(api.readVariable('$res')).toBe("cc");
+    });
+
+    test('finding element by string index in numeric array', () => {
       runTestFile(api, `arr['first']=256 & res = arritem('arr','first')`);
 
       expect(api.readVariable('res')).toBe(256);
     });
 
-    test('finding element by tuple index', () => {
+    test('finding element by string index in string array', () => {
+      runTestFile(api, `$arr['first']="xx" & $res = arritem('$arr','first')`);
+
+      expect(api.readVariable('$res')).toBe("xx");
+    });
+
+    test('finding element by tuple index in numeric array', () => {
       runTestFile(api, `arr[1,3]=256 & res = arritem('arr', [1,3])`);
 
       expect(api.readVariable('res')).toBe(256);
+    });
+
+    test('finding element by tuple index in string array', () => {
+      runTestFile(api, `$arr[1,3]="zz" & $res = arritem('$arr', [1,3])`);
+
+      expect(api.readVariable('$res')).toBe("zz");
     });
   });
 

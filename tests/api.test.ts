@@ -16,7 +16,7 @@ describe('api', () => {
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
-  
+
   it('should read numeric variable', async () => {
     runTestFile(api, `test = 254`);
 
@@ -74,6 +74,24 @@ describe('api', () => {
     expect(api.readVariable('$тест')).toBe('254');
   });
 
+  it('should read tuple variable', () => {
+    runTestFile(api, `%test = ['a', 'b']`);
+
+    expect(api.readVariable('%test')).toEqual(['a', 'b']);
+  });
+
+  it('should read tuple variable by index', () => {
+    runTestFile(api, `%test[1] = ['b']`);
+
+    expect(api.readVariableByIndex('%test', 1)).toEqual(['b']);
+  });
+
+  it('should read tuple variable by key', () => {
+    runTestFile(api, `%test['s'] = ['b']`);
+
+    expect(api.readVariableByKey('%test', 's')).toEqual(['b']);
+  });
+
   it('should read variable size', () => {
     runTestFile(api, `test[100] = 1`);
 
@@ -96,12 +114,12 @@ describe('api', () => {
   it('should watch variable by index', async () => {
     runTestFile(api, ``);
     const watchVariables = vi.fn();
-    api.watchVariableByIndex('test', 1, watchVariables);
+    api.watchVariableByIndex('$test', 1, watchVariables);
     await delay(10);
-    expect(watchVariables).toHaveBeenCalledWith(0);
-    api.execCode(`test[1] = 123`);
+    expect(watchVariables).toHaveBeenCalledWith('');
+    api.execCode(`$test[1] = 'abc'`);
     await delay(10);
-    expect(watchVariables).toHaveBeenCalledWith(123);
+    expect(watchVariables).toHaveBeenCalledWith('abc');
   });
 
   it('should see variable change before msg', async () => {
@@ -110,23 +128,23 @@ describe('api', () => {
     const msg = vi.fn();
     api.on('msg', msg);
 
-    api.watchVariableByIndex('test', 1, watchVariables);
+    api.watchVariableByIndex('$test', 1, watchVariables);
     await delay(10);
-    expect(watchVariables).toHaveBeenCalledWith(0);
-    api.execCode(`test[1] = 123 & msg "test"`);
+    expect(watchVariables).toHaveBeenCalledWith('');
+    api.execCode(`$test[1] = "ab" & msg "test"`);
     await delay(10);
-    expect(watchVariables).toHaveBeenCalledWith(123);
+    expect(watchVariables).toHaveBeenCalledWith('ab');
     msg.mock.calls[0][1]();
   });
 
   it('should watch variable by key', async () => {
     runTestFile(api, ``);
     const watchVariables = vi.fn();
-    api.watchVariableByKey('test', 'key', watchVariables);
+    api.watchVariableByKey('$test', 'key', watchVariables);
     await delay(10);
-    expect(watchVariables).toHaveBeenCalledWith(0);
-    api.execCode(`test['key'] = 123`);
+    expect(watchVariables).toHaveBeenCalledWith('');
+    api.execCode(`$test['key'] = "ab"`);
     await delay(10);
-    expect(watchVariables).toHaveBeenCalledWith(123);
+    expect(watchVariables).toHaveBeenCalledWith('ab');
   });
 });

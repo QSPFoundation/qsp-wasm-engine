@@ -61,86 +61,86 @@ describe('variables', () => {
     runTestFile(
       api,
       `
-x = 1
-y = 2
-y, x  = x, y`,
+$x = "aa"
+$y = "bb"
+$y, $x  = $x, $y`,
     );
 
-    expect(api.readVariable('x')).toBe(2);
-    expect(api.readVariable('y')).toBe(1);
+    expect(api.readVariable('$x')).toBe("bb");
+    expect(api.readVariable('$y')).toBe("aa");
   });
 
   test('local', () => {
     runTestFile(
       api,
       `
-a = 1 & b = 2 & c = 3 & d = 4 & e = 5 & f = 6
+$a = "aa" & $b = "bb" & $c = "cc" & $d = "dd" & $e = "ee" & $f = "ff"
 gs 'other'
 ---
 # other
-local a,b,c,d,e,f = 11,12,13,14,15,16
-la = a
-lb = b
-lc = c
-ld = d
-le = e
-lf = f
+local $a,$b,$c,$d,$e,$f = "la","lb","lc","ld","le","lf"
+$la = $a
+$lb = $b
+$lc = $c
+$ld = $d
+$le = $e
+$lf = $f
     `,
     );
 
-    expect(api.readVariable('a')).toBe(1);
-    expect(api.readVariable('la')).toBe(11);
-    expect(api.readVariable('b')).toBe(2);
-    expect(api.readVariable('lb')).toBe(12);
-    expect(api.readVariable('c')).toBe(3);
-    expect(api.readVariable('lc')).toBe(13);
-    expect(api.readVariable('d')).toBe(4);
-    expect(api.readVariable('ld')).toBe(14);
-    expect(api.readVariable('e')).toBe(5);
-    expect(api.readVariable('le')).toBe(15);
-    expect(api.readVariable('f')).toBe(6);
-    expect(api.readVariable('lf')).toBe(16);
+    expect(api.readVariable('$a')).toBe("aa");
+    expect(api.readVariable('$la')).toBe("la");
+    expect(api.readVariable('$b')).toBe("bb");
+    expect(api.readVariable('$lb')).toBe("lb");
+    expect(api.readVariable('$c')).toBe("cc");
+    expect(api.readVariable('$lc')).toBe("lc");
+    expect(api.readVariable('$d')).toBe("dd");
+    expect(api.readVariable('$ld')).toBe("ld");
+    expect(api.readVariable('$e')).toBe("ee");
+    expect(api.readVariable('$le')).toBe("le");
+    expect(api.readVariable('$f')).toBe("ff");
+    expect(api.readVariable('$lf')).toBe("lf");
   });
 
   test('local variables in nested calls is preserved (shadowing global)', () => {
     runTestFile(
       api,
       `
-a = 1
+$a = "aa"
 gs 'other'
 --- 
 # other
-local a = 2
-la = a
+local $a = "la"
+$la = $a
 gs 'nested'
 ---
 # nested
-na = a
+$na = $a 
 `,
     );
 
-    expect(api.readVariable('a')).toBe(1);
-    expect(api.readVariable('la')).toBe(2);
-    expect(api.readVariable('na')).toBe(2);
+    expect(api.readVariable('$a')).toBe("aa");
+    expect(api.readVariable('$la')).toBe("la");
+    expect(api.readVariable('$na')).toBe("la");
   });
 
   test('local reset on subsequent calls', () => {
     runTestFile(
       api,
       `
-gs 'other', 'first', 1
-gs 'other', 'second', 2
+gs 'other', 'first', "ff"
+gs 'other', 'second', "ss"
 ---
 # other
-local a
-a[] = args[1]
+local $a
+$a[] = $args[1]
 size[$args[0]] = arrsize('a')
-res[$args[0]] = a[0]
+$res[$args[0]] = $a[0]
 `,
     );
 
-    expect(api.readVariableByKey('res', 'first')).toBe(1);
-    expect(api.readVariableByKey('res', 'second')).toBe(2);
+    expect(api.readVariableByKey('$res', 'first')).toBe("ff");
+    expect(api.readVariableByKey('$res', 'second')).toBe("ss");
     expect(api.readVariableByKey('size', 'first')).toBe(1);
     expect(api.readVariableByKey('size', 'second')).toBe(1);
   });
@@ -152,16 +152,16 @@ res[$args[0]] = a[0]
     runTestFileWithGoto(
       api,
       `
-      local a = 1
-      args[0] = 1
-      act '1': a
+      local $a = "aa"
+      $args[0] = "bb"
+      act '1': $a & $args[0]
       `,
     );
 
     api.selectAction(0);
     api.execSelectedAction();
 
-    expect(onMain).toHaveBeenCalledWith('0\r\n');
+    expect(onMain).toHaveBeenCalledWith('\r\nbb\r\n');
   });
 
   test('local variables inside actions', () => {
@@ -170,25 +170,25 @@ res[$args[0]] = a[0]
 
     runTestFile(
       api,
-      `i=99
+      `$i="ii"
 act "local i":
-    local i = 449933
-    *pl i
+    local $i = "lii"
+    *pl $i
 end
 act "global i":
-    *pl i
+    *pl $i
 end`,
     );
 
     api.selectAction(0);
     api.execSelectedAction();
 
-    expect(onMain).toHaveBeenCalledWith('449933\r\n');
+    expect(onMain).toHaveBeenCalledWith('lii\r\n');
 
     api.selectAction(1);
     api.execSelectedAction();
 
-    expect(onMain).toHaveBeenCalledWith('449933\r\n99\r\n');
+    expect(onMain).toHaveBeenCalledWith('lii\r\nii\r\n');
   });
 
   test('local variables avaliable whith flow stop in callbacks', () => {
@@ -197,11 +197,11 @@ end`,
 
     runTestFile(
       api,
-      `local i=99 & msg ''`
+      `local $i="ii" & msg ''`
     );
 
-    expect(api.readVariable('i')).toBe(99);
+    expect(api.readVariable('$i')).toBe("ii");
     onMsg.mock.calls[0][1]();
-    expect(api.readVariable('i')).toBe(0);
+    expect(api.readVariable('$i')).toBe("");
   })
 });

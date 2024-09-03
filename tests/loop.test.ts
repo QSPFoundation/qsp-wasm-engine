@@ -2,7 +2,7 @@ import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest'
 import { prepareApi, runTestFile } from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
-describe('strings', () => {
+describe('loop', () => {
   let api: QspAPI;
   let error: Mock;
   beforeEach(async () => {
@@ -82,7 +82,7 @@ end
     );
 
     expect(api.readVariable('summ')).toBe(68);
-  })
+  });
 
   test('EXIT stop whole location not just loop', () => {
     runTestFile(

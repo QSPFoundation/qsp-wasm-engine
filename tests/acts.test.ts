@@ -99,6 +99,17 @@ end`,
     expect(actsChanged).not.toHaveBeenCalled();
   });
 
+  test('executing action', () => {
+    const onStats = vi.fn();
+    api.on('stats_changed', onStats);
+    
+    runTestFile(api, `act '1': p 'a'`);
+
+    api.selectAction(0);
+    api.execSelectedAction();
+    expect(onStats).toHaveBeenCalledWith('a');
+  })
+
   test('DELACT should delete action', () => {
     runTestFile(api, `act '1': p 1`);
 
@@ -133,16 +144,16 @@ end`,
     runTestFile(
       api,
       `
-act '1': p 1
+act '1': p '1'
 act '2':
-  p 2
-  p 3
+  p '2'
+  p '3'
 end
 p $CURACTS
 `,
     );
 
-    expect(statChanged).toHaveBeenCalledWith(`ACT '1': P 1\r\nACT '2':\r\nP 2\r\nP 3\r\nEND\r\n`);
+    expect(statChanged).toHaveBeenCalledWith(`ACT '1': P '1'\r\nACT '2':\r\nP '2'\r\nP '3'\r\nEND\r\n`);
   });
 
   test('actions can be restored from CURACTS', () => {
@@ -151,10 +162,10 @@ p $CURACTS
     runTestFile(
       api,
       `
-      act '1': p 1
+      act '1': p 'a'
 act '2':
-  p 2
-  p 3
+  p 'b'
+  p 'c'
 end
 $acts = $CURACTS`
     );
