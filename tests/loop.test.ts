@@ -84,11 +84,11 @@ end
     expect(api.readVariable('summ')).toBe(68);
   });
 
-  test('EXIT stop whole location not just loop', () => {
+  test('EXIT stops whole location not just loop', () => {
     runTestFile(
       api,
       `
-        y = 1
+        x = 0 & y = 1
         loop local i = 1 while i < 10 step i+=1:
           x+=i
           if i = 5: exit
@@ -99,5 +99,23 @@ end
 
     expect(api.readVariable('x')).toBe(15);
     expect(api.readVariable('y')).toBe(1);
+  });
+
+  test('can JUMP outside loop', () => {
+    runTestFile(
+      api,
+      `
+        x = 0 & y = 0
+        loop local i = 1 while i < 10 step i+=1:
+          x+=2
+          if i = 5: jump 'endloop'
+        end
+        :endloop
+        y = 2
+      `,
+    );
+
+    expect(api.readVariable('x')).toBe(10);
+    expect(api.readVariable('y')).toBe(2);
   });
 });
