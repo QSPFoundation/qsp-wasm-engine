@@ -102,7 +102,7 @@ $lf = $f
     expect(api.readVariable('$lf')).toBe("lf");
   });
 
-  test('local variables in nested calls is preserved (shadowing global)', () => {
+  test('local variables in nested calls are preserved (shadowing global)', () => {
     runTestFile(
       api,
       `
@@ -191,7 +191,7 @@ end`,
     expect(onMain).toHaveBeenCalledWith('lii\r\nii\r\n');
   });
 
-  test('local variables avaliable whith flow stop in callbacks', () => {
+  test('local variables available with flow stop in callbacks', () => {
     const onMsg = vi.fn();
     api.on('msg', onMsg);
 

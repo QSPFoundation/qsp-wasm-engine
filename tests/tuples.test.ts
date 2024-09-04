@@ -23,12 +23,12 @@ describe('tuples', () => {
       expect(api.readVariable('%a')).toEqual([]);
     });
 
-    test('defining tuple with parentesis', () => {
+    test('defining tuple with parenthesis', () => {
       runTestFile(api, `%a = ("a", "b", "c")`);
       expect(api.readVariable('%a')).toEqual(['a', 'b', 'c']);
     });
 
-    test('nested tuple with parentesis', () => {
+    test('nested tuple with parenthesis', () => {
       runTestFile(api, `%a = ("a", ("b", "c"))`);
       expect(api.readVariable('%a')).toEqual(['a', ['b', 'c']]);
     });
@@ -48,7 +48,7 @@ describe('tuples', () => {
       expect(api.readVariable('%a')).toEqual(['a', 'b', 'c']);
     });
 
-    test('mixing brackets and parentesis', () => {
+    test('mixing brackets and parenthesis', () => {
       runTestFile(api, `%a = ["a", ("b", "c")]`);
       expect(api.readVariable('%a')).toEqual(['a', ['b', 'c']]);
     });

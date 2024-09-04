@@ -41,7 +41,7 @@ describe('stats panel', () => {
     expect(statsChanged).toHaveBeenCalledWith('\r\nworks');
   });
 
-  test('CLEAR should clear main description', async () => {
+  test('CLEAR should clear stats description', async () => {
     runTestFile(api, `p 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
@@ -53,7 +53,7 @@ describe('stats panel', () => {
     expect(statsChanged).toHaveBeenCalledWith('');
   });
 
-  test('CLR should clear main description', async () => {
+  test('CLR should clear stats description', async () => {
     runTestFile(api, `p 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
@@ -65,7 +65,7 @@ describe('stats panel', () => {
     expect(statsChanged).toHaveBeenCalledWith('');
   });
 
-  test('CLS should clear main description', async () => {
+  test('CLS should clear stats description', async () => {
     runTestFile(api, `p 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
@@ -77,13 +77,13 @@ describe('stats panel', () => {
     expect(statsChanged).toHaveBeenCalledWith('');
   });
 
-  test('$STATTXT should return text from main panel', async () => {
+  test('$STATTXT should return text from stats panel', async () => {
     runTestFile(api, `p 'works' & $text = $STATTXT`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('$STATTXT() should return text from main panel', async () => {
+  test('$STATTXT() should return text from stats panel', async () => {
     runTestFile(api, `p 'works' & $text = $STATTXT()`);
 
     expect(api.readVariable('$text')).toBe('works');
