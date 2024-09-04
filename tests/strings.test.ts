@@ -50,18 +50,18 @@ describe('strings', () => {
   });
 
   describe('$MID', () => {
-    test('cutting string from middle', () => {
+    test('cutting middle part of a string', () => {
       runTestFile(api, `$res = $MID('abcd', 2, 2)`);
       expect(api.readVariable('$res')).toBe('bc');
     });
 
-    test('cutting string from end', () => {
+    test('cutting string to end', () => {
       runTestFile(api, `$res = $MID('abcd', 3)`);
       expect(api.readVariable('$res')).toBe('cd');
     });
 
     test('cutting string from start', () => {
-      runTestFile(api, `$res = $MID('abcd', 0, 2)`);
+      runTestFile(api, `$res = $MID('abcd', 1, 2)`);
       expect(api.readVariable('$res')).toBe('ab');
     });
 
@@ -77,7 +77,7 @@ describe('strings', () => {
     expect(api.readVariable('$res')).toBe('TEXT#');
   });
 
-  test('UCASE cyrilic', () => {
+  test('UCASE cyrillic', () => {
     runTestFile(api, `$res = $UCASE('Привет, Алиса!')`);
 
     expect(api.readVariable('$res')).toBe('ПРИВЕТ, АЛИСА!');
@@ -89,8 +89,8 @@ describe('strings', () => {
     expect(api.readVariable('$res')).toBe('text#');
   });
 
-  test('LCASE cyrilic', () => {
-    runTestFile(api, `$res =$lcase('Привет, Алиса!')`);
+  test('LCASE cyrillic', () => {
+    runTestFile(api, `$res = $lcase('Привет, Алиса!')`);
 
     expect(api.readVariable('$res')).toBe('привет, алиса!');
   });
@@ -117,12 +117,12 @@ describe('strings', () => {
       expect(api.readVariable('$res')).toBe('test');
     });
 
-    test('removes occurences if last parm not provided', () => {
+    test('removes occurrences if last parm not provided', () => {
       runTestFile(api, `$res = $REPLACE('test', 't')`);
       expect(api.readVariable('$res')).toBe('es');
     });
 
-    test('works with cyrilic', () => {
+    test('works with cyrillic', () => {
       runTestFile(api, `$res = $REPLACE('Привет, Алиса!', 'Алиса', 'Катя')`);
       expect(api.readVariable('$res')).toBe('Привет, Катя!');
     });
@@ -161,7 +161,7 @@ describe('strings', () => {
     expect(api.readVariable('res')).toBe(123);
   });
 
-  test('VAL with mised string', () => {
+  test('VAL with mixed string', () => {
     runTestFile(api, `res = VAL('123a')`);
 
     expect(api.readVariable('res')).toBe(0);

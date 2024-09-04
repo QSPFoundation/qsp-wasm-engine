@@ -128,7 +128,7 @@ describe('operations', () => {
       expect(api.readVariable('res')).toBe(result);
     });
 
-    test('if strin can be converted to number - it gets subtracted', () => {
+    test('if string can be converted to number - it gets subtracted', () => {
       runTestFile(
         api,
         `
