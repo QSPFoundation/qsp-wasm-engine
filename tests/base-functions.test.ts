@@ -58,25 +58,41 @@ $cloc = $CURLOC`,
       runTestFile(api, `a = 1 & b = 5 & c = 3 & res = MAX(a,b,c)`);
       expect(api.readVariable('res')).toBe(5);
     });
-    test('returning max from array when  called with 1 param', () => {
+    test('returning max from array when called with 1 param', () => {
       runTestFile(api, `a[0] = 1 & a[1] = 5 & a[3] = 2 & res = MAX('a')`);
       expect(api.readVariable('res')).toBe(5);
     });
-    test('returning max from array whith wholes', () => {
+    test('returning max from array with holes', () => {
       runTestFile(api, `a[0] = 1 & a[3] = 5 & a[5] = 2 & res = MAX('a')`);
       expect(api.readVariable('res')).toBe(5);
     });
-    test('return lexicographicaly bigger string', () => {
+    test('return lexicographically bigger string', () => {
       runTestFile(api, `$res = MAX('aa','zz','ab')`);
       expect(api.readVariable('$res')).toBe('zz');
     });
-    test('return lexicographicaly bigger string from array', () => {
+    test('return lexicographically bigger string from array', () => {
       runTestFile(api, `$b[0] = 'aa' & $b[1] = 'zz' & $b[2] = 'ab' & $res = MAX('$b')`);
       expect(api.readVariable('$res')).toBe('zz');
     });
-    test('return lexicographicaly bigger string from array with wholes', () => {
+    test('return lexicographically bigger string from array with holes', () => {
       runTestFile(api, `$b[0] = 'aa' & $b[3] = 'zz' & $b[5] = 'ab' & $res = MAX('$b')`);
       expect(api.readVariable('$res')).toBe('zz');
+    });
+    test('return lexicographically bigger string from mixed array', () => {
+      runTestFile(api, `$b[0] = 'a' & b[1] = 77 & $b[2] = 'rx' & b[3] = 66 & $b[4] = 'n' & $res = MAX('$b')`);
+      expect(api.readVariable('$res')).toBe('rx');
+    });
+    test('return max from mixed array', () => {
+      runTestFile(api, `$b[0] = 'dd' & b[1] = 77 & $b[2] = 'yy' & b[3] = 86 & $b[4] = ' ' & res = MAX('b')`);
+      expect(api.readVariable('res')).toBe(86);
+    });
+    test('ignores numbers when search for string', () => {
+      runTestFile(api, `$b[0] = '33' & b[1] = 77 & $b[2] = '44' & b[3] = 66 & $b[4] = '22' & $res = MAX('$b')`);
+      expect(api.readVariable('$res')).toBe('44');
+    });
+    test('ignores strings when search for number', () => {
+      runTestFile(api, `$b[0] = '999' & b[1] = 66 & $b[2] = '99' & b[3] = 50 & res = MAX('b')`);
+      expect(api.readVariable('res')).toBe(66);
     });
   });
 
@@ -93,24 +109,37 @@ $cloc = $CURLOC`,
       runTestFile(api, `a[0] = 3 & a[1] = 5 & a[2] = 2 & res = MIN('a')`);
       expect(api.readVariable('res')).toBe(2);
     });
-    test('returning 0 from array whith wholes', () => {
-      runTestFile(api, `a[0] = 1 & a[3] = 5 & a[5] = 2 & res = MIN('a')`);
-      expect(api.readVariable('res')).toBe(0);
-    });
-
-    test('return lexicographicaly smaller string', () => {
+    test('return lexicographically smaller string', () => {
       runTestFile(api, `$res = MIN('aa','zz','ab')`);
       expect(api.readVariable('$res')).toBe('aa');
     });
-
-    test('return lexicographicaly smaller string from array', () => {
+    test('return lexicographically smaller string from array', () => {
       runTestFile(api, `$b[0] = 'aa' & $b[1] = 'zz' & $b[2] = 'ab' & $res = MIN('$b')`);
       expect(api.readVariable('$res')).toBe('aa');
     });
-
-    test('return empty string from array with wholes', () => {
+    test('returning 0 from array with holes', () => {
+      runTestFile(api, `a[0] = 1 & a[3] = 5 & a[5] = 2 & res = MIN('a')`);
+      expect(api.readVariable('res')).toBe(0);
+    });
+    test('return empty string from array with holes', () => {
       runTestFile(api, `$b[0] = 'aa' & $b[3] = 'zz' & $b[5] = 'ab' & $res = MIN('$b')`);
       expect(api.readVariable('$res')).toBe('');
+    });
+    test('return lexicographically smaller string from mixed array', () => {
+      runTestFile(api, `$b[0] = 'tt' & b[1] = 77 & $b[2] = 'gg' & b[3] = 66 & $b[4] = 'qq' & $res = MIN('$b')`);
+      expect(api.readVariable('$res')).toBe('gg');
+    });
+    test('return min from mixed array', () => {
+      runTestFile(api, `$b[0] = 'a' & b[1] = 86 & $b[2] = 'kk' & b[3] = 77 & $b[4] = '' & res = MIN('b')`);
+      expect(api.readVariable('res')).toBe(77);
+    });
+    test('ignores numbers when search for string', () => {
+      runTestFile(api, `$b[0] = '33' & b[1] = 11 & $b[2] = '44' & b[3] = 14 & $b[4] = '22' & $res = MIN('$b')`);
+      expect(api.readVariable('$res')).toBe('22');
+    });
+    test('ignores strings when search for number', () => {
+      runTestFile(api, `$b[0] = '9' & b[1] = 66 & $b[2] = '40' & b[3] = 50 & res = MIN('b')`);
+      expect(api.readVariable('res')).toBe(50);
     });
   });
 

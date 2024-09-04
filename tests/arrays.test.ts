@@ -340,13 +340,43 @@ $a = $objs[]
       expect(api.readVariable('r')).toBe(1);
     });
 
-    test('return index skiping several elements for numbers', () => {
+    test('return index for mixed items when found for numbers', () => {
+      runTestFile(api, `$mass[0]='aa' & mass[1]=2 & $mass[2]='xx' & mass[4]=5 & r = arrpos('mass',5)`);
+
+      expect(api.readVariable('r')).toBe(4);
+    });
+
+    test('return index for mixed items when found for strings', () => {
+      runTestFile(api, `$mass[0]='aa' & mass[1]=2 & $mass[2]='xx' & mass[4]=5 & r = arrpos('$mass','xx')`);
+
+      expect(api.readVariable('r')).toBe(2);
+    });
+
+    test('supports holes', () => {
+      runTestFile(api, `mass[0]=1 & mass[2]=2 & mass[4]=6 & r = arrpos('mass',6)`);
+
+      expect(api.readVariable('r')).toBe(4);
+    });
+
+    test('return index including empty elements for numbers', () => {
+      runTestFile(api, `mass[0]=1 & mass[2]=2 & r = arrpos('mass',0)`);
+
+      expect(api.readVariable('r')).toBe(1);
+    });
+
+    test('return index including empty elements for strings', () => {
+      runTestFile(api, `$mass[0]='sdsd' & $mass[2]='qq' & r = arrpos('mass','')`);
+
+      expect(api.readVariable('r')).toBe(1);
+    });
+
+    test('return index skipping several elements for numbers', () => {
       runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=4 & mass[3]=2 & r = arrpos('mass',2,2)`);
 
       expect(api.readVariable('r')).toBe(3);
     });
 
-    test('return index skiping several elements for strings', () => {
+    test('return index skipping several elements for strings', () => {
       runTestFile(
         api,
         `$mass[0]="aa" & $mass[1]="bb" & $mass[3]="bb" & r = arrpos('$mass',"bb", 2)`,
@@ -366,18 +396,18 @@ $a = $objs[]
 
       expect(api.readVariable('r')).toBe(-1);
     });
-  });
 
-  test('arrpos search for 0', () => {
-    runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=1 & r = arrpos('mass',0)`);
+    test('search for 0', () => {
+      runTestFile(api, `mass[0]=1 & mass[1]=2 & mass[2]=1 & r = arrpos('mass',0)`);
 
-    expect(api.readVariable('r')).toBe(-1);
-  });
+      expect(api.readVariable('r')).toBe(-1);
+    });
 
-  test('arrpos string search for empty string', () => {
-    runTestFile(api, `$mass[0]='a' & $mass[1]='b' & $mass[2]='c' & r = arrpos('$mass','')`);
+    test('string search for empty string', () => {
+      runTestFile(api, `$mass[0]='a' & $mass[1]='b' & $mass[2]='c' & r = arrpos('$mass','')`);
 
-    expect(api.readVariable('r')).toBe(-1);
+      expect(api.readVariable('r')).toBe(-1);
+    });
   });
 
   describe('ARRCOMP', () => {
@@ -393,10 +423,58 @@ $a = $objs[]
       expect(api.readVariable('r')).toBe(-1);
     });
 
+    test('includes empty elements', () => {
+      runTestFile(api, `$a[0] = 'a1' & $a[2] = 'c1' & r = arrcomp('$a', '')`);
+
+      expect(api.readVariable('r')).toBe(1);
+    });
+
     test('can skip elements', () => {
       runTestFile(api, `$a[0] = 'a1' & $a[1] = 'b1' & $a[2] = 'a1' & r = arrcomp('$a', 'a\\d', 1)`);
 
       expect(api.readVariable('r')).toBe(2);
+    });
+
+    test('supports holes', () => {
+      runTestFile(api, `$a[0] = 'a1' & $a[2] = 'c1' & $a[4] = 'b1' & r = arrcomp('$a', 'b\\d')`);
+
+      expect(api.readVariable('r')).toBe(4);
+    });
+
+    test('finding element by regexp', () => {
+      runTestFile(
+        api,
+        `
+          $mass[0] = "топаю вперёд"
+          $mass[1] = " иду в пещеру"
+          $mass[2] = "не иду в пещеру"
+          $mass[3] = "топаю к дому"
+          res = arrcomp('$mass', '\\s?\\S+\\s\\S+\\s\\S+\\s?')
+        `,
+      );
+
+      expect(api.readVariable('res')).toBe(1);
+    });
+
+    test('finding element by regexp with skip', () => {
+      runTestFile(
+        api,
+        `
+          $mass[0] = "топаю вперёд"
+          $mass[1] = " иду в пещеру"
+          $mass[2] = "не иду в пещеру"
+          $mass[3] = "топаю к дому"
+          res = arrcomp('$mass', '\\s?\\S+\\s\\S+\\s\\S+\\s?', 2)
+        `,
+      );
+
+      expect(api.readVariable('res')).toBe(3);
+    });
+
+    test('return -1 for empty array', () => {
+      runTestFile(api, `res = arrcomp('$mass', 'ab')`);
+
+      expect(api.readVariable('res')).toBe(-1);
     });
   });
 
@@ -490,44 +568,6 @@ $res = $arr[1,3]
     );
 
     expect(api.readVariable('$res')).toBe('test');
-  });
-
-  describe('ARRCOMP', () => {
-    test('finding element by regexp', () => {
-      runTestFile(
-        api,
-        `
-          $mass[0] = "топаю вперёд"
-          $mass[1] = " иду в пещеру"
-          $mass[2] = "не иду в пещеру"
-          $mass[3] = "топаю к дому"
-          res = arrcomp('$mass', '\\s?\\S+\\s\\S+\\s\\S+\\s?')
-        `,
-      );
-
-      expect(api.readVariable('res')).toBe(1);
-    });
-
-    test('finding element by regexp with skip', () => {
-      runTestFile(
-        api,
-        `
-          $mass[0] = "топаю вперёд"
-          $mass[1] = " иду в пещеру"
-          $mass[2] = "не иду в пещеру"
-          $mass[3] = "топаю к дому"
-          res = arrcomp('$mass', '\\s?\\S+\\s\\S+\\s\\S+\\s?', 2)
-        `,
-      );
-
-      expect(api.readVariable('res')).toBe(3);
-    });
-
-    test('return -1 when not found', () => {
-      runTestFile(api, `res = arrcomp('$mass', 'ab')`);
-
-      expect(api.readVariable('res')).toBe(-1);
-    });
   });
 
   describe('SORTARR', () => {
