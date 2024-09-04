@@ -365,7 +365,7 @@ $a = $objs[]
     });
 
     test('return index including empty elements for strings', () => {
-      runTestFile(api, `$mass[0]='sdsd' & $mass[2]='qq' & r = arrpos('mass','')`);
+      runTestFile(api, `$mass[0]='sdsd' & $mass[2]='qq' & r = arrpos('$mass','')`);
 
       expect(api.readVariable('r')).toBe(1);
     });
