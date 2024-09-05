@@ -46,7 +46,7 @@ describe('sound', () => {
     expect(statsChanged).toHaveBeenCalledWith('after play');
   });
 
-  test('ISPLAY resolves to play status', () => {
+  test('ISPLAY resolves to playing status', () => {
     const onIsPlay = vi.fn();
     api.on('is_play', onIsPlay);
     runTestFile(api, `playing = ISPLAY('test.mp3')`);
@@ -56,7 +56,7 @@ describe('sound', () => {
     expect(api.readVariable('playing')).toBe(1);
   });
 
-  test('CLOSE should trigger stopiing file', () => {
+  test('CLOSE should trigger stopping file', () => {
     const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
     const onPlay = vi.fn();
@@ -77,7 +77,7 @@ describe('sound', () => {
     expect(onCloseFile).not.toHaveBeenCalled();
   });
 
-  test('CLOSE ALL should trigger stopiing sound', () => {
+  test('CLOSE ALL should trigger stopping sound', () => {
     const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
     const onPlay = vi.fn();

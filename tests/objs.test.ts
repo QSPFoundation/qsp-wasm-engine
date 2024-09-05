@@ -20,7 +20,7 @@ describe('objects', () => {
     api?._run_checks();
   });
 
-  test('SHOWOBJS should toggle acts visibility', () => {
+  test('SHOWOBJS should toggle objs visibility', () => {
     const panelVisibility = vi.fn();
     api.on('panel_visibility', panelVisibility);
     runTestFile(api, `SHOWOBJS 0`);
@@ -130,13 +130,13 @@ describe('objects', () => {
   test('$CUROBJS should return list of objects', () => {
     const statChanged = vi.fn();
     api.on('stats_changed', statChanged);
-    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & p $CUROBJS`);
+    runTestFile(api, `ADDOBJ 'first','1.png' & ADDOBJ 'second' & p $CUROBJS`);
 
-    expect(statChanged).toHaveBeenCalledWith(`ADDOBJ 'first'\r\nADDOBJ 'second'\r\n`);
+    expect(statChanged).toHaveBeenCalledWith(`ADDOBJ 'first','1.png'\r\nADDOBJ 'second'\r\n`);
   });
 
   test('objects should be restored from $CUROBJS', () => {
-    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & $objs = $CUROBJS`);
+    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second','2.png' & $objs = $CUROBJS`);
 
     expect(objectsChanged).toHaveBeenCalledWith([
       {
@@ -145,7 +145,7 @@ describe('objects', () => {
       },
       {
         name: 'second',
-        image: '',
+        image: '2.png',
       },
     ]);
     objectsChanged.mockReset();
@@ -162,7 +162,7 @@ describe('objects', () => {
       },
       {
         name: 'second',
-        image: '',
+        image: '2.png',
       },
     ]);
   });
@@ -197,7 +197,7 @@ describe('objects', () => {
     expect(objectsChanged).toHaveBeenCalledWith([]);
   });
 
-  test('DELOBJ deletes first object in list if there are several object with same name', () => {
+  test('DELOBJ deletes first object in list if there are several objects with the same name', () => {
     runTestFile(api, `ADDOBJ 'first', '1.png' & ADDOBJ 'first', '2.png'`);
 
     expect(objectsChanged).toHaveBeenCalledWith([
@@ -292,13 +292,13 @@ describe('objects', () => {
     expect(api.readVariable('$selected')).toBe('second');
   });
 
-  test('COUNTOBJ should return number of object', () => {
+  test('COUNTOBJ should return number of objects', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & count = COUNTOBJ`);
 
     expect(api.readVariable('count')).toBe(2);
   });
 
-  test('$GETOBJ should return object name in position', () => {
+  test('$GETOBJ should return object name at position', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & $first = $GETOBJ(1)`);
 
     expect(api.readVariable('$first')).toBe('first');
@@ -310,13 +310,13 @@ describe('objects', () => {
     expect(api.readVariable('$last')).toBe('second');
   });
 
-  test('$GETOBJ should return empty string if no object in position', () => {
+  test('$GETOBJ should return empty string if no object at position', () => {
     runTestFile(api, `$first = $GETOBJ(1)`);
 
     expect(api.readVariable('$first')).toBe('');
   });
 
-  test('UNSELECT shoudl unselect object', () => {
+  test('UNSELECT should unselect object', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second'`);
 
     api.selectObject(1);
@@ -326,7 +326,7 @@ describe('objects', () => {
     expect(api.readVariable('$obj')).toBe('');
   });
 
-  test('UNSEL shoudl unselect object', () => {
+  test('UNSEL should unselect object', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second'`);
 
     api.selectObject(1);

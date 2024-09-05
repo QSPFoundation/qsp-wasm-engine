@@ -105,7 +105,7 @@ describe('modules', () => {
     expect(api.readVariable('x')).toBe(2);
   });
 
-  test('OPENGAME witouth save name', () => {
+  test('OPENGAME without save name', () => {
     const onLoad = vi.fn();
     api.on('load_save', onLoad);
     runTestFile(api, `x = 1 & OPENGAME & x = 2`);

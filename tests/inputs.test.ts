@@ -42,7 +42,7 @@ describe('user inputs panel', () => {
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('CMDCLEAR should return text from user cmd', () => {
+  test('CMDCLEAR should clear user input', () => {
     const userInput = vi.fn();
     api.on('user_input', userInput);
     api.updateUserInput('works');
@@ -53,7 +53,7 @@ describe('user inputs panel', () => {
     expect(api.readVariable('$textAfter')).toBe('');
   });
 
-  test('CMDCLR should return text from user cmd', () => {
+  test('CMDCLR should clear user input', () => {
     const userInput = vi.fn();
     api.on('user_input', userInput);
     api.updateUserInput('works');
@@ -64,7 +64,7 @@ describe('user inputs panel', () => {
     expect(api.readVariable('$textAfter')).toBe('');
   });
 
-  test('CLS should return text from user cmd', () => {
+  test('CLS should clear user input', () => {
     const userInput = vi.fn();
     api.on('user_input', userInput);
     api.updateUserInput('works');

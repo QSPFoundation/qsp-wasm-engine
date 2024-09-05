@@ -30,6 +30,48 @@ x = 2
     expect(api.readVariable('x')).toBe(1);
   });
 
+  test('statements are allowed after label', () => {
+    runTestFile(
+      api,
+      `
+x = 1
+jump 'end'
+x = 2
+:end & y = 3
+    `,
+    );
+
+    expect(api.readVariable('x')).toBe(1);
+    expect(api.readVariable('y')).toBe(3);
+  });
+
+  test('labels at the beginning can be ignored', () => {
+    runTestFile(
+      api,
+      `
+:end & x = 1
+y = 2
+    `,
+    );
+
+    expect(api.readVariable('x')).toBe(1);
+    expect(api.readVariable('y')).toBe(2);
+  });
+
+  test('labels in the middle can be ignored', () => {
+    runTestFile(
+      api,
+      `
+x = 1 & :end & y = 2
+z = 3
+    `,
+    );
+
+    expect(api.readVariable('x')).toBe(1);
+    expect(api.readVariable('y')).toBe(2);
+    expect(api.readVariable('z')).toBe(3);
+  });
+
   test('labels are case insensitive', () => {
     runTestFile(
       api,
