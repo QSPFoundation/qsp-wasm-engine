@@ -757,18 +757,23 @@ end
       expect(api.readVariable('k2')).toBe(35);
     });
 
-    test('wrong single line if shows error', () => {
+    test('multi line if without end shows error', () => {
       runTestFile(
         api,
-        `if abcd=3:`,
+        `
+if abcd=3:
+  k1=34
+else
+  k1=25
+        `,
       );
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: '[end] not found!',
         errorCode: 111,
-        line: 1,
+        line: 2,
         lineSrc: 'IF ABCD=3:',
-        localLine: 1,
+        localLine: 2,
         location: 'test',
       });
       error.mockReset();
