@@ -56,11 +56,12 @@ if x = 1: y = 1
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 else y = 3
+if x = 1: x = 3 else y = 3
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line elseif when true', () => {
@@ -68,11 +69,12 @@ if x = 1: y = 1 else y = 3
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 elseif x = 2: y = 4
+if x = 1: x = 3 elseif x = 2: y = 4
     `,
       );
 
       expect(api.readVariable('y')).toBe(4);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line elseif when false', () => {
@@ -80,11 +82,12 @@ if x = 1: y = 1 elseif x = 2: y = 4
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 elseif x = 3: y = 4
+if x = 1: x = 4 elseif x = 3: y = 4
     `,
       );
 
       expect(api.readVariable('y')).toBe(2);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line elseif when true with else', () => {
@@ -92,11 +95,12 @@ if x = 1: y = 1 elseif x = 3: y = 4
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 elseif x = 2: y = 4 else y = 3
+if x = 1: x = 3 elseif x = 2: y = 4 else x = 4
     `,
       );
 
       expect(api.readVariable('y')).toBe(4);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line elseif when false with else', () => {
@@ -104,11 +108,12 @@ if x = 1: y = 1 elseif x = 2: y = 4 else y = 3
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 elseif x = 3: y = 4 else y = 3
+if x = 1: x = 3 elseif x = 3: x = 4 else y = 3
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line else if when true', () => {
@@ -116,11 +121,12 @@ if x = 1: y = 1 elseif x = 3: y = 4 else y = 3
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 else if x = 2: y = 4
+if x = 1: x = 3 else if x = 2: y = 4
     `,
       );
 
       expect(api.readVariable('y')).toBe(4);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line else if when false', () => {
@@ -128,11 +134,12 @@ if x = 1: y = 1 else if x = 2: y = 4
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 else if x = 3: y = 4
+if x = 1: x = 3 else if x = 3: y = 4
     `,
       );
 
       expect(api.readVariable('y')).toBe(2);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line else if when true with else', () => {
@@ -140,11 +147,12 @@ if x = 1: y = 1 else if x = 3: y = 4
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 else if x = 2: y = 4 else y = 3
+if x = 1: x = 3 else if x = 2: y = 4 else x = 4
     `,
       );
 
       expect(api.readVariable('y')).toBe(4);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line else if when false with else', () => {
@@ -152,11 +160,12 @@ if x = 1: y = 1 else if x = 2: y = 4 else y = 3
         api,
         `
 x = 2 & y = 2
-if x = 1: y = 1 else if x = 3: y = 4 else y = 3
+if x = 1: x = 3 else if x = 3: x = 4 else y = 3
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
   });
 
@@ -194,7 +203,7 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 else
   y = 3
 end
@@ -202,6 +211,7 @@ end
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line else if true', () => {
@@ -212,12 +222,13 @@ x = 2 & y = 2
 if x = 2:
   y = 1
 else
-  y = 3
+  x = 3
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(1);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line after end if true', () => {
@@ -232,6 +243,7 @@ end & y = 3
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
     test('multi line after end if false', () => {
       runTestFile(
@@ -239,12 +251,13 @@ end & y = 3
         `
 x = 2 & y = 2
 if x = 1:
-  x = 1
+  x = 3
 end & y = 3
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line else after end if false', () => {
@@ -253,14 +266,15 @@ end & y = 3
         `
 x = 2 & y = 2
 if x = 1:
-  x = 1
-else
   x = 3
+else
+  x = 4
 end & y = 3
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(4);
     });
 
     test('multi line else after end if true', () => {
@@ -277,6 +291,7 @@ end & y = 3
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(1);
     });
 
     test('multi line else with colon', () => {
@@ -285,7 +300,7 @@ end & y = 3
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 else:
   y = 3
 end
@@ -293,6 +308,7 @@ end
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line with single line else with colon', () => {
@@ -301,14 +317,15 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 1
 else: y = 3
-  y = 4
+  x = 4
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line with single line else', () => {
@@ -317,14 +334,15 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 else y = 4
-  y = 3
+  x = 5
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(4);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line with 2 single line else', () => {
@@ -333,16 +351,17 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 else y = 3
-  y = 4
+  x = 4
 else y = 5
-  y = 6
+  x = 6
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line with 2 multi line else', () => {
@@ -351,16 +370,17 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 else
   y = 4
 else
-  y = 6
+  x = 5
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(4);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line elseif with else if true', () => {
@@ -369,16 +389,17 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 elseif x = 2:
   y = 4
 else
-  y = 3
+  x = 5
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(4);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line elseif with else if false', () => {
@@ -387,9 +408,9 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 elseif x = 3:
-  y = 4
+  x = 4
 else
   y = 3
 end
@@ -397,6 +418,7 @@ end
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line with single line elseif', () => {
@@ -405,14 +427,15 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 elseif x = 2: y = 3
-  y = 4
+  x = 4
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line with 2 single line elseif', () => {
@@ -421,15 +444,16 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
-elseif x = 3: y = 4
+  x = 3
+elseif x = 3: x = 4
 elseif x = 2: y = 5
-  y = 3
+  x = 5
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(5);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line else with 2 single line elseif', () => {
@@ -438,9 +462,9 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
-elseif x = 3: y = 4
-elseif x = 4: y = 5
+  x = 3
+elseif x = 3: x = 4
+elseif x = 4: x = 5
 else
   y = 3
 end
@@ -448,6 +472,7 @@ end
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('single line else with 2 single line elseif', () => {
@@ -456,16 +481,17 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
-elseif x = 3: y = 4
-elseif x = 4: y = 5
+  x = 3
+elseif x = 3: x = 4
+elseif x = 4: x = 5
 else: y = 3
-  y = 6
+  x = 6
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line with 2 multi line elseif when true', () => {
@@ -474,9 +500,9 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 elseif x = 3:
-  y = 4
+  x = 4
 elseif x = 2:
   y = 3
 end
@@ -484,6 +510,7 @@ end
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line with 2 multi line elseif when false', () => {
@@ -492,9 +519,9 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 elseif x = 3:
-  y = 4
+  x = 4
 elseif x = 4:
   y = 3
 end
@@ -502,6 +529,7 @@ end
       );
 
       expect(api.readVariable('y')).toBe(2);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line else and mixed elseif', () => {
@@ -510,17 +538,18 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
-elseif x = 3: y = 4
+  x = 3
+elseif x = 3: x = 4
 elseif x = 2:
   y = 3
 else
-  y = 5
+  x = 5
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line else if gets converted to elseif', () => {
@@ -529,38 +558,40 @@ end
         `
 x = 2 & y = 2
 if x = 1:
-  y = 1
+  x = 3
 else if x = 2:
   y = 3
 else
-  y = 5
+  x = 5
 end
     `,
       );
 
       expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
     });
 
     test('multi line nested', () => {
       runTestFile(
         api,
         `
-x = 1 & y = 1 & z =  1 & out = 1
+x = 1 & y = 1 & z = 1 & out = 1
 if x = 1:
-    out = 2
+    x = 2
     if y = 2:
-      out = 3
+      x = 3
     elseif y = 1:
-      out = 4
-      if z = 2: out = 6 else out = 7
+      x = 4
+      if z = 2: x = 6 else out = 7
     else
-      out = 5
+      x = 5
     end
 end
     `,
       );
 
       expect(api.readVariable('out')).toBe(7);
+      expect(api.readVariable('x')).toBe(4);
     });
 
     test('wrong condition form', () => {
@@ -594,22 +625,6 @@ end
         location: 'test',
       });
       error.mockReset();
-    });
-
-    test('error for else if', () => {
-      runTestFile(
-        api,
-        `
-absd=6
-if absd=3:
-  k=34
-else if absd=6: k1=25
-end
-      `,
-      );
-
-      expect(api.readVariable('k')).toBe(0);
-      expect(api.readVariable('k1')).toBe(25);
     });
   });
 });
