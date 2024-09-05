@@ -37,7 +37,7 @@ describe('time', () => {
     expect(onStatsChanged).toHaveBeenCalledWith('before wait\r\nafter wait');
   });
 
-  test.only('MSECSCOUNT should return msec passed from game start', async () => {
+  test('MSECSCOUNT should return msec passed from game start', async () => {
     vi.useFakeTimers();
 
     api = await prepareApi();

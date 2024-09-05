@@ -25,7 +25,8 @@
     "test:debug": "DEBUG=1 vitest run",
     "prepublish": "npm run build",
     "release": "np",
-    "lint": "eslint . && tsc --noEmit"
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
   },
   "keywords": [
     "qsp",
