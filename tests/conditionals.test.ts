@@ -39,6 +39,7 @@ if x = 1: y = 1
 
       expect(api.readVariable('y')).toBe(1);
     });
+
     test('single line if false', () => {
       runTestFile(
         api,
@@ -51,7 +52,19 @@ if x = 1: y = 1
       expect(api.readVariable('y')).toBe(2);
     });
 
-    test('single line else', () => {
+    test('single line else when true', () => {
+      runTestFile(
+        api,
+        `
+x = 2
+if x = 2: x = 3 else x = 4
+    `,
+      );
+
+      expect(api.readVariable('x')).toBe(3);
+    });
+
+    test('single line else when false', () => {
       runTestFile(
         api,
         `
@@ -62,6 +75,18 @@ if x = 1: x = 3 else y = 3
 
       expect(api.readVariable('y')).toBe(3);
       expect(api.readVariable('x')).toBe(2);
+    });
+
+    test('single line elseif when if true', () => {
+      runTestFile(
+        api,
+        `
+x = 2
+if x = 2: x = 3 elseif x = 2: x = 4
+    `,
+      );
+
+      expect(api.readVariable('x')).toBe(3);
     });
 
     test('single line elseif when true', () => {
