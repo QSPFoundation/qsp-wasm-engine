@@ -52,7 +52,7 @@ if x = 1: y = 1
       expect(api.readVariable('y')).toBe(2);
     });
 
-    test('single line else when true', () => {
+    test('single line if true with else', () => {
       runTestFile(
         api,
         `
@@ -64,7 +64,7 @@ if x = 2: x = 3 else x = 4
       expect(api.readVariable('x')).toBe(3);
     });
 
-    test('single line else when false', () => {
+    test('single line if false with else', () => {
       runTestFile(
         api,
         `
@@ -77,7 +77,7 @@ if x = 1: x = 3 else y = 3
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line elseif when if true', () => {
+    test('single line if true with elseif', () => {
       runTestFile(
         api,
         `
@@ -89,7 +89,7 @@ if x = 2: x = 3 elseif x = 2: x = 4
       expect(api.readVariable('x')).toBe(3);
     });
 
-    test('single line elseif when true', () => {
+    test('single line if false with elseif true', () => {
       runTestFile(
         api,
         `
@@ -102,7 +102,7 @@ if x = 1: x = 3 elseif x = 2: y = 4
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line elseif when false', () => {
+    test('single line if false with elseif false', () => {
       runTestFile(
         api,
         `
@@ -115,7 +115,7 @@ if x = 1: x = 4 elseif x = 3: y = 4
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line elseif when true with else', () => {
+    test('single line if false with elseif true with else', () => {
       runTestFile(
         api,
         `
@@ -128,7 +128,7 @@ if x = 1: x = 3 elseif x = 2: y = 4 else x = 4
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line elseif when false with else', () => {
+    test('single line if false with elseif false with else', () => {
       runTestFile(
         api,
         `
@@ -141,7 +141,7 @@ if x = 1: x = 3 elseif x = 3: x = 4 else y = 3
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line else if when true', () => {
+    test('single line if false with else if true', () => {
       runTestFile(
         api,
         `
@@ -154,7 +154,7 @@ if x = 1: x = 3 else if x = 2: y = 4
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line else if when false', () => {
+    test('single line if false with else if false', () => {
       runTestFile(
         api,
         `
@@ -167,7 +167,7 @@ if x = 1: x = 3 else if x = 3: y = 4
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line else if when true with else', () => {
+    test('single line if false with else if true with else', () => {
       runTestFile(
         api,
         `
@@ -180,7 +180,7 @@ if x = 1: x = 3 else if x = 2: y = 4 else x = 4
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line else if when false with else', () => {
+    test('single line if false with else if false with else', () => {
       runTestFile(
         api,
         `
@@ -222,7 +222,7 @@ end
       expect(api.readVariable('y')).toBe(2);
     });
 
-    test('multi line else if false', () => {
+    test('multi line if false with multi line else', () => {
       runTestFile(
         api,
         `
@@ -239,7 +239,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line else if true', () => {
+    test('multi line if true with multi line else', () => {
       runTestFile(
         api,
         `
@@ -256,7 +256,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line elseif when if true', () => {
+    test('multi line if true with multi line elseif', () => {
       runTestFile(
         api,
         `
@@ -274,7 +274,7 @@ end
       expect(api.readVariable('x')).toBe(3);
     });
 
-    test('single line else when true', () => {
+    test('multi line if true with single line else', () => {
       runTestFile(
         api,
         `
@@ -290,7 +290,7 @@ end
       expect(api.readVariable('x')).toBe(3);
     });
 
-    test('single line elseif when true', () => {
+    test('multi line if true with single line elseif', () => {
       runTestFile(
         api,
         `
@@ -306,7 +306,7 @@ end
       expect(api.readVariable('x')).toBe(3);
     });
 
-    test('multi line after end if true', () => {
+    test('multi line if true with code after end', () => {
       runTestFile(
         api,
         `
@@ -320,7 +320,7 @@ end & y = 3
       expect(api.readVariable('y')).toBe(3);
       expect(api.readVariable('x')).toBe(2);
     });
-    test('multi line after end if false', () => {
+    test('multi line if false with code after end', () => {
       runTestFile(
         api,
         `
@@ -335,7 +335,7 @@ end & y = 3
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line else after end if false', () => {
+    test('multi line if false with multi line else with code after end', () => {
       runTestFile(
         api,
         `
@@ -352,7 +352,7 @@ end & y = 3
       expect(api.readVariable('x')).toBe(4);
     });
 
-    test('multi line else after end if true', () => {
+    test('multi line if true with multi line else with code after end', () => {
       runTestFile(
         api,
         `
@@ -369,7 +369,7 @@ end & y = 3
       expect(api.readVariable('x')).toBe(1);
     });
 
-    test('multi line else with colon', () => {
+    test('multi line if false with multi line else with colon', () => {
       runTestFile(
         api,
         `
@@ -386,7 +386,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line with single line else with colon', () => {
+    test('multi line if false with single line else with colon', () => {
       runTestFile(
         api,
         `
@@ -403,7 +403,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line with single line else', () => {
+    test('multi line if false with single line else', () => {
       runTestFile(
         api,
         `
@@ -420,7 +420,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line with 2 single line else', () => {
+    test('multi line if false with 2 single line else', () => {
       runTestFile(
         api,
         `
@@ -439,7 +439,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line with 2 multi line else', () => {
+    test('multi line if false with 2 multi line else', () => {
       runTestFile(
         api,
         `
@@ -458,7 +458,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line elseif with else if true', () => {
+    test('multi line if false with multi line elseif true with else', () => {
       runTestFile(
         api,
         `
@@ -477,7 +477,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line elseif with else if false', () => {
+    test('multi line if false with multi line elseif false with multi line else', () => {
       runTestFile(
         api,
         `
@@ -496,7 +496,26 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line with single line elseif', () => {
+    test('multi line if false with multi line elseif false with single line else', () => {
+      runTestFile(
+        api,
+        `
+x = 2 & y = 2
+if x = 1:
+  x = 3
+elseif x = 3:
+  x = 4
+else y = 3
+  x = 5
+end
+    `,
+      );
+
+      expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
+    });
+
+    test('multi line if false with single line elseif true', () => {
       runTestFile(
         api,
         `
@@ -513,7 +532,24 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line with 2 single line elseif', () => {
+    test('multi line if false with single line elseif false', () => {
+      runTestFile(
+        api,
+        `
+x = 2 & y = 2
+if x = 1:
+  x = 3
+elseif x = 3: y = 3
+  x = 4
+end
+    `,
+      );
+
+      expect(api.readVariable('y')).toBe(2);
+      expect(api.readVariable('x')).toBe(2);
+    });
+
+    test('multi line if false with 2 single line elseif true', () => {
       runTestFile(
         api,
         `
@@ -531,7 +567,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line else with 2 single line elseif', () => {
+    test('multi line if false with 2 single line elseif false with multi line else', () => {
       runTestFile(
         api,
         `
@@ -550,7 +586,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('single line else with 2 single line elseif', () => {
+    test('multi line if false with 2 single line elseif false with single line else', () => {
       runTestFile(
         api,
         `
@@ -559,7 +595,7 @@ if x = 1:
   x = 3
 elseif x = 3: x = 4
 elseif x = 4: x = 5
-else: y = 3
+else y = 3
   x = 6
 end
     `,
@@ -569,7 +605,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line with 2 multi line elseif when true', () => {
+    test('multi line if false with 2 multi line elseif true', () => {
       runTestFile(
         api,
         `
@@ -588,7 +624,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line with 2 multi line elseif when false', () => {
+    test('multi line if false with 2 multi line elseif false', () => {
       runTestFile(
         api,
         `
@@ -607,7 +643,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line else and mixed elseif', () => {
+    test('multi line if false with mixed elseif true with else', () => {
       runTestFile(
         api,
         `
@@ -627,7 +663,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line else if gets converted to elseif', () => {
+    test('multi line if false with multi line else if true with else', () => {
       runTestFile(
         api,
         `
@@ -635,8 +671,46 @@ x = 2 & y = 2
 if x = 1:
   x = 3
 else if x = 2:
-  y = 3
+  y = 3 & ! 'else if' gets converted to 'elseif'
 else
+  x = 4
+end
+    `,
+      );
+
+      expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
+    });
+
+    test('multi line if false with multi line else if false with multi line else', () => {
+      runTestFile(
+        api,
+        `
+x = 2 & y = 2
+if x = 1:
+  x = 3
+else if x = 3:
+  x = 4
+else
+  y = 3 & ! 'else if' gets converted to 'elseif'
+end
+    `,
+      );
+
+      expect(api.readVariable('y')).toBe(3);
+      expect(api.readVariable('x')).toBe(2);
+    });
+
+    test('multi line if false with multi line else if false with single line else', () => {
+      runTestFile(
+        api,
+        `
+x = 2 & y = 2
+if x = 1:
+  x = 3
+else if x = 3:
+  x = 4
+else y = 3 & ! 'else if' gets converted to 'elseif'
   x = 5
 end
     `,
@@ -646,7 +720,7 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
-    test('multi line nested', () => {
+    test('multi line if nested', () => {
       runTestFile(
         api,
         `
@@ -669,13 +743,13 @@ end
       expect(api.readVariable('x')).toBe(4);
     });
 
-    test('wrong condition form', () => {
+    test('wrong multi line if', () => {
       runTestFile(
         api,
         `
 if abcd=3: k1=34
     k2=35 & ! this will be executed because if is single line
-end 
+end
       `,
       );
 
@@ -683,12 +757,29 @@ end
       expect(api.readVariable('k2')).toBe(35);
     });
 
-    test('end in single line if will show error', () => {
+    test('wrong single line if shows error', () => {
+      runTestFile(
+        api,
+        `if abcd=3:`,
+      );
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: '[end] not found!',
+        errorCode: 111,
+        line: 1,
+        lineSrc: 'IF ABCD=3:',
+        localLine: 1,
+        location: 'test',
+      });
+      error.mockReset();
+    });
+
+    test('end in single line if shows error', () => {
       runTestFile(
         api,
         `
-      if abcd=3: k1=34 else k1=25 end
-      `,
+        if abcd=3: k1=34 else k1=25 end
+        `,
       );
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
