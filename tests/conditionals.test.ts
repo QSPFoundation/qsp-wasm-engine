@@ -408,6 +408,24 @@ end
       expect(api.readVariable('x')).toBe(2);
     });
 
+    test('multi line elseif when if true', () => {
+      runTestFile(
+        api,
+        `
+x = 2
+if x = 2:
+  x = 3
+elseif x = 2:
+  x = 4
+else
+  x = 5
+end
+    `,
+      );
+
+      expect(api.readVariable('x')).toBe(3);
+    });
+
     test('multi line elseif with else if true', () => {
       runTestFile(
         api,
