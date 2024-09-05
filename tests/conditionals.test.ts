@@ -747,8 +747,8 @@ end
       runTestFile(
         api,
         `
-if abcd=3: k1=34
-    k2=35 & ! this will be executed because if is single line
+if abcd = 3: k1 = 34
+    k2 = 35 & ! this will be executed because if is single line
 end
       `,
       );
@@ -761,10 +761,10 @@ end
       runTestFile(
         api,
         `
-if abcd=3:
-  k1=34
+if abcd = 3:
+  k1 = 34
 else
-  k1=25
+  k1 = 25
         `,
       );
       expect(error).toHaveBeenCalledWith({
@@ -772,8 +772,32 @@ else
         description: '[end] not found!',
         errorCode: 111,
         line: 2,
-        lineSrc: 'IF ABCD=3:',
+        lineSrc: 'IF ABCD = 3:',
         localLine: 2,
+        location: 'test',
+      });
+      error.mockReset();
+    });
+
+    test('nested multi line if without end shows error', () => {
+      runTestFile(
+        api,
+        `
+abc = 4
+if abc <> 3:
+  k1 = 34
+  if abc = 4:
+    k1 = 25
+end
+        `,
+      );
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: '[end] not found!',
+        errorCode: 111,
+        line: 3,
+        lineSrc: 'IF ABC <> 3:',
+        localLine: 3,
         location: 'test',
       });
       error.mockReset();
