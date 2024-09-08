@@ -268,7 +268,7 @@ var createQspModule = (() => {
           // Cordova or Electron apps are typically loaded from a file:// url.
           // So use XHR on webview if URL is a file URL.
           if (isFileURI(url)) {
-            return new Promise((reject, resolve) => {
+            return new Promise((resolve, reject) => {
               var xhr = new XMLHttpRequest();
               xhr.open('GET', url, true);
               xhr.responseType = 'arraybuffer';
@@ -276,6 +276,7 @@ var createQspModule = (() => {
                 if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) {
                   // file URLs can return 0
                   resolve(xhr.response);
+                  return;
                 }
                 reject(xhr.status);
               };
@@ -322,10 +323,6 @@ var createQspModule = (() => {
     if (Module['thisProgram']) thisProgram = Module['thisProgram'];
 
     legacyModuleProp('thisProgram', 'thisProgram');
-
-    if (Module['quit']) quit_ = Module['quit'];
-
-    legacyModuleProp('quit', 'quit_');
 
     // perform assertions in shell.js after we set up out() and err(), as otherwise if an assertion fails it cannot print the message
     // Assertions on removed incoming Module JS APIs.
@@ -410,9 +407,7 @@ var createQspModule = (() => {
     // You can also build docs locally as HTML or other formats in site/
     // An online HTML version (which may be of a different version of Emscripten)
     //    is up at http://kripken.github.io/emscripten-site/docs/api_reference/preamble.js.html
-    var wasmBinary;
-
-    if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
+    var wasmBinary = Module['wasmBinary'];
 
     legacyModuleProp('wasmBinary', 'wasmBinary');
 
@@ -616,17 +611,6 @@ var createQspModule = (() => {
     }
 
     // end include: runtime_stack_check.js
-    // include: runtime_assertions.js
-    // Endianness check
-    (function () {
-      var h16 = new Int16Array(1);
-      var h8 = new Int8Array(h16.buffer);
-      h16[0] = 25459;
-      if (h8[0] !== 115 || h8[1] !== 99)
-        throw 'Runtime error: expected the system to be little-endian! (Run with -sSUPPORT_BIG_ENDIAN to bypass)';
-    })();
-
-    // end include: runtime_assertions.js
     var __ATPRERUN__ = [];
 
     // functions called before the runtime is initialized
@@ -1415,6 +1399,15 @@ var createQspModule = (() => {
     var tempI64;
 
     // include: runtime_debug.js
+    // Endianness check
+    (function () {
+      var h16 = new Int16Array(1);
+      var h8 = new Int8Array(h16.buffer);
+      h16[0] = 25459;
+      if (h8[0] !== 115 || h8[1] !== 99)
+        throw 'Runtime error: expected the system to be little-endian! (Run with -sSUPPORT_BIG_ENDIAN to bypass)';
+    })();
+
     function legacyModuleProp(prop, newName, incoming = true) {
       if (!Object.getOwnPropertyDescriptor(Module, prop)) {
         Object.defineProperty(Module, prop, {
@@ -2040,6 +2033,11 @@ var createQspModule = (() => {
       return result ? result.line : 0;
     };
 
+    var alignMemory = (size, alignment) => {
+      assert(alignment, 'alignment argument is required');
+      return Math.ceil(size / alignment) * alignment;
+    };
+
     var growMemory = (size) => {
       var b = wasmMemory.buffer;
       var pages = (size - b.byteLength + 65535) / 65536;
@@ -2090,7 +2088,6 @@ var createQspModule = (() => {
         );
         return false;
       }
-      var alignUp = (x, multiple) => x + ((multiple - (x % multiple)) % multiple);
       // Loop through potential heap size increases. If we attempt a too eager
       // reservation that fails, cut down on the attempted size and reserve a
       // smaller bump instead. (max 3 times, chosen somewhat arbitrarily)
@@ -2101,7 +2098,7 @@ var createQspModule = (() => {
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296);
         var newSize = Math.min(
           maxHeapSize,
-          alignUp(Math.max(requestedSize, overGrownHeapSize), 65536),
+          alignMemory(Math.max(requestedSize, overGrownHeapSize), 65536),
         );
         var replacement = growMemory(newSize);
         if (replacement) {
@@ -3173,10 +3170,6 @@ var createQspModule = (() => {
       'getTempRet0',
       'setTempRet0',
       'zeroMemory',
-      'isLeapYear',
-      'ydayFromDate',
-      'arraySum',
-      'addDays',
       'strError',
       'inetPton4',
       'inetNtop4',
@@ -3196,7 +3189,6 @@ var createQspModule = (() => {
       'dynCall',
       'asmjsMangle',
       'asyncLoad',
-      'alignMemory',
       'mmapAlloc',
       'HandleAllocator',
       'getNativeTypeSize',
@@ -3282,6 +3274,10 @@ var createQspModule = (() => {
       'findMatchingCatch',
       'Browser_asyncPrepareDataCounter',
       'setMainLoop',
+      'isLeapYear',
+      'ydayFromDate',
+      'arraySum',
+      'addDays',
       'getSocketFromFD',
       'getSocketAddress',
       'heapObjectForWebGLType',
@@ -3342,10 +3338,6 @@ var createQspModule = (() => {
       'growMemory',
       'ENV',
       'setStackLimits',
-      'MONTH_DAYS_REGULAR',
-      'MONTH_DAYS_LEAP',
-      'MONTH_DAYS_REGULAR_CUMULATIVE',
-      'MONTH_DAYS_LEAP_CUMULATIVE',
       'ERRNO_CODES',
       'DNS',
       'Protocols',
@@ -3362,6 +3354,7 @@ var createQspModule = (() => {
       'runtimeKeepalivePop',
       'callUserCallback',
       'maybeExit',
+      'alignMemory',
       'wasmTable',
       'noExitRuntime',
       'uleb128Encode',
@@ -3404,6 +3397,10 @@ var createQspModule = (() => {
       'Browser',
       'getPreloadedImageData__data',
       'wget',
+      'MONTH_DAYS_REGULAR',
+      'MONTH_DAYS_LEAP',
+      'MONTH_DAYS_REGULAR_CUMULATIVE',
+      'MONTH_DAYS_LEAP_CUMULATIVE',
       'SYSCALLS',
       'tempFixedLengthArray',
       'miniTempWebGLFloatBuffers',

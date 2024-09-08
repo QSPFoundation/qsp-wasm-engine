@@ -26,7 +26,8 @@
     "prepublish": "npm run build",
     "release": "np",
     "lint": "eslint .",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "compile": "docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) emscripten/emsdk ./compile-wasm.sh"
   },
   "keywords": [
     "qsp",

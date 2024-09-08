@@ -89,13 +89,14 @@ var createQspModule = (() => {
         }
         readAsync = (url) => {
           if (isFileURI(url)) {
-            return new Promise((reject, resolve) => {
+            return new Promise((resolve, reject) => {
               var xhr = new XMLHttpRequest();
               xhr.open('GET', url, true);
               xhr.responseType = 'arraybuffer';
               xhr.onload = () => {
                 if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) {
                   resolve(xhr.response);
+                  return;
                 }
                 reject(xhr.status);
               };
@@ -119,9 +120,7 @@ var createQspModule = (() => {
     moduleOverrides = null;
     if (Module['arguments']) arguments_ = Module['arguments'];
     if (Module['thisProgram']) thisProgram = Module['thisProgram'];
-    if (Module['quit']) quit_ = Module['quit'];
-    var wasmBinary;
-    if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
+    var wasmBinary = Module['wasmBinary'];
     var wasmMemory;
     var ABORT = false;
     var EXITSTATUS;
@@ -359,6 +358,7 @@ var createQspModule = (() => {
     var __emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
     var _emscripten_date_now = () => Date.now();
     var getHeapMax = () => 2147483648;
+    var alignMemory = (size, alignment) => Math.ceil(size / alignment) * alignment;
     var growMemory = (size) => {
       var b = wasmMemory.buffer;
       var pages = (size - b.byteLength + 65535) / 65536;
@@ -375,13 +375,12 @@ var createQspModule = (() => {
       if (requestedSize > maxHeapSize) {
         return false;
       }
-      var alignUp = (x, multiple) => x + ((multiple - (x % multiple)) % multiple);
       for (var cutDown = 1; cutDown <= 4; cutDown *= 2) {
         var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown);
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296);
         var newSize = Math.min(
           maxHeapSize,
-          alignUp(Math.max(requestedSize, overGrownHeapSize), 65536),
+          alignMemory(Math.max(requestedSize, overGrownHeapSize), 65536),
         );
         var replacement = growMemory(newSize);
         if (replacement) {
