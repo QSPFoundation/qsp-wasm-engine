@@ -118,4 +118,38 @@ end
     expect(api.readVariable('x')).toBe(10);
     expect(api.readVariable('y')).toBe(2);
   });
+
+  test('multi line loop supports comments', () => {
+    runTestFile(
+      api,
+      `
+s = 0
+loop i = 0 while i < 3 step i += 1: ! test comment
+  s += 2
+end
+    `,
+    );
+
+    expect(api.readVariable('s')).toBe(6);
+  });
+
+  test('multiline loop requires colon', () => {
+    runTestFile(
+      api,
+      `
+        loop while 0
+        end
+        `,
+    );
+    expect(error).toHaveBeenCalledWith({
+      actionIndex: -1,
+      description: 'Sign [:] not found!',
+      errorCode: 106,
+      line: 2,
+      lineSrc: 'LOOP WHILE 0',
+      localLine: 2,
+      location: 'test',
+    });
+    error.mockReset();
+  });
 });
