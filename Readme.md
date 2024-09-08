@@ -65,23 +65,30 @@ api.execCode(code: string): void;
 api.execCounter(): void;
 // executes code from some location by name
 api.execLoc(name: string): void;
-// reads content of some variable by index (0 by default)
-api.readVariable(name: string, index?: number): string | number;
+// reads content of some variable (0th index)
+api.readVariable(name: string): string | number | QspTuple;
+// reads content of some variable by index
+api.readVariableByIndex(name: string, index: number): string | number | QspTuple;
 // reads content of some variable by string key
-api.readVariableByKey(name: string, key: string): string | number;
+api.readVariableByKey(name: string, key: string): string | number | QspTuple;
 // reads size of some variable
 api.readVariableSize(name: string): number;
 // allows to subscribe to variable changes (main intention is to watch UI related variables)
 api.watchVariable(
     name: string,
+    callback: (value: string | number | QspTuple) => void
+  ): () => void;
+// allows to subscribe to variable index changes (main intention is to watch UI related variables)
+api.watchVariable(
+    name: string,
     index: number,
-    callback: (value: string | number) => void
+    callback: (value: string | number | QspTuple) => void
   ): () => void;
 // allows to subscribe to variable key changes (main intention is to watch UI related variables)
 api.watchVariableByKey(
     name: string,
     key: string,
-    callback: (value: string | number) => void
+    callback: (value: string | number | QspTuple) => void
   ): () => void;
 // enable debug mode
 api.enableDebugMode(): void;
