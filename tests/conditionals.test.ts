@@ -743,6 +743,80 @@ end
       expect(api.readVariable('x')).toBe(4);
     });
 
+    test('multi line if supports comments', () => {
+      runTestFile(
+        api,
+        `
+x = 1
+if x = 0: ! test comment
+  x = 2
+end
+    `,
+      );
+
+      expect(api.readVariable('x')).toBe(1);
+    });
+
+    test('multi line elseif supports comments', () => {
+      runTestFile(
+        api,
+        `
+x = 1
+if x = 0:
+elseif x = 1: ! test comment
+  x = 2
+end
+    `,
+      );
+
+      expect(api.readVariable('x')).toBe(2);
+    });
+
+    test('multi line else if supports comments', () => {
+      runTestFile(
+        api,
+        `
+x = 1
+if x = 0:
+else if x = 1: ! test comment
+  x = 2
+end
+    `,
+      );
+
+      expect(api.readVariable('x')).toBe(2);
+    });
+
+    test('multi line else supports comments', () => {
+      runTestFile(
+        api,
+        `
+x = 1
+if x = 0:
+else ! test comment
+  x = 2
+end
+    `,
+      );
+
+      expect(api.readVariable('x')).toBe(2);
+    });
+
+    test('multi line else with colon supports comments', () => {
+      runTestFile(
+        api,
+        `
+x = 1
+if x = 0:
+else: ! test comment
+  x = 2
+end
+    `,
+      );
+
+      expect(api.readVariable('x')).toBe(2);
+    });
+
     test('wrong multi line if', () => {
       runTestFile(
         api,
@@ -817,6 +891,68 @@ end
         line: 2,
         lineSrc: 'IF ABCD=3: K1=34 ELSE K1=25 END',
         localLine: 2,
+        location: 'test',
+      });
+      error.mockReset();
+    });
+
+    test('multiline if requires colon', () => {
+      runTestFile(
+        api,
+        `
+        if 0
+        end
+        `,
+      );
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Sign [:] not found!',
+        errorCode: 106,
+        line: 2,
+        lineSrc: 'IF 0',
+        localLine: 2,
+        location: 'test',
+      });
+      error.mockReset();
+    });
+
+    test('multiline elseif requires colon', () => {
+      runTestFile(
+        api,
+        `
+        if 0:
+        elseif 3
+        end
+        `,
+      );
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Sign [:] not found!',
+        errorCode: 106,
+        line: 3,
+        lineSrc: 'ELSEIF 3',
+        localLine: 3,
+        location: 'test',
+      });
+      error.mockReset();
+    });
+
+    test('multiline else if requires colon', () => {
+      runTestFile(
+        api,
+        `
+        if 0:
+        else if 3
+        end
+        `,
+      );
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Sign [:] not found!',
+        errorCode: 106,
+        line: 3,
+        lineSrc: 'ELSE IF 3',
+        localLine: 3,
         location: 'test',
       });
       error.mockReset();

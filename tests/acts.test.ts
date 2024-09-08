@@ -85,7 +85,7 @@ end`,
     ]);
   });
 
-  test('ACTs with same are ignored', () => {
+  test('ACTs with same name are ignored', () => {
     runTestFile(api, `act '1': p 1`);
 
     expect(actsChanged).toHaveBeenCalledWith([
@@ -233,5 +233,42 @@ $acts = $CURACTS`
     actsChanged.mockClear();
     api.execCode(`CLS`);
     expect(actsChanged).toHaveBeenCalledWith([]);
+  });
+
+  test('multi line act supports comments', () => {
+    runTestFile(
+      api,
+      `
+x = 1
+act 'test': ! test comment
+  x = 2
+end
+    `,
+    );
+
+    expect(api.readVariable('x')).toBe(1);
+    api.selectAction(0);
+    api.execSelectedAction();
+    expect(api.readVariable('x')).toBe(2);
+  });
+
+  test('multiline act requires colon', () => {
+    runTestFile(
+      api,
+      `
+        act 'test'
+        end
+        `,
+    );
+    expect(error).toHaveBeenCalledWith({
+      actionIndex: -1,
+      description: 'Sign [:] not found!',
+      errorCode: 106,
+      line: 2,
+      lineSrc: 'ACT \'test\'',
+      localLine: 2,
+      location: 'test',
+    });
+    error.mockReset();
   });
 });

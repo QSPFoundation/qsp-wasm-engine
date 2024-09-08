@@ -67,5 +67,8 @@
   },
   "np": {
     "yarn": false
+  },
+  "dependencies": {
+    "@devcontainers/cli": "^0.70.0"
   }
 }
