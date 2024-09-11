@@ -61,7 +61,7 @@ set_target_properties(qsp-engine-debug PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -Wdeprecated-non-prototype \
     -fsanitize=address \
     -gsource-map \
-    -O3 \
+    -O1 \
     -sASSERTIONS \
     -s EXPORT_ES6=1 \
     -s WASM=1 \
