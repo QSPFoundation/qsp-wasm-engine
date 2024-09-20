@@ -71,11 +71,13 @@ describe('tuples', () => {
     test('empty tuple with parenthesis', () => {
       runTestFile(api, `a = 2 & %a = ()`);
       expect(api.readVariable('%a')).toEqual([]);
+      expect(api.readVariable('a')).toEqual(0);
     });
 
     test('empty tuple with brackets', () => {
       runTestFile(api, `a = 2 & %a = []`);
       expect(api.readVariable('%a')).toEqual([]);
+      expect(api.readVariable('a')).toEqual(0);
     });
 
     test('nested tuple with single item', () => {
