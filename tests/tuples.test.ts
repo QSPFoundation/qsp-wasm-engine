@@ -425,7 +425,7 @@ $a, $b = func('other')
     });
   });
 
-  test('it errors out on more than 20 eleemnts', () => {
+  test('it errors out on more than 20 elements', () => {
     runTestFile(
       api,
       `
