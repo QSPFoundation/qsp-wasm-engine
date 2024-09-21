@@ -68,6 +68,18 @@ describe('tuples', () => {
       expect(api.readVariable('%a')).toEqual([1]);
     });
 
+    test('empty tuple with parenthesis', () => {
+      runTestFile(api, `a = 2 & %a = ()`);
+      expect(api.readVariable('%a')).toEqual([]);
+      expect(api.readVariable('a')).toEqual(0);
+    });
+
+    test('empty tuple with brackets', () => {
+      runTestFile(api, `a = 2 & %a = []`);
+      expect(api.readVariable('%a')).toEqual([]);
+      expect(api.readVariable('a')).toEqual(0);
+    });
+
     test('nested tuple with single item', () => {
       runTestFile(api, `%a = ("a", ["b"]) & %b = ("a", ("b"))`);
       expect(api.readVariable('%a')).toEqual(['a', ['b']]);
@@ -147,7 +159,7 @@ describe('tuples', () => {
       expect(api.readVariable('%rest')).toEqual([]);
     });
 
-    test('swaping value without tmp variable', () => {
+    test('swapping value without tmp variable', () => {
       runTestFile(
         api,
         `a = 1 & b = 2
@@ -425,7 +437,7 @@ $a, $b = func('other')
     });
   });
 
-  test('it errors out on more than 20 eleemnts', () => {
+  test('it errors out on more than 20 elements', () => {
     runTestFile(
       api,
       `
