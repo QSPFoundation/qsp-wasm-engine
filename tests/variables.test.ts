@@ -111,42 +111,62 @@ describe('variables', () => {
   test('local without assignment', () => {
     runTestFile(api,
       `
-a_new, $b_new, c_new = 1, 'old', 2
-local a, $b, c
-a_new, $b_new, c_new = a, $b, c
+a, $b, c = 1, 'old', 2
+if 1:
+  local a, $b, c
+  a_new, $b_new, c_new = a, $b, c
+end
+a_old, $b_old, c_old = a, $b, c
     `);
 
     expect(api.readVariable('a_new')).toBe(0);
     expect(api.readVariable('$b_new')).toBe('');
     expect(api.readVariable('c_new')).toBe(0);
+    expect(api.readVariable('a_old')).toBe(1);
+    expect(api.readVariable('$b_old')).toBe('old');
+    expect(api.readVariable('c_old')).toBe(2);
   });
 
   test('multi assignment local', () => {
     runTestFile(api,
       `
-a_new, $b_new, $c_new, d_new = 1, 'old', 'oldest', 2
-local a, $b, $c, d = 3, 'test', 'other', 4
-a_new, $b_new, $c_new, d_new = a, $b, $c, d
+a, $b, $c, d = 1, 'old', 'oldest', 2
+if 1:
+  local a, $b, $c, d = 3, 'test', 'other', 4
+  a_new, $b_new, $c_new, d_new = a, $b, $c, d
+end
+a_old, $b_old, $c_old, d_old = a, $b, $c, d
     `);
 
     expect(api.readVariable('a_new')).toBe(3);
     expect(api.readVariable('$b_new')).toBe('test');
     expect(api.readVariable('$c_new')).toBe('other');
     expect(api.readVariable('d_new')).toBe(4);
+    expect(api.readVariable('a_old')).toBe(1);
+    expect(api.readVariable('$b_old')).toBe('old');
+    expect(api.readVariable('$c_old')).toBe('oldest');
+    expect(api.readVariable('d_old')).toBe(2);
   });
 
   test('local with partial assignment', () => {
     runTestFile(api,
       `
-a_new, $b_new, $c_new, d_new = 1, 'old', 'oldest', 2
-local a, $b, $c, d = 3, 'test'
-a_new, $b_new, $c_new, d_new = a, $b, $c, d
+a, $b, $c, d = 1, 'old', 'oldest', 2
+if 1:
+  local a, $b, $c, d = 3, 'test'
+  a_new, $b_new, $c_new, d_new = a, $b, $c, d
+end
+a_old, $b_old, $c_old, d_old = a, $b, $c, d
     `);
 
     expect(api.readVariable('a_new')).toBe(3);
     expect(api.readVariable('$b_new')).toBe('test');
     expect(api.readVariable('$c_new')).toBe('');
     expect(api.readVariable('d_new')).toBe(0);
+    expect(api.readVariable('a_old')).toBe(1);
+    expect(api.readVariable('$b_old')).toBe('old');
+    expect(api.readVariable('$c_old')).toBe('oldest');
+    expect(api.readVariable('d_old')).toBe(2);
   });
 
   test('multi assignment with the same variable and last num value', () => {
@@ -225,31 +245,68 @@ $y, $x = $x, $y
     runTestFile(
       api,
       `
-$a = "aa" & $b = "bb" & $c = "cc" & $d = "dd" & $e = "ee" & $f = "ff"
+$a = "aa" & $b = "bb" & c = 11 & $d = "dd"
 gs 'other'
 ---
 # other
-local $a,$b,$c,$d,$e,$f = "la","lb","lc","ld","le","lf"
+local $a,$b,c,$d = "la","lb",22,"ld"
 $la = $a
 $lb = $b
-$lc = $c
+lc = c
 $ld = $d
-$le = $e
-$lf = $f
     `);
 
     expect(api.readVariable('$a')).toBe("aa");
     expect(api.readVariable('$la')).toBe("la");
     expect(api.readVariable('$b')).toBe("bb");
     expect(api.readVariable('$lb')).toBe("lb");
-    expect(api.readVariable('$c')).toBe("cc");
-    expect(api.readVariable('$lc')).toBe("lc");
+    expect(api.readVariable('c')).toBe(11);
+    expect(api.readVariable('lc')).toBe(22);
     expect(api.readVariable('$d')).toBe("dd");
     expect(api.readVariable('$ld')).toBe("ld");
-    expect(api.readVariable('$e')).toBe("ee");
-    expect(api.readVariable('$le')).toBe("le");
-    expect(api.readVariable('$f')).toBe("ff");
-    expect(api.readVariable('$lf')).toBe("lf");
+  });
+
+  test('global variables get restored on goto', () => {
+    runTestFile(api,
+      `
+$test='value'
+local $test='value 1'
+if 1:
+  local $test='value 2'
+  $last_loc_test = $test
+  gt 'other'
+end
+---
+# other
+$glob_test = $test
+    `);
+
+    expect(api.readVariable('$last_loc_test')).toBe("value 2");
+    expect(api.readVariable('$glob_test')).toBe("value");
+  });
+
+  test('global variables get temporary restored on savegame', () => {
+    runTestFile(api,
+      `
+$ongsave = 'other'
+$test='value'
+local $test='value 1'
+if 1:
+  local $test='value 2'
+  $last_loc_test1 = $test
+  savegame 'test.gam'
+  $last_loc_test2 = $test
+end
+$last_loc_test3 = $test
+---
+# other
+$glob_test = $test
+    `);
+
+    expect(api.readVariable('$last_loc_test1')).toBe("value 2");
+    expect(api.readVariable('$last_loc_test2')).toBe("value 2");
+    expect(api.readVariable('$last_loc_test3')).toBe("value 1");
+    expect(api.readVariable('$glob_test')).toBe("value");
   });
 
   test('local variables in nested calls are preserved (shadowing global)', () => {
@@ -258,14 +315,14 @@ $lf = $f
       `
 $a = "aa"
 gs 'other'
---- 
+---
 # other
 local $a = "la"
 $la = $a
 gs 'nested'
 ---
 # nested
-$na = $a 
+$na = $a
     `);
 
     expect(api.readVariable('$a')).toBe("aa");
@@ -351,5 +408,5 @@ end
     expect(api.readVariable('$i')).toBe("ii");
     onMsg.mock.calls[0][1]();
     expect(api.readVariable('$i')).toBe("");
-  })
+  });
 });
