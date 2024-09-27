@@ -266,7 +266,8 @@ $ld = $d
     expect(api.readVariable('$ld')).toBe("ld");
   });
 
-  test('global variables get restored on goto', () => {
+  test.each(['gt', 'goto', 'xgt', 'xgoto'])
+  ('global variables get restored on %s', (s) => {
     runTestFile(api,
       `
 $test='value'
@@ -274,7 +275,7 @@ local $test='value 1'
 if 1:
   local $test='value 2'
   $last_loc_test = $test
-  gt 'other'
+  ${s} 'other'
 end
 ---
 # other
