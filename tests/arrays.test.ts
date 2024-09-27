@@ -659,7 +659,7 @@ $res = $arr[1,3]
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
-        errorCode: 101,
+        errorCode: 11,
         line: 7,
         lineSrc: "SORTARR('$a')",
         localLine: 7,

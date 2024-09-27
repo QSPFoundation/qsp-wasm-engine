@@ -167,7 +167,7 @@ act '1': x = 1 & jump 'end'
     expect(api.readVariable('x')).toBe(1);
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
-      errorCode: 112,
+      errorCode: 22,
       description: 'Label not found!',
       line: 2,
       localLine: 2,
@@ -188,7 +188,7 @@ dynamic { x = 1 & jump 'end' }
     expect(api.readVariable('x')).toBe(1);
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
-      errorCode: 112,
+      errorCode: 22,
       description: 'Label not found!',
       line: 2,
       localLine: 1,
@@ -209,7 +209,7 @@ DYNEVAL(" x = 1 & jump 'end' ")
     expect(api.readVariable('x')).toBe(1);
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
-      errorCode: 112,
+      errorCode: 22,
       description: 'Label not found!',
       line: 2,
       localLine: 1,

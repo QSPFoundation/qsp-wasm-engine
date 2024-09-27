@@ -263,7 +263,7 @@ end
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
       description: 'Sign [:] not found!',
-      errorCode: 106,
+      errorCode: 16,
       line: 2,
       lineSrc: 'ACT \'test\'',
       localLine: 2,

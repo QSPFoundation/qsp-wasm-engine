@@ -287,6 +287,9 @@ $glob_test = $test
   });
 
   test('global variables get temporary restored on savegame', () => {
+    const onSaveGame = vi.fn();
+    api.on('save_game', onSaveGame);
+
     runTestFile(api,
       `
 $ongsave = 'other'
@@ -305,6 +308,7 @@ $glob_test = $test
     `);
 
     expect(api.readVariable('$last_loc_test1')).toBe("value 2");
+    onSaveGame.mock.calls[0][1](api.saveGame());
     expect(api.readVariable('$last_loc_test2')).toBe("value 2");
     expect(api.readVariable('$last_loc_test3')).toBe("value 1");
     expect(api.readVariable('$glob_test')).toBe("value");
