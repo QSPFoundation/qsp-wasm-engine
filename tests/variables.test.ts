@@ -314,7 +314,7 @@ $glob_test = $test
     expect(api.readVariable('$glob_test')).toBe("value");
   });
 
-  test('global variables get restored if $ONGSAVE calls goto', () => {
+  test('global variables get restored if ONGSAVE calls goto', () => {
     const onSaveGame = vi.fn((_, callback) => { api.saveGame(); callback(); });
     api.on('save_game', onSaveGame);
 

@@ -315,7 +315,8 @@ export class QspAPIImpl implements QspAPI {
     const ptr = allocErrorInfoPointer(this.module);
     this.module._getLastError(ptr);
     const error = readError(this.module, ptr);
-    this.emit('error', error);
+    if (error.errorCode > 0)
+      this.emit('error', error);
     this.module._free(ptr);
   };
 
