@@ -314,6 +314,44 @@ $glob_test = $test
     expect(api.readVariable('$glob_test')).toBe("value");
   });
 
+  test('global variables get restored if ONGSAVE calls goto', () => {
+    const onSaveGame = vi.fn((_, callback) => { api.saveGame(); callback(); });
+    api.on('save_game', onSaveGame);
+
+    runTestFile(api,
+      `
+$ongsave = 'other'
+$test='value'
+local $test='value 1'
+if 1:
+  local $test='value 2'
+  $last_loc_test1 = $test
+  savegame 'test.sav'
+  $last_loc_test2 = $test
+end
+---
+# other
+$glob_test1 = $test
+gt 'new'
+---
+# new
+$glob_test2 = $test
+act 'test value':
+  $glob_test3 = $test
+end
+    `);
+
+    api.selectAction(0);
+    api.execSelectedAction();
+
+    expect(api.readVariable('$last_loc_test1')).toBe("value 2");
+    expect(onSaveGame).toHaveBeenCalledWith('test.sav', expect.any(Function));
+    expect(api.readVariable('$last_loc_test2')).toBe("");
+    expect(api.readVariable('$glob_test1')).toBe("value");
+    expect(api.readVariable('$glob_test2')).toBe("value");
+    expect(api.readVariable('$glob_test3')).toBe("value");
+  });
+
   test('local variables in nested calls are preserved (shadowing global)', () => {
     runTestFile(
       api,

@@ -176,7 +176,7 @@ void *saveGameData(int *realSize)
     if (!fileSize)
     {
       free(fileData);
-      return fileData;
+      return 0;
     }
   }
 
