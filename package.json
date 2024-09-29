@@ -44,24 +44,24 @@
     "url": "https://github.com/QSPFoundation/qsp-wasm-engine.git"
   },
   "devDependencies": {
-    "@eslint/js": "^9.8.0",
+    "@eslint/js": "^9.11.1",
     "@qsp/converters": "^1.0.1",
-    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
+    "@rollup/plugin-typescript": "^12.1.0",
     "@types/emscripten": "^1.39.13",
     "@types/eslint__js": "^8.42.3",
     "@types/responselike": "^1.0.3",
-    "eslint": "^9.8.0",
+    "eslint": "^9.11.1",
     "eslint-config-prettier": "^9.1.0",
     "np": "^10.0.7",
     "prettier": "3.3.3",
     "rimraf": "^6.0.1",
-    "rollup": "^4.20.0",
+    "rollup": "^4.22.5",
     "rollup-plugin-copy": "^3.5.0",
     "typescript": "^5.5.4",
-    "typescript-eslint": "^8.0.0",
-    "vitest": "^2.0.5"
+    "typescript-eslint": "^8.7.0",
+    "vitest": "^2.1.1"
   },
   "publishConfig": {
     "access": "public"
