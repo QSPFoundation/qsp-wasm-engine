@@ -73,8 +73,8 @@ end
   });
 
   test('function argument gets converted to number', () => {
-    runTestFile(api, ` x = rgb('123', '231', 321) `);
-    expect(api.readVariable('x')).toBe(-6277);
+    runTestFile(api, ` x = rgb('12', '234', 32) `);
+    expect(api.readVariable('x')).toBe(-14620148);
   });
 
   test('function argument cant be converted to number', () => {
