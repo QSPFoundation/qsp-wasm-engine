@@ -39,7 +39,7 @@ describe('api', () => {
     expect(api.readVariableByKey('test', 'тест')).toBe(254);
   });
 
-  it('should read numeric variable in cyrilic', async () => {
+  it('should read numeric variable in cyrillic', async () => {
     runTestFile(api, `тест = 254`);
 
     expect(api.readVariable('тест')).toBe(254);
@@ -68,7 +68,7 @@ describe('api', () => {
     expect(api.readVariableByKey('$test', 'тест')).toBe('252');
   });
 
-  it('should read string variable in cyrilic', async () => {
+  it('should read string variable in cyrillic', async () => {
     runTestFile(api, `$тест = '254'`);
 
     expect(api.readVariable('$тест')).toBe('254');
@@ -108,7 +108,7 @@ describe('api', () => {
   });
 
   it('should read version', () => {
-    expect(api.version()).toEqual('5.9.0');
+    expect(api.version()).toEqual('5.9.1');
   });
 
   it('should watch variable by index', async () => {
