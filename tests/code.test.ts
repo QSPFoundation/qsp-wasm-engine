@@ -34,4 +34,60 @@ end
 
     expect(api.readVariable('$type')).toBe('new');
   });
+
+  test('statement argument gets converted to string', () => {
+    const onMsg: Mock = vi.fn();
+    api.on('msg', onMsg);
+
+    runTestFile(api, ` msg 567 ` );
+    expect(onMsg).toHaveBeenCalledWith('567', expect.any(Function));
+    onMsg.mock.calls[0][1]();
+  });
+
+  test('statement argument gets converted to number', () => {
+    const onWait: Mock = vi.fn();
+    api.on('wait', onWait);
+
+    runTestFile(api, ` wait '567' `);
+    expect(onWait).toHaveBeenCalledWith(567, expect.any(Function));
+    onWait.mock.calls[0][1]();
+  });
+
+  test('statement argument cant be converted to number', () => {
+    runTestFile(api, ` wait 'sdsd' `);
+    expect(error).toHaveBeenCalledWith({
+      errorCode: 11,
+      description: 'Type mismatch!',
+      location: 'test',
+      actionIndex: -1,
+      line: 1,
+      localLine: 1,
+      lineSrc: "WAIT 'sdsd'"
+    });
+    error.mockReset();
+  });
+
+  test('function argument gets converted to string', () => {
+    runTestFile(api, ` $x = replace(123456, 456, 34) `);
+    expect(api.readVariable('$x')).toBe('12334');
+  });
+
+  test('function argument gets converted to number', () => {
+    runTestFile(api, ` x = rgb('123', '231', 321) `);
+    expect(api.readVariable('x')).toBe(-6277);
+  });
+
+  test('function argument cant be converted to number', () => {
+    runTestFile(api, ` x = rgb('123', '65sd', 789) `);
+    expect(error).toHaveBeenCalledWith({
+      errorCode: 11,
+      description: 'Type mismatch!',
+      location: 'test',
+      actionIndex: -1,
+      line: 1,
+      localLine: 1,
+      lineSrc: "X = RGB('123', '65sd', 789)"
+    });
+    error.mockReset();
+  });
 });
