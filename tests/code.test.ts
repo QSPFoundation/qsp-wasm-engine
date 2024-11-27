@@ -78,7 +78,7 @@ end
   });
 
   test('function argument cant be converted to number', () => {
-    runTestFile(api, ` x = rgb('123', '65sd', 789) `);
+    runTestFile(api, ` x = rgb('123', '65sd', 56) `);
     expect(error).toHaveBeenCalledWith({
       errorCode: 11,
       description: 'Type mismatch!',
