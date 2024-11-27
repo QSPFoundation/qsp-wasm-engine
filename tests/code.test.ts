@@ -86,7 +86,7 @@ end
       actionIndex: -1,
       line: 1,
       localLine: 1,
-      lineSrc: "X = RGB('123', '65sd', 789)"
+      lineSrc: "X = RGB('123', '65sd', 56)"
     });
     error.mockReset();
   });
