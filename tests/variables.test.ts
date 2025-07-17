@@ -5,10 +5,13 @@ import { QspAPI } from '../src/contracts/api';
 describe('variables', () => {
   let api: QspAPI;
   let error: Mock;
+  let actsChanged: Mock;
   beforeEach(async () => {
     api = await prepareApi();
     error = vi.fn();
     api.on('error', error);
+    actsChanged = vi.fn();
+    api.on('actions_changed', actsChanged);
   });
   afterEach(() => {
     api._cleanup();
