@@ -452,4 +452,53 @@ end
     onMsg.mock.calls[0][1]();
     expect(api.readVariable('$i')).toBe("");
   });
+
+  test('keep location variables on code execution using execCode', () => {
+    runTestFile(api, "args[0] = 42 & $args[1] = 'red'");
+    api.execCode("age = args[0] & $color = $args[1]");
+    expect(api.readVariable("age")).toBe(42);
+    expect(api.readVariable("$color")).toBe("red");
+  });
+
+  test("keep location variables on code execution using execCode after goto", () => {
+    runTestFile(
+      api,
+      `
+args[0] = 42
+$args[1] = 'red'
+$args[2] = 'dark'
+gt 'second'
+---
+
+# second
+args[0] = 24
+$args[1] = 'green'
+---
+      `,
+    );
+    api.execCode("age = args[0] & $color = $args[1]");
+    expect(api.readVariable("age")).toBe(24);
+    expect(api.readVariable("$color")).toBe("green");
+    expect(api.readVariable("$theme")).toBe("");
+  });
+
+  test("keep location variables on execution of an action", () => {
+    runTestFile(
+      api,
+      `
+args[0] = 24
+$args[1] = 'green'
+
+act '$args[0] = red':
+  age = args[0] & $color = $args[1]
+end
+      `,
+    );
+
+    api.selectAction(0);
+    api.execSelectedAction();
+
+    expect(api.readVariable("age")).toBe(24);
+    expect(api.readVariable("$color")).toBe("green");
+  });
 });
