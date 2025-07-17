@@ -494,6 +494,7 @@ act '$args[0] = red':
 end
       `,
     );
+    expect(api.readVariable("age")).toBe(0);
 
     api.selectAction(0);
     api.execSelectedAction();
