@@ -514,7 +514,7 @@ gt 'target'
 args[0] = 24
 $args[1] = 'green'
 
-act '$args[0] = red':
+act 'show':
   age = args[0] & $color = $args[1]
 end
       `,
