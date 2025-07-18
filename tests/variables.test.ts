@@ -485,10 +485,32 @@ $args[1] = 'green'
     expect(api.readVariable("$theme")).toBe("");
   });
 
+  test('для проверки! GOTO arguments should be avaliable in actions', () => {
+    runTestFile(
+      api,
+      `
+gt 'target', 'test', 12
+---
+# target
+act '2':
+  $args_0 = $args[0]
+  args_1 = args[1]
+end
+    `,
+    );
+    api.selectAction(0);
+    api.execSelectedAction();
+    expect(api.readVariable('$args_0')).toBe('test');
+    expect(api.readVariable('args_1')).toBe(12);
+  });
+
   test("keep location variables on execution of an action", () => {
     runTestFile(
       api,
       `
+gt 'target'
+---
+# target
 args[0] = 24
 $args[1] = 'green'
 
