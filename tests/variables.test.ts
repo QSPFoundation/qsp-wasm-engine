@@ -513,6 +513,8 @@ $args[1] = 'green'
 
 act 'show':
   age = args[0] & $color = $args[1]
+  age
+  $color
 end
       `,
     );
