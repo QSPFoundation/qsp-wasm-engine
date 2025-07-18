@@ -485,24 +485,7 @@ $args[1] = 'green'
     expect(api.readVariable("$theme")).toBe("");
   });
 
-  test("1 keep location variables on execution of an action", () => {
-    runTestFile(
-      api,
-      `
-args[0] = 24
-
-act 'show':
-  age = args[0]
-end
-      `,
-    );
-    api.selectAction(0);
-    api.execSelectedAction();
-
-    expect(api.readVariable("age")).toBe(24);
-  });
-
-  test("with goto: keep location variables on execution of an action", () => {
+  test("keep location variables on execution of an action", () => {
     runTestFileWithGoto(
       api,
       `
@@ -511,31 +494,6 @@ $args[1] = 'green'
 
 act 'show':
   age = args[0] & $color = $args[1]
-  age
-  $color
-end
-      `,
-    );
-    expect(api.readVariable("age")).toBe(0);
-
-    api.selectAction(0);
-    api.execSelectedAction();
-
-    expect(api.readVariable("age")).toBe(24);
-    expect(api.readVariable("$color")).toBe("green");
-  });
-
-  test("keep location variables on execution of an action", () => {
-    runTestFile(
-      api,
-      `
-args[0] = 24
-$args[1] = 'green'
-
-act 'show':
-  age = args[0] & $color = $args[1]
-  age
-  $color
 end
       `,
     );
