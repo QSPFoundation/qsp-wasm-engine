@@ -508,9 +508,6 @@ end
     runTestFile(
       api,
       `
-gt 'target'
----
-# target
 args[0] = 24
 $args[1] = 'green'
 
