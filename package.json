@@ -23,7 +23,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:debug": "DEBUG=1 vitest run",
-    "prepublish": "npm run build",
+    "prepublish": "pnpm run build",
     "release": "np",
     "lint": "eslint .",
     "check-types": "tsc --noEmit",
@@ -68,5 +68,6 @@
   },
   "np": {
     "yarn": false
-  }
+  },
+  "packageManager": "pnpm@10.17.0"
 }
