@@ -108,7 +108,7 @@ describe('api', () => {
   });
 
   it('should read version', () => {
-    expect(api.version()).toEqual('5.9.1');
+    expect(api.version()).toEqual('5.9.4');
   });
 
   it('should watch variable by index', async () => {

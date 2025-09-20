@@ -1,4 +1,5 @@
 #include <wchar.h>
+#include <stdlib.h>
 #include "emscripten.h"
 
 #ifdef __has_feature
@@ -67,9 +68,9 @@ void getMainDesc(QSPString *result)
 }
 
 EMSCRIPTEN_KEEPALIVE
-QSP_BOOL isMainDescChanged()
+int getWindowsChangedState()
 {
-  return QSPIsMainDescChanged();
+  return QSPGetWindowsChangedState();
 }
 
 /* Vars desc */
@@ -79,11 +80,6 @@ void getVarsDesc(QSPString *result)
   *result = QSPGetVarsDesc();
 }
 
-EMSCRIPTEN_KEEPALIVE
-QSP_BOOL isVarsDescChanged()
-{
-  return QSPIsVarsDescChanged();
-}
 
 /* Actions */
 EMSCRIPTEN_KEEPALIVE
@@ -110,17 +106,12 @@ void executeSelAction()
     onError();
 }
 
-EMSCRIPTEN_KEEPALIVE
-QSP_BOOL isActionsChanged()
-{
-  return QSPIsActionsChanged();
-}
 
 /* Objects */
 EMSCRIPTEN_KEEPALIVE
-QSPListItem *getObjects(int *count)
+QSPObjectItem *getObjects(int *count)
 {
-  QSPListItem *items = (QSPListItem *)malloc(MAX_LIST_ITEMS * sizeof(QSPListItem));
+  QSPObjectItem *items = (QSPObjectItem *)malloc(MAX_LIST_ITEMS * sizeof(QSPObjectItem));
   *count = QSPGetObjects(items, MAX_LIST_ITEMS);
   return items;
 }
@@ -134,11 +125,6 @@ void selectObject(int index)
   }
 }
 
-EMSCRIPTEN_KEEPALIVE
-QSP_BOOL isObjectsChanged()
-{
-  return QSPIsObjectsChanged();
-}
 
 /* Game */
 EMSCRIPTEN_KEEPALIVE
@@ -286,6 +272,12 @@ void setCallback(int type, QSP_CALLBACK func)
 /* Struct utils */
 EMSCRIPTEN_KEEPALIVE
 void freeItemsList(QSPListItem *items)
+{
+  free(items);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void freeObjectsList(QSPObjectItem *items)
 {
   free(items);
 }

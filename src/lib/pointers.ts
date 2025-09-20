@@ -1,4 +1,4 @@
-import { QspErrorData, QspListItem } from '../contracts/common';
+import { QspErrorData, QspListItem, QspObjectItem } from '../contracts/common';
 import { CharsPtr, ErrorPtr, Ptr, QspWasmModule, StringPtr, VariantPointer } from '../contracts/wasm-module';
 import { QspTuple } from '../index-debug';
 
@@ -83,6 +83,19 @@ export function withListRead(module: QspWasmModule, callback: (ptr: Ptr) => Ptr)
   return list;
 }
 
+export function withObjectRead(module: QspWasmModule, callback: (ptr: Ptr) => Ptr): QspObjectItem[] {
+  const countPtr = allocPointer(module);
+
+  const listPtr = callback(countPtr);
+  const count = readInt(module, countPtr);
+  const list = readObjectItems(module, listPtr, count);
+
+  module._freeObjectsList(listPtr);
+  freePointer(module, countPtr);
+
+  return list;
+}
+
 export function withStringListRead(module: QspWasmModule, callback: (ptr: Ptr) => Ptr): string[] {
   const countPtr = allocPointer(module);
 
@@ -132,14 +145,36 @@ export function readListItems(module: QspWasmModule, listPtr: Ptr, count: number
   const list: QspListItem[] = [];
   let ptr = listPtr;
   for (let i = 0; i < count; i++) {
-    const image = readString(module, ptr);
+    const name = readString(module, ptr);
     ptr = movePointer(ptr, 2);
 
-    const name = readString(module, ptr);
+    const image = readString(module, ptr);
     ptr = movePointer(ptr, 2);
 
     list.push({
       name,
+      image,
+    });
+  }
+  return list;
+}
+
+export function readObjectItems(module: QspWasmModule, listPtr: Ptr, count: number): QspObjectItem[] {
+  const list: QspObjectItem[] = [];
+  let ptr = listPtr;
+  for (let i = 0; i < count; i++) {
+    const name = readString(module, ptr);
+    ptr = movePointer(ptr, 2);
+
+    const title = readString(module, ptr);
+    ptr = movePointer(ptr, 2);
+
+    const image = readString(module, ptr);
+    ptr = movePointer(ptr, 2);
+
+    list.push({
+      name,
+      title,
       image,
     });
   }
@@ -227,8 +262,11 @@ function readUTF32String(module: QspWasmModule, ptr: Ptr, maxBytesToRead: number
 
 const QSP_TYPE_TUPLE = 0;
 const QSP_TYPE_NUM = 1;
-const QSP_TYPE_STR = 2;
-const QSP_TYPE_UNDEF = 5;
+const QSP_TYPE_BOOL = 2;
+const QSP_TYPE_STR = 3;
+const QSP_TYPE_CODE = 4;
+const QSP_TYPE_VARREF = 5;
+const QSP_TYPE_UNDEF = 6;
 
 export function withVariantRead(
   module: QspWasmModule,
@@ -255,11 +293,14 @@ export function readVariable(
       }
       return readTuple(module, variant);
     case QSP_TYPE_NUM:
+    case QSP_TYPE_BOOL:
       if (name) {
         return name.startsWith('%') ? [] : name.startsWith('$') ? '' : readI32Value(module, variant);
       }
       return readI32Value(module, variant);
     case QSP_TYPE_STR:
+    case QSP_TYPE_CODE:
+    case QSP_TYPE_VARREF:
       if (name) {
         return name.startsWith('%') ? [] : name.startsWith('$') ? readString(module, variant) : 0;
       }

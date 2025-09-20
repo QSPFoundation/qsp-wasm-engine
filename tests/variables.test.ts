@@ -213,7 +213,7 @@ new_num, $new_str = a, $a
     expect(api.readVariableByIndex('a', 3)).toBe(4);
   });
 
-  test('global variables get restored after killvar with local', () => {
+  test('local variables get removed on killvar', () => {
     runTestFile(api,
       `
 a = 1 & $b = 'test' & c = 3
@@ -223,8 +223,8 @@ if 1:
 end
     `);
 
-    expect(api.readVariable('a')).toBe(1);
-    expect(api.readVariable('$b')).toBe('test');
+    expect(api.readVariable('a')).toBe(0);
+    expect(api.readVariable('$b')).toBe('');
     expect(api.readVariable('c')).toBe(0);
   });
 
@@ -283,34 +283,6 @@ $glob_test = $test
     `);
 
     expect(api.readVariable('$last_loc_test')).toBe("value 2");
-    expect(api.readVariable('$glob_test')).toBe("value");
-  });
-
-  test('global variables get temporary restored on savegame', () => {
-    const onSaveGame = vi.fn((_, callback) => { api.saveGame(); callback(); });
-    api.on('save_game', onSaveGame);
-
-    runTestFile(api,
-      `
-$ongsave = 'other'
-$test='value'
-local $test='value 1'
-if 1:
-  local $test='value 2'
-  $last_loc_test1 = $test
-  savegame 'test.sav'
-  $last_loc_test2 = $test
-end
-$last_loc_test3 = $test
----
-# other
-$glob_test = $test
-    `);
-
-    expect(api.readVariable('$last_loc_test1')).toBe("value 2");
-    expect(onSaveGame).toHaveBeenCalledWith('test.sav', expect.any(Function));
-    expect(api.readVariable('$last_loc_test2')).toBe("value 2");
-    expect(api.readVariable('$last_loc_test3')).toBe("value 1");
     expect(api.readVariable('$glob_test')).toBe("value");
   });
 

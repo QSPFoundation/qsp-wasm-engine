@@ -1,10 +1,10 @@
-import { DebugRecord, QspErrorData, QspListItem, QspPanel } from './common';
+import { DebugRecord, QspErrorData, QspListItem, QspObjectItem, QspPanel } from './common';
 
 export type QspEvents = {
   main_changed: (text: string) => void;
   stats_changed: (text: string) => void;
   actions_changed: (actions: QspListItem[]) => void;
-  objects_changed: (objects: QspListItem[]) => void;
+  objects_changed: (objects: QspObjectItem[]) => void;
   panel_visibility: (type: QspPanel, isShown: boolean) => void;
   user_input: (text: string) => void;
   error: (errorData: QspErrorData) => void;

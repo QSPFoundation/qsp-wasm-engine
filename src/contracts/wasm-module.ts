@@ -15,14 +15,15 @@ export enum QspCallType {
   PLAYFILE /* void func(QSPString file, int volume) */,
   CLOSEFILE /* void func(QSPString file) */,
   SHOWIMAGE /* void func(QSPString file) */,
-  SHOWWINDOW /* void func(int type, QSP_BOOL isShow) */,
+  SHOWWINDOW /* void func(int type, QSP_BOOL toShow) */,
   SHOWMENU /* int func(QSPListItem *items, int count) */,
   SHOWMSGSTR /* void func(QSPString text) */,
-  REFRESHINT /* void func(QSP_BOOL isRedraw) */,
+  REFRESHINT /* void func(QSP_BOOL isForced, QSP_BOOL isNewDesc) */,
   SETTIMER /* void func(int msecs) */,
   SETINPUTSTRTEXT /* void func(QSPString text) */,
   SYSTEM /* void func(QSPString cmd) */,
-  OPENGAME /* void func(QSP_BOOL isNewGame) */,
+  OPENGAME /* void func(QSPString file, QSP_BOOL isNewGame) */,
+  INITGAMESTATUS /* void func(QSP_BOOL isNewGame) */,
   OPENGAMESTATUS /* void func(QSPString file) */,
   SAVEGAMESTATUS /* void func(QSPString file) */,
   SLEEP /* void func(int msecs) */,
@@ -30,6 +31,16 @@ export enum QspCallType {
   INPUTBOX /* void func(QSPString text, QSP_CHAR *buffer, int maxLen) */,
   VERSION /* void func(QSPString param, QSP_CHAR *buffer, int maxLen) */,
   DUMMY,
+}
+
+export enum QspWindow {
+  MAIN = 1 << 0,
+  VARS = 1 << 1,
+  ACTS = 1 << 2,
+  OBJS = 1 << 3,
+  INPUT = 1 << 4,
+  VIEW = 1 << 5,
+  ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5),
 }
 
 export interface QspWasmModule extends EmscriptenModule {
@@ -40,6 +51,7 @@ export interface QspWasmModule extends EmscriptenModule {
 
   _freeString(string: CharsPtr): void;
   _freeItemsList(items: Ptr): void;
+  _freeObjectsList(items: Ptr): void;
   _freeSaveBuffer(buffer: Ptr): void;
   _freeStringsBuffer(buffer: Ptr): void;
 
@@ -52,19 +64,16 @@ export interface QspWasmModule extends EmscriptenModule {
   _getVersion(ptr: Ptr): void;
 
   _getMainDesc(ptr: Ptr): void;
-  _isMainDescChanged(): Bool;
-
   _getVarsDesc(ptr: Ptr): void;
-  _isVarsDescChanged(): Bool;
 
   _getActions(list: Ptr): Ptr;
   _selectAction(index: number): void;
   _executeSelAction(): void;
-  _isActionsChanged(): Bool;
 
   _getObjects(list: Ptr): Ptr;
   _selectObject(index: number): void;
-  _isObjectsChanged(): Bool;
+
+  _getWindowsChangedState(): number;
 
   _loadGameData(data: BufferPtr, size: number, isNewGame: Bool): void;
   _restartGame(): void;

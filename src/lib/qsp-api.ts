@@ -1,7 +1,7 @@
 import { QspAPI, QspTuple, QspVariableType } from '../contracts/api';
 import { QspPanel } from '../contracts/common';
 import { QspEventKeys, QspEventListeners, QspEvents } from '../contracts/events';
-import { Ptr, QspCallType, QspWasmModule, StringPtr } from '../contracts/wasm-module';
+import { Ptr, QspCallType, QspWasmModule, QspWindow, StringPtr } from '../contracts/wasm-module';
 import {
   asAsync,
   readListItems,
@@ -9,6 +9,7 @@ import {
   withBufferRead,
   withBufferWrite,
   withListRead,
+  withObjectRead,
   withStringListRead,
   withStringRead,
   withStringWrite,
@@ -277,7 +278,7 @@ export class QspAPIImpl implements QspAPI {
     this.module._setErrorCallback(this.module.addFunction(this.onError, 'i'));
 
     const callbacks = [
-      [QspCallType.REFRESHINT, this.onRefresh, 'ii'],
+      [QspCallType.REFRESHINT, this.onRefresh, 'iii'],
       [QspCallType.SHOWWINDOW, this.onShowWindow, 'iii'],
       [QspCallType.SHOWMENU, this.onMenu, 'iii'],
       [QspCallType.SHOWMSGSTR, this.onMsg, 'ii'],
@@ -320,24 +321,26 @@ export class QspAPIImpl implements QspAPI {
     this.module._free(ptr);
   };
 
-  onRefresh = (isRedraw: boolean): void => {
-    if (isRedraw || this.module._isMainDescChanged()) {
+  onRefresh = (isForced: boolean, isNewDesc: boolean): void => {
+    const changedState = this.module._getWindowsChangedState();
+
+    if (isForced || isNewDesc || (changedState & QspWindow.MAIN) !== 0) {
       const mainDesc = withStringRead(this.module, (ptr) => this.module._getMainDesc(ptr));
       this.emit('main_changed', mainDesc);
     }
 
-    if (isRedraw || this.module._isVarsDescChanged()) {
+    if (isForced || isNewDesc || (changedState & QspWindow.VARS) !== 0) {
       const varsDesc = withStringRead(this.module, (ptr) => this.module._getVarsDesc(ptr));
       this.emit('stats_changed', varsDesc);
     }
 
-    if (isRedraw || this.module._isActionsChanged()) {
+    if (isForced || isNewDesc || (changedState & QspWindow.ACTS) !== 0) {
       const actions = withListRead(this.module, (ptr) => this.module._getActions(ptr));
       this.emit('actions_changed', actions);
     }
 
-    if (isRedraw || this.module._isObjectsChanged()) {
-      const objects = withListRead(this.module, (ptr) => this.module._getObjects(ptr));
+    if (isForced || isNewDesc || (changedState & QspWindow.OBJS) !== 0) {
+      const objects = withObjectRead(this.module, (ptr) => this.module._getObjects(ptr));
       this.emit('objects_changed', objects);
     }
     setTimeout(() => this.reportWatched(), 0);
@@ -437,7 +440,7 @@ export class QspAPIImpl implements QspAPI {
   };
 
   onSystemCmd = (strPtr: StringPtr): void => {
-    this.onRefresh(false);
+    this.onRefresh(false, false);
     const text = readString(this.module, strPtr);
     this.emit('system_cmd', text);
   };

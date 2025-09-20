@@ -93,9 +93,9 @@ describe('stats panel', () => {
     const panelVisibilityChanged = vi.fn();
     api.on('panel_visibility', panelVisibilityChanged);
     runTestFile(api, `SHOWSTAT 0`);
-    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.STAT, 0);
+    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, 0);
 
     api.execCode(`SHOWSTAT 1`);
-    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.STAT, 1);
+    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, 1);
   });
 });

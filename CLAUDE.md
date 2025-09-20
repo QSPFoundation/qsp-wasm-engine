@@ -25,6 +25,7 @@ This is `@qsp/wasm-engine`, a WebAssembly wrapper for the QSP (Quest Soft Player
 - `pnpm run compile` - Compile C code to WASM using Docker with Emscripten SDK
 - Requires Docker to be running
 - Uses `./compile-wasm.sh` script inside Emscripten container
+- **Alternative**: If Docker is not available, run `./compile-wasm.sh` directly (requires Emscripten SDK installed locally)
 
 ### Publishing
 - `pnpm run release` - Release new version using `np` package

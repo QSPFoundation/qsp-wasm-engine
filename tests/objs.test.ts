@@ -37,10 +37,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
       {
         name: 'second',
         image: '',
+        title: 'second',
       },
     ]);
   });
@@ -52,10 +54,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
     ]);
   });
@@ -67,6 +71,7 @@ describe('objects', () => {
       {
         name: 'first',
         image: '1.png',
+        title: 'first',
       },
     ]);
   });
@@ -78,10 +83,12 @@ describe('objects', () => {
       {
         name: 'second',
         image: '',
+        title: 'second',
       },
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
     ]);
   });
@@ -93,10 +100,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
       {
         name: 'second',
         image: '',
+        title: 'second',
       },
     ]);
   });
@@ -108,6 +117,7 @@ describe('objects', () => {
       {
         name: 'first',
         image: '1.png',
+        title: 'first',
       },
     ]);
   });
@@ -119,10 +129,12 @@ describe('objects', () => {
       {
         name: 'second',
         image: '',
+        title: 'second',
       },
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
     ]);
   });
@@ -132,7 +144,7 @@ describe('objects', () => {
     api.on('stats_changed', statChanged);
     runTestFile(api, `ADDOBJ 'first','1.png' & ADDOBJ 'second' & p $CUROBJS`);
 
-    expect(statChanged).toHaveBeenCalledWith(`ADDOBJ 'first','1.png'\r\nADDOBJ 'second'\r\n`);
+    expect(statChanged).toHaveBeenCalledWith(`ADDOBJ 'first', '1.png'\r\nADDOBJ 'second'\r\n`);
   });
 
   test('objects should be restored from $CUROBJS', () => {
@@ -142,10 +154,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
       {
         name: 'second',
         image: '2.png',
+        title: 'second',
       },
     ]);
     objectsChanged.mockReset();
@@ -159,10 +173,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
       {
         name: 'second',
         image: '2.png',
+        title: 'second',
       },
     ]);
   });
@@ -174,6 +190,7 @@ describe('objects', () => {
       {
         name: 'first',
         image: '1.png',
+        title: 'first',
       },
     ]);
     objectsChanged.mockClear();
@@ -189,6 +206,7 @@ describe('objects', () => {
       {
         name: 'first',
         image: '1.png',
+        title: 'first',
       },
     ]);
     objectsChanged.mockClear();
@@ -204,10 +222,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '1.png',
+        title: 'first',
       },
       {
         name: 'first',
         image: '2.png',
+        title: 'first',
       },
     ]);
     objectsChanged.mockClear();
@@ -217,6 +237,7 @@ describe('objects', () => {
       {
         name: 'first',
         image: '2.png',
+        title: 'first',
       },
     ]);
   });
@@ -228,10 +249,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
       {
         name: 'second',
         image: '',
+        title: 'second',
       },
     ]);
     objectsChanged.mockClear();
@@ -241,6 +264,7 @@ describe('objects', () => {
       {
         name: 'second',
         image: '',
+        title: 'second',
       },
     ]);
   });
@@ -252,10 +276,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
       {
         name: 'second',
         image: '',
+        title: 'second',
       },
     ]);
     objectsChanged.mockClear();
@@ -271,10 +297,12 @@ describe('objects', () => {
       {
         name: 'first',
         image: '',
+        title: 'first',
       },
       {
         name: 'second',
         image: '',
+        title: 'second',
       },
     ]);
     objectsChanged.mockClear();

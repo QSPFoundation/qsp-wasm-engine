@@ -32,7 +32,7 @@ set_target_properties(qsp-engine PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -s WASM=1 \
     -s RESERVED_FUNCTION_POINTERS=20 \
     -s ASYNCIFY \
-    -s EXPORTED_RUNTIME_METHODS='[addFunction, Asyncify]' \
+    -s EXPORTED_RUNTIME_METHODS='[addFunction, Asyncify, HEAPU8, HEAP8, HEAPU16, HEAP16, HEAPU32, HEAP32, HEAPF32, HEAPF64]' \
     -s EXPORTED_FUNCTIONS='[_malloc, _free]' \
     -s ENVIRONMENT='web,worker,webview,node' \
     -s STACK_SIZE=5242880 \
@@ -67,7 +67,7 @@ set_target_properties(qsp-engine-debug PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -s WASM=1 \
     -s RESERVED_FUNCTION_POINTERS=20 \
     -s ASYNCIFY \
-    -s EXPORTED_RUNTIME_METHODS='[addFunction, Asyncify]' \
+    -s EXPORTED_RUNTIME_METHODS='[addFunction, Asyncify, HEAPU8, HEAP8, HEAPU16, HEAP16, HEAPU32, HEAP32, HEAPF32, HEAPF64]' \
     -s EXPORTED_FUNCTIONS='[_malloc, _free]' \
     -s ENVIRONMENT='web,worker,webview,node' \
     -s STACK_SIZE=5242880 \
