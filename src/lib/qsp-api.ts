@@ -1,6 +1,6 @@
 import { QspAPI, QspTuple, QspVariableType } from '../contracts/api';
 import { QspPanel, QspListItem } from '../contracts/common';
-import { QspEventKeys, QspEventListeners, QspEvents } from '../contracts/events';
+import { QspEventKeys, QspEventListeners, QspEvents, QspEventLogger } from '../contracts/events';
 import { Ptr, QspCallType, QspWasmModule, QspWindow, StringPtr } from '../contracts/wasm-module';
 import {
   asAsync,
@@ -26,6 +26,7 @@ export class QspAPIImpl implements QspAPI {
   private listeners = new Map<QspEventKeys, QspEventListeners[]>();
   private variableWatchers = new Set<() => void>();
   private variableValues = new Map<string, string | number | QspTuple>();
+  private eventLogger: QspEventLogger | null = null;
 
   private time: number = Date.now();
 
@@ -49,6 +50,10 @@ export class QspAPIImpl implements QspAPI {
     } else {
       this.listeners.delete(event);
     }
+  }
+
+  registerEventLogger(logger: QspEventLogger): void {
+    this.eventLogger = logger;
   }
 
   watchVariable<Name extends string>(
@@ -113,7 +118,9 @@ export class QspAPIImpl implements QspAPI {
     event: E,
     ...args: Parameters<CB>
   ): void {
-    console.log({ event, args });
+    if (this.eventLogger) {
+      this.eventLogger.log(event, ...args);
+    }
     const list = this.listeners.get(event) ?? [];
     for (const listener of list) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

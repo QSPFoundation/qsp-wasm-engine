@@ -1,4 +1,4 @@
-import { QspEvents } from './events';
+import { QspEvents, QspEventLogger } from './events';
 import { QspListItem } from './common';
 
 export type QspTuple = Array<string | number | QspTuple>;
@@ -11,6 +11,7 @@ export type QspVariableType<Name extends string> = Name extends `$${infer _A}`
 export interface QspAPI {
   on<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
   off<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
+  registerEventLogger(logger: QspEventLogger): void;
   version(): string;
   openGame(data: ArrayBuffer, isNewGame: boolean): void;
   saveGame(): ArrayBuffer | null;

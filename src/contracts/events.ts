@@ -30,3 +30,7 @@ export type QspEvents = {
 
 export type QspEventKeys = keyof QspEvents;
 export type QspEventListeners = QspEvents[QspEventKeys];
+
+export interface QspEventLogger {
+  log<E extends keyof QspEvents>(event: E, ...args: Parameters<QspEvents[E]>): void;
+}
