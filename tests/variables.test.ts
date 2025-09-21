@@ -380,7 +380,7 @@ act '1': $a & $args[0]
     api.selectAction(0);
     api.execSelectedAction();
 
-    expect(onMain).toHaveBeenCalledWith('\r\nbb\r\n');
+    expect(onMain).toHaveBeenCalledWith('\r\nbb\r\n', false);
   });
 
   test('local variables inside actions', () => {
@@ -403,12 +403,12 @@ end
     api.selectAction(0);
     api.execSelectedAction();
 
-    expect(onMain).toHaveBeenCalledWith('lii\r\n');
+    expect(onMain).toHaveBeenCalledWith('lii\r\n', false);
 
     api.selectAction(1);
     api.execSelectedAction();
 
-    expect(onMain).toHaveBeenCalledWith('lii\r\nii\r\n');
+    expect(onMain).toHaveBeenCalledWith('lii\r\nii\r\n', false);
   });
 
   test('local variables available with flow stop in callbacks', () => {

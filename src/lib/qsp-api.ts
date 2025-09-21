@@ -329,22 +329,22 @@ export class QspAPIImpl implements QspAPI {
   onRefresh = (isForced: boolean, isNewDesc: boolean): void => {
     const changedState = this.module._getWindowsChangedState();
 
-    if (isForced || isNewDesc || (changedState & QspWindow.MAIN) !== 0) {
+    if (isForced || (changedState & QspWindow.MAIN) !== 0) {
       const mainDesc = withStringRead(this.module, (ptr) => this.module._getMainDesc(ptr));
-      this.emit('main_changed', mainDesc);
+      this.emit('main_changed', mainDesc, Boolean(isNewDesc));
     }
 
-    if (isForced || isNewDesc || (changedState & QspWindow.VARS) !== 0) {
+    if (isForced || (changedState & QspWindow.VARS) !== 0) {
       const varsDesc = withStringRead(this.module, (ptr) => this.module._getVarsDesc(ptr));
       this.emit('stats_changed', varsDesc);
     }
 
-    if (isForced || isNewDesc || (changedState & QspWindow.ACTS) !== 0) {
+    if (isForced || (changedState & QspWindow.ACTS) !== 0) {
       const actions = withListRead(this.module, (ptr) => this.module._getActions(ptr));
       this.emit('actions_changed', actions);
     }
 
-    if (isForced || isNewDesc || (changedState & QspWindow.OBJS) !== 0) {
+    if (isForced || (changedState & QspWindow.OBJS) !== 0) {
       const objects = withObjectRead(this.module, (ptr) => this.module._getObjects(ptr));
       this.emit('objects_changed', objects);
     }

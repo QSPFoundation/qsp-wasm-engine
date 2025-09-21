@@ -33,7 +33,7 @@ describe('exec', () => {
     runTestFile(api, `*p 'before' & exec('test') & *p '-after'`);
 
     expect(onMain).toHaveBeenCalledTimes(2);
-    expect(onMain).toHaveBeenCalledWith('before');
-    expect(onMain).toHaveBeenCalledWith('before-after');
+    expect(onMain).toHaveBeenCalledWith('before', false);
+    expect(onMain).toHaveBeenCalledWith('before-after', false);
   });
 });

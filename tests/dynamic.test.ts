@@ -45,7 +45,7 @@ describe('dynamics', () => {
       `,
       );
 
-      expect(onMain).toHaveBeenCalledWith('qwerty\r\nasdfg\r\n');
+      expect(onMain).toHaveBeenCalledWith('qwerty\r\nasdfg\r\n', false);
     });
 
     test('curly braces evaluate expressions when dynamic is called', () => {
@@ -65,7 +65,7 @@ describe('dynamics', () => {
       `,
       );
 
-      expect(onMain).toHaveBeenCalledWith('asdfg\r\nasdfg\r\n');
+      expect(onMain).toHaveBeenCalledWith('asdfg\r\nasdfg\r\n', false);
     });
 
     test('args should be isolated from location', () => {
@@ -135,7 +135,7 @@ dyneval("code = 123 + 890")
 code          `,
       );
 
-      expect(onMain).toHaveBeenCalledWith('123\r\n1013\r\n');
+      expect(onMain).toHaveBeenCalledWith('123\r\n1013\r\n', false);
     });
   
     test('args should be isolated from locations', () => {

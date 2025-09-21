@@ -44,7 +44,7 @@ $gt_location = $curloc
     `,
     );
 
-    expect(onMain).toHaveBeenCalledWith('main');
+    expect(onMain).toHaveBeenCalledWith('main', true);
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -56,7 +56,7 @@ $gt_location = $curloc
 
     api.execCode(`GOTO 'target', 1, 'test'`);
 
-    expect(onMain).toHaveBeenCalledWith('target main');
+    expect(onMain).toHaveBeenCalledWith('target main', true);
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -93,7 +93,7 @@ $gt_location = $curloc
     `,
     );
 
-    expect(onMain).toHaveBeenCalledWith('main');
+    expect(onMain).toHaveBeenCalledWith('main', true);
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -105,7 +105,7 @@ $gt_location = $curloc
 
     api.execCode(`GT 'target', 1, 'test'`);
 
-    expect(onMain).toHaveBeenCalledWith('target main');
+    expect(onMain).toHaveBeenCalledWith('target main', true);
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -141,7 +141,7 @@ act '2': x
 $xgt_location = $curloc
     `,
     );
-    expect(onMain).toHaveBeenCalledWith('main');
+    expect(onMain).toHaveBeenCalledWith('main', true);
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -153,7 +153,7 @@ $xgt_location = $curloc
 
     api.execCode(`XGOTO 'target', 1, 'test'`);
 
-    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
+    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main', false);
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -190,7 +190,7 @@ $xgt_location = $curloc
     `,
     );
 
-    expect(onMain).toHaveBeenCalledWith('main');
+    expect(onMain).toHaveBeenCalledWith('main', true);
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -202,7 +202,7 @@ $xgt_location = $curloc
 
     api.execCode(`XGT 'target', 1, 'test'`);
 
-    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
+    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main', false);
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -242,7 +242,7 @@ $second = $args[1]
     `,
     );
 
-    expect(onMain).toHaveBeenCalledWith('main');
+    expect(onMain).toHaveBeenCalledWith('main', true);
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -254,7 +254,7 @@ $second = $args[1]
 
     api.execCode(`GOSUB 'target', 1, 'test'`);
 
-    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
+    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main', false);
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -297,7 +297,7 @@ $second = $args[1]
     `,
     );
 
-    expect(onMain).toHaveBeenCalledWith('main');
+    expect(onMain).toHaveBeenCalledWith('main', true);
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -309,7 +309,7 @@ $second = $args[1]
 
     api.execCode(`GS 'target', 1, 'test'`);
 
-    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
+    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main', false);
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -349,7 +349,7 @@ first = args[0]
 $second = $args[1]
     `,
     );
-    expect(onMain).toHaveBeenCalledWith('main');
+    expect(onMain).toHaveBeenCalledWith('main', false);
     expect(onStats).toHaveBeenCalledWith('stats');
     expect(onActs).toHaveBeenCalledWith([
       {
@@ -360,7 +360,7 @@ $second = $args[1]
 
     api.execCode(`func('target', 1, 'test')`);
 
-    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main');
+    expect(onMain).toHaveBeenCalledWith('main\r\ntarget main', false);
     expect(onStats).toHaveBeenCalledWith('stats\r\ntarget stats');
     expect(onActs).toHaveBeenCalledWith([
       {

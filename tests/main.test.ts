@@ -23,21 +23,21 @@ describe('Main panel', () => {
     runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('works');
+    expect(mainChanged).toHaveBeenCalledWith('works', false);
   });
 
   test('*pl should print text with line break', () => {
     runTestFile(api, `*pl 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('works\r\n');
+    expect(mainChanged).toHaveBeenCalledWith('works\r\n', false);
   });
 
   test('*nl should print text with line break in front', () => {
     runTestFile(api, `*nl 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('\r\nworks');
+    expect(mainChanged).toHaveBeenCalledWith('\r\nworks', false);
   });
 
   test('MAINTXT should return text from main panel', () => {
@@ -62,36 +62,36 @@ describe('Main panel', () => {
     runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('works');
+    expect(mainChanged).toHaveBeenCalledWith('works', false);
 
     api.execCode('*CLEAR');
 
     expect(mainChanged).toHaveBeenCalledTimes(2);
-    expect(mainChanged).toHaveBeenCalledWith('');
+    expect(mainChanged).toHaveBeenCalledWith('', false);
   });
 
   test('*CLR should clear main description', () => {
     runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('works');
+    expect(mainChanged).toHaveBeenCalledWith('works', false);
 
     api.execCode('*CLR');
 
     expect(mainChanged).toHaveBeenCalledTimes(2);
-    expect(mainChanged).toHaveBeenCalledWith('');
+    expect(mainChanged).toHaveBeenCalledWith('', false);
   });
 
   test('CLS should clear main description', () => {
     runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('works');
+    expect(mainChanged).toHaveBeenCalledWith('works', false);
 
     api.execCode('CLS');
 
     expect(mainChanged).toHaveBeenCalledTimes(2);
-    expect(mainChanged).toHaveBeenCalledWith('');
+    expect(mainChanged).toHaveBeenCalledWith('', false);
   });
 
   test('implicit output to main', () => {
@@ -104,7 +104,7 @@ describe('Main panel', () => {
       `
     )
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('test1\r\n1\r\ntest2\r\n');
+    expect(mainChanged).toHaveBeenCalledWith('test1\r\n1\r\ntest2\r\n', false);
   })
 
   test('implicit output is not working with functions that does not return', async () => {
@@ -120,7 +120,7 @@ func('foo')
     );
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('test\r\ntest\r\n');
+    expect(mainChanged).toHaveBeenCalledWith('test\r\ntest\r\n', false);
   });
 
   test('complex example from wiki', () => {
@@ -134,7 +134,7 @@ func('foo')
     );
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
-    expect(mainChanged).toHaveBeenCalledWith('123\r\n\r\n45678\r\n');
+    expect(mainChanged).toHaveBeenCalledWith('123\r\n\r\n45678\r\n', false);
     expect(api.readVariable('$txt')).toBe('1');
   });
 });

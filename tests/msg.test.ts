@@ -30,9 +30,9 @@ describe('MSG', () => {
     const mainChanged = vi.fn();
     api.on('main_changed', mainChanged);
     runTestFile(api, `*p '1' & msg 'works' & *p '2'`);
-    expect(mainChanged).toHaveBeenCalledWith('1');
+    expect(mainChanged).toHaveBeenCalledWith('1', false);
     expect(msg).toHaveBeenCalledWith('works', expect.any(Function));
     msg.mock.calls[0][1]();
-    expect(mainChanged).toHaveBeenCalledWith('12');
+    expect(mainChanged).toHaveBeenCalledWith('12', false);
   });
 });

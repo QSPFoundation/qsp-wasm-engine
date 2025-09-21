@@ -82,11 +82,11 @@ describe('user inputs panel', () => {
     api.on('main_changed', mainChanged);
     runTestFile(api, `*p '1' & $text = $input('Question?') & *p '2'`);
    
-    expect(mainChanged).toHaveBeenCalledWith('1');
+    expect(mainChanged).toHaveBeenCalledWith('1', false);
     expect(onInput).toHaveBeenCalledWith('Question?', expect.any(Function));
 
     onInput.mock.calls[0][1]('Answer');
     expect(api.readVariable('$text')).toBe('Answer');
-    expect(mainChanged).toHaveBeenCalledWith('12');
+    expect(mainChanged).toHaveBeenCalledWith('12', false);
   });
 });

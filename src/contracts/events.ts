@@ -1,7 +1,7 @@
 import { DebugRecord, QspErrorData, QspListItem, QspObjectItem, QspPanel } from './common';
 
 export type QspEvents = {
-  main_changed: (text: string) => void;
+  main_changed: (text: string, isNewDesc?: boolean) => void;
   stats_changed: (text: string) => void;
   actions_changed: (actions: QspListItem[]) => void;
   objects_changed: (objects: QspObjectItem[]) => void;
