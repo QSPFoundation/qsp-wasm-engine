@@ -797,6 +797,14 @@ async function createQspModule(moduleArg = {}) {
     _getLocationActions,
     _getLocationCode,
     _getActionCode,
+    _calculateStrExpression,
+    _calculateNumExpression,
+    _showWindow,
+    _getSelActionIndex,
+    _getSelObjectIndex,
+    _getCompiledDateTime,
+    _getErrorDesc,
+    _getLocationDesc,
     __run_checks,
     _emscripten_stack_get_end,
     _emscripten_stack_get_base,
@@ -857,25 +865,33 @@ async function createQspModule(moduleArg = {}) {
     Module['_getLocationActions'] = _getLocationActions = wasmExports['T'];
     Module['_getLocationCode'] = _getLocationCode = wasmExports['U'];
     Module['_getActionCode'] = _getActionCode = wasmExports['V'];
-    Module['__run_checks'] = __run_checks = wasmExports['W'];
-    _emscripten_stack_get_end = wasmExports['X'];
-    _emscripten_stack_get_base = wasmExports['Y'];
-    _emscripten_stack_init = wasmExports['Z'];
-    _emscripten_stack_get_current = wasmExports['_'];
-    Module['___set_stack_limits'] = ___set_stack_limits = wasmExports['$'];
-    dynCalls['iii'] = dynCall_iii = wasmExports['aa'];
-    dynCalls['viii'] = dynCall_viii = wasmExports['ba'];
-    dynCalls['vi'] = dynCall_vi = wasmExports['ca'];
-    dynCalls['iiii'] = dynCall_iiii = wasmExports['da'];
-    dynCalls['iiiii'] = dynCall_iiiii = wasmExports['ea'];
-    dynCalls['ii'] = dynCall_ii = wasmExports['fa'];
-    dynCalls['i'] = dynCall_i = wasmExports['ga'];
-    dynCalls['iidiiii'] = dynCall_iidiiii = wasmExports['ha'];
-    dynCalls['vii'] = dynCall_vii = wasmExports['ia'];
-    _asyncify_start_unwind = wasmExports['ja'];
-    _asyncify_stop_unwind = wasmExports['ka'];
-    _asyncify_start_rewind = wasmExports['la'];
-    _asyncify_stop_rewind = wasmExports['ma'];
+    Module['_calculateStrExpression'] = _calculateStrExpression = wasmExports['W'];
+    Module['_calculateNumExpression'] = _calculateNumExpression = wasmExports['X'];
+    Module['_showWindow'] = _showWindow = wasmExports['Y'];
+    Module['_getSelActionIndex'] = _getSelActionIndex = wasmExports['Z'];
+    Module['_getSelObjectIndex'] = _getSelObjectIndex = wasmExports['_'];
+    Module['_getCompiledDateTime'] = _getCompiledDateTime = wasmExports['$'];
+    Module['_getErrorDesc'] = _getErrorDesc = wasmExports['aa'];
+    Module['_getLocationDesc'] = _getLocationDesc = wasmExports['ba'];
+    Module['__run_checks'] = __run_checks = wasmExports['ca'];
+    _emscripten_stack_get_end = wasmExports['da'];
+    _emscripten_stack_get_base = wasmExports['ea'];
+    _emscripten_stack_init = wasmExports['fa'];
+    _emscripten_stack_get_current = wasmExports['ga'];
+    Module['___set_stack_limits'] = ___set_stack_limits = wasmExports['ha'];
+    dynCalls['iii'] = dynCall_iii = wasmExports['ia'];
+    dynCalls['viii'] = dynCall_viii = wasmExports['ja'];
+    dynCalls['vi'] = dynCall_vi = wasmExports['ka'];
+    dynCalls['iiii'] = dynCall_iiii = wasmExports['la'];
+    dynCalls['iiiii'] = dynCall_iiiii = wasmExports['ma'];
+    dynCalls['ii'] = dynCall_ii = wasmExports['na'];
+    dynCalls['i'] = dynCall_i = wasmExports['oa'];
+    dynCalls['iidiiii'] = dynCall_iidiiii = wasmExports['pa'];
+    dynCalls['vii'] = dynCall_vii = wasmExports['qa'];
+    _asyncify_start_unwind = wasmExports['ra'];
+    _asyncify_stop_unwind = wasmExports['sa'];
+    _asyncify_start_rewind = wasmExports['ta'];
+    _asyncify_stop_rewind = wasmExports['ua'];
   }
   var wasmImports = {
     a: ___handle_stack_overflow,

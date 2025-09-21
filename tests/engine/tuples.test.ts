@@ -244,7 +244,6 @@ describe('tuples', () => {
         ],
       ],
     ])('%s = %s', (a, _, result) => {
-      console.log({ a, result });
       runTestFile(api, `%res = ${a}`);
 
       expect(api.readVariable('%res')).toEqual(result);

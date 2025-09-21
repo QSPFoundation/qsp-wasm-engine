@@ -52,6 +52,24 @@ export interface QspAPI {
   getLocationCode(name: string): string[];
   getActionCode(name: string, index: number): string[];
 
+  // Expression evaluation
+  calculateStringExpression(expression: string): string | null;
+  calculateNumericExpression(expression: string): number | null;
+
+  // Window management
+  showWindow(type: number, show: boolean): void;
+
+  // Selection getters
+  getSelectedActionIndex(): number;
+  getSelectedObjectIndex(): number;
+
+  // Utility functions
+  getCompiledDateTime(): string;
+  getErrorDescription(errorNum: number): string;
+
+  // Location description
+  getLocationDescription(name: string): string;
+
   _cleanup(): void;
   _run_checks(): void;
 }

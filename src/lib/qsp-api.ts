@@ -280,6 +280,61 @@ export class QspAPIImpl implements QspAPI {
     );
   }
 
+  calculateStringExpression(expression: string): string {
+    const exprPtr = writeString(this.module, expression);
+    try {
+      return withStringRead(this.module, (resultPtr) => {
+        const success = this.module._calculateStrExpression(exprPtr, resultPtr);
+        if (success === 0) {
+          this.onError();
+        }
+      });
+    } finally {
+      this.module._free(exprPtr);
+    }
+  }
+
+  calculateNumericExpression(expression: string): number | null {
+    const resultPtr = allocPointer(this.module);
+    const exprPtr = writeString(this.module, expression);
+    try {
+      const success = this.module._calculateNumExpression(exprPtr, resultPtr);
+      if (success === 0) {
+        this.onError();
+        return null;
+      }
+      return derefPointer(this.module, resultPtr);
+    } finally {
+      this.module._free(resultPtr);
+      this.module._free(exprPtr);
+    }
+  }
+
+  showWindow(type: number, show: boolean): void {
+    this.module._showWindow(type, show ? 1 : 0);
+  }
+
+  getSelectedActionIndex(): number {
+    return this.module._getSelActionIndex();
+  }
+
+  getSelectedObjectIndex(): number {
+    return this.module._getSelObjectIndex();
+  }
+
+  getCompiledDateTime(): string {
+    return withStringRead(this.module, (ptr) => this.module._getCompiledDateTime(ptr));
+  }
+
+  getErrorDescription(errorNum: number): string {
+    return withStringRead(this.module, (ptr) => this.module._getErrorDesc(errorNum, ptr));
+  }
+
+  getLocationDescription(name: string): string {
+    const namePtr = this.getStaticStringPointer(name);
+    return withStringRead(this.module, (ptr) => this.module._getLocationDesc(namePtr, ptr));
+  }
+
   private init(): void {
     this.module._init();
 

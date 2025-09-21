@@ -67,4 +67,125 @@ describe('api', () => {
     await delay(10);
     expect(watchVariables).toHaveBeenCalledWith('ab');
   });
+
+  describe('expression evaluation', () => {
+    beforeEach(() => {
+      runTestFile(api, `
+        numVar = 10
+        $strVar = 'hello'
+        %arrVar[0] = 5
+        %arrVar[1] = 15
+      `);
+    });
+
+    it('should evaluate string expressions', () => {
+      const result = api.calculateStringExpression('$strVar + " world"');
+      expect(result).toBe('hello world');
+    });
+
+    it('should evaluate numeric expressions', () => {
+      const result = api.calculateNumericExpression('numVar * 2');
+      expect(result).toBe(20);
+    });
+
+    it('should evaluate complex string expressions', () => {
+      const result = api.calculateStringExpression('$ucase($strVar) + " " + $lcase("WORLD")');
+      expect(result).toBe('HELLO world');
+    });
+
+    it('should evaluate complex numeric expressions', () => {
+      const result = api.calculateNumericExpression('(numVar + 5) * 2 - 10');
+      expect(result).toBe(20);
+    });
+
+    it('should handle array access in expressions', () => {
+      const result = api.calculateNumericExpression('%arrVar[0] + %arrVar[1]');
+      expect(result).toBe(20);
+    });
+
+    it('should return null for invalid expressions in calculateStringExpression', () => {
+      expect(api.calculateStringExpression('invalid syntax [')).toBe('');
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Unknown action!',
+        errorCode: 28,
+        line: 0,
+        lineSrc: '',
+        localLine: 0,
+        location: '',
+      }); 
+      error.mockClear();
+    });
+
+    it('should return null for invalid expressions in calculateNumericExpression', () => {
+      expect(api.calculateNumericExpression('invalid syntax [')).toBe(null);
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Unknown action!',
+        errorCode: 28,
+        line: 0,
+        lineSrc: '',
+        localLine: 0,
+        location: '',
+      });
+      error.mockClear();
+    });
+
+    it('should handle empty string expression', () => {
+      const result = api.calculateStringExpression('""');
+      expect(result).toBe('');
+    });
+  });
+
+  describe('selection getters', () => {
+    beforeEach(() => {
+      runTestFile(api, `
+        act 'Action 1': end
+        act 'Action 2': end
+        addobj 'Object 1'
+        addobj 'Object 2'
+      `);
+    });
+
+    it('should get selected action index', () => {
+      const initialIndex = api.getSelectedActionIndex();
+      expect(initialIndex).toBe(-1)
+
+      api.selectAction(1);
+      expect(api.getSelectedActionIndex()).toBe(1);
+
+      api.selectAction(0);
+      expect(api.getSelectedActionIndex()).toBe(0);
+    });
+
+    it('should get selected object index', () => {
+      const initialIndex = api.getSelectedObjectIndex();
+      expect(initialIndex).toBeGreaterThanOrEqual(-1);
+
+      api.selectObject(1);
+      expect(api.getSelectedObjectIndex()).toBe(1);
+
+      api.selectObject(0);
+      expect(api.getSelectedObjectIndex()).toBe(0);
+    });
+  });
+
+  describe('utility functions', () => {
+    it('should get compiled date time', () => {
+      const dateTime = api.getCompiledDateTime();
+      expect(dateTime.length).toBeGreaterThan(0);
+    });
+
+    it('should get error descriptions', () => {
+      const desc = api.getErrorDescription(10); // QSP_ERR_DIVBYZERO
+      expect(desc).toBe('Division by zero!');
+    });
+
+    it('should handle window show/hide', () => {
+      expect(() => {
+        api.showWindow(1, false);
+        api.showWindow(1, true);
+      })
+    });
+  });
 });

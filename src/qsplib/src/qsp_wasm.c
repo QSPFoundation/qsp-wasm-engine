@@ -361,6 +361,70 @@ QSPString *getActionCode(QSP_CHAR *name, int index, int *count)
   return result;
 }
 
+/* Expression evaluation */
+EMSCRIPTEN_KEEPALIVE
+QSP_BOOL calculateStrExpression(QSP_CHAR *expression, QSPString *result)
+{
+  QSP_CHAR buffer[1024 * 64];
+  if (QSPCalculateStrExpression(QSPStringFromC(expression), buffer, sizeof(buffer)/sizeof(QSP_CHAR), QSP_TRUE))
+  {
+    *result = QSPStringFromC(buffer);
+    return QSP_TRUE;
+  }
+  else
+  {
+    result->Str = 0;
+    result->End = 0;
+    return QSP_FALSE;
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE
+QSP_BOOL calculateNumExpression(QSP_CHAR *expression, QSP_BIGINT *result)
+{
+  return QSPCalculateNumExpression(QSPStringFromC(expression), result, QSP_TRUE);
+}
+
+/* Window management */
+EMSCRIPTEN_KEEPALIVE
+void showWindow(int type, QSP_BOOL toShow)
+{
+  QSPShowWindow(type, toShow);
+}
+
+/* Selection getters */
+EMSCRIPTEN_KEEPALIVE
+int getSelActionIndex()
+{
+  return QSPGetSelActionIndex();
+}
+
+EMSCRIPTEN_KEEPALIVE
+int getSelObjectIndex()
+{
+  return QSPGetSelObjectIndex();
+}
+
+/* Utility functions */
+EMSCRIPTEN_KEEPALIVE
+void getCompiledDateTime(QSPString *result)
+{
+  *result = QSPGetCompiledDateTime();
+}
+
+EMSCRIPTEN_KEEPALIVE
+void getErrorDesc(int errorNum, QSPString *result)
+{
+  *result = QSPGetErrorDesc(errorNum);
+}
+
+/* Location description */
+EMSCRIPTEN_KEEPALIVE
+void getLocationDesc(QSP_CHAR *name, QSPString *result)
+{
+  *result = QSPGetLocationDesc(QSPStringFromC(name));
+}
+
 EMSCRIPTEN_KEEPALIVE
 void _run_checks()
 {

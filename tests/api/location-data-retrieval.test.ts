@@ -167,4 +167,65 @@ end`,
 
     expect(code).toEqual(["'first line'", '', "ACT 'first act':", "'something'", 'END']);
   });
+
+  describe('getLocationDescription', () => {
+    it('should return description for location with static description', () => {
+      loadTestLocations(api, [
+        {
+          name: 'testloc',
+          code: [],
+          description: ['This is a test location', 'with multiple lines'],
+          actions: [],
+        },
+      ]);
+
+      const desc = api.getLocationDescription('testloc');
+      expect(typeof desc).toBe('string');
+      expect(desc).toContain('test location');
+    });
+
+    it('should return description for location with single line description', () => {
+      loadTestLocations(api, [
+        {
+          name: 'simpleloc',
+          code: [],
+          description: ['Simple location description'],
+          actions: [],
+        },
+      ]);
+
+      const desc = api.getLocationDescription('simpleloc');
+      expect(typeof desc).toBe('string');
+      expect(desc).toContain('Simple location');
+    });
+
+    it('should handle location with no description', () => {
+      loadTestLocations(api, [
+        {
+          name: 'emptyloc',
+          code: [],
+          description: [],
+          actions: [],
+        },
+      ]);
+
+      const desc = api.getLocationDescription('emptyloc');
+      expect(typeof desc).toBe('string');
+      expect(desc).toBe('');
+    });
+
+    it('should handle non-existent location', () => {
+      runTestFile(api, `'test'`);
+
+      const desc = api.getLocationDescription('nonexistent');
+      expect(typeof desc).toBe('string');
+      expect(desc).toBe('');
+    });
+
+    it('should handle empty location name', () => {
+      const desc = api.getLocationDescription('');
+      expect(typeof desc).toBe('string');
+      expect(desc).toBe('');
+    });
+  });
 });

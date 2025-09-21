@@ -2035,6 +2035,22 @@ var _getLocationCode = Module["_getLocationCode"] = makeInvalidEarlyAccess("_get
 
 var _getActionCode = Module["_getActionCode"] = makeInvalidEarlyAccess("_getActionCode");
 
+var _calculateStrExpression = Module["_calculateStrExpression"] = makeInvalidEarlyAccess("_calculateStrExpression");
+
+var _calculateNumExpression = Module["_calculateNumExpression"] = makeInvalidEarlyAccess("_calculateNumExpression");
+
+var _showWindow = Module["_showWindow"] = makeInvalidEarlyAccess("_showWindow");
+
+var _getSelActionIndex = Module["_getSelActionIndex"] = makeInvalidEarlyAccess("_getSelActionIndex");
+
+var _getSelObjectIndex = Module["_getSelObjectIndex"] = makeInvalidEarlyAccess("_getSelObjectIndex");
+
+var _getCompiledDateTime = Module["_getCompiledDateTime"] = makeInvalidEarlyAccess("_getCompiledDateTime");
+
+var _getErrorDesc = Module["_getErrorDesc"] = makeInvalidEarlyAccess("_getErrorDesc");
+
+var _getLocationDesc = Module["_getLocationDesc"] = makeInvalidEarlyAccess("_getLocationDesc");
+
 var __run_checks = Module["__run_checks"] = makeInvalidEarlyAccess("__run_checks");
 
 var _calloc = makeInvalidEarlyAccess("_calloc");
@@ -2165,6 +2181,14 @@ function assignWasmExports(wasmExports) {
   Module["_getLocationActions"] = _getLocationActions = createExportWrapper("getLocationActions", 2);
   Module["_getLocationCode"] = _getLocationCode = createExportWrapper("getLocationCode", 2);
   Module["_getActionCode"] = _getActionCode = createExportWrapper("getActionCode", 3);
+  Module["_calculateStrExpression"] = _calculateStrExpression = createExportWrapper("calculateStrExpression", 2);
+  Module["_calculateNumExpression"] = _calculateNumExpression = createExportWrapper("calculateNumExpression", 2);
+  Module["_showWindow"] = _showWindow = createExportWrapper("showWindow", 2);
+  Module["_getSelActionIndex"] = _getSelActionIndex = createExportWrapper("getSelActionIndex", 0);
+  Module["_getSelObjectIndex"] = _getSelObjectIndex = createExportWrapper("getSelObjectIndex", 0);
+  Module["_getCompiledDateTime"] = _getCompiledDateTime = createExportWrapper("getCompiledDateTime", 1);
+  Module["_getErrorDesc"] = _getErrorDesc = createExportWrapper("getErrorDesc", 2);
+  Module["_getLocationDesc"] = _getLocationDesc = createExportWrapper("getLocationDesc", 2);
   Module["__run_checks"] = __run_checks = createExportWrapper("_run_checks", 0);
   _calloc = createExportWrapper("calloc", 2);
   _fflush = createExportWrapper("fflush", 1);
