@@ -100,6 +100,26 @@ api.getLocationsList(): string[];
 api.getLocationCode(name: string): string[];
 // get action code by index
 api.getActionCode(location: string, index: number): string[];
+// register event logger for debugging and monitoring
+api.registerEventLogger(logger: QspEventLogger): void;
+// get list of actions for a location
+api.getLocationActions(name: string): QspListItem[];
+// calculate string expression and return result
+api.calculateStringExpression(expression: string): string;
+// calculate numeric expression and return result
+api.calculateNumericExpression(expression: string): number | null;
+// show or hide a window panel
+api.showWindow(type: number, show: boolean): void;
+// get index of currently selected action
+api.getSelectedActionIndex(): number;
+// get index of currently selected object
+api.getSelectedObjectIndex(): number;
+// get compilation date and time of the engine
+api.getCompiledDateTime(): string;
+// get error description by error number
+api.getErrorDescription(errorNum: number): string;
+// get description of a location
+api.getLocationDescription(name: string): string;
 ```
 
 ## Engine events
@@ -111,6 +131,7 @@ Here is the list of currently supported events.
 - `main_changed` - event is triggered whenever text in main panel changes.
   Arguments:
   1. `text` - current content of main panel
+  2. `isNewDesc` - optional boolean indicating if this is a new description
 - `stats_changed` - event is triggered whenever text in stats panel changes.
   Arguments:
   1. `text` - current content of stats panel
@@ -119,7 +140,7 @@ Here is the list of currently supported events.
   1. `actions` - array of actions (every action has two fields - `name` and `image`)
 - `objects_changed` - event is triggered whenever list of objects changes.
   Arguments:
-  1. `objects` - array of objects (every object has two fields - `name` and `image`)
+  1. `objects` - array of objects (every object has three fields - `name`, `image`, and `title`)
 - `panel_visibility` - event is triggered whenever one of panels is shown/hidden.
   Arguments:
   1. `type` - code of panel that changed
@@ -131,7 +152,7 @@ Here is the list of currently supported events.
   Arguments:
 
 1. `items` - array of menu items (every object has two fields - `name` and `image`)
-1. `callback` - function to be called after user selected some menu item (passing index). `-1` should be passed ff no item has been selected.
+1. `callback` - function to be called after user selected some menu item (passing index). `-1` should be passed if no item has been selected.
 
 - `msg` - event is triggered when `MSG` operator is called in game
   Arguments:
@@ -187,7 +208,7 @@ Here is the list of currently supported events.
 - `error` - event is triggered whenever error has happened while executing QSP code:
   Arguments:
   1. `errorData` - object containing information about error
-- `debug` - when debug mode is on this event will be fired fr every executed string
+- `debug` - when debug mode is on this event will be fired for every executed string
   Arguments:
-  1. `debugRecord` - object contaning current line, location name and action index
-  2. `resume` - funtion to be executed to resume execution
+  1. `debugRecord` - object containing current line, location name and action index
+  2. `resume` - function to be executed to resume execution
