@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { readQsps, writeQsp } from '@qsp/converters';
+import { QspLocation, readQsps, writeQsp } from '@qsp/converters';
 import { QspAPI } from './contracts/api';
 
 import { initDebugQspEngine } from './lib/qsp-engine-debug';
@@ -22,6 +22,11 @@ export function runTestFile(api: QspAPI, src: string) {
   const binary = writeQsp(readQsps(prepareTest(src)));
   api.openGame(binary, true);
   api.execLoc('test');
+}
+
+export function loadTestLocations(api: QspAPI, locations: QspLocation[]) {
+  const binary = writeQsp((locations));
+  api.openGame(binary, true);
 }
 
 export function runTestFileWithGoto(api: QspAPI, src: string) {

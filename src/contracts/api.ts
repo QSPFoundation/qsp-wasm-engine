@@ -1,4 +1,5 @@
 import { QspEvents } from './events';
+import { QspListItem } from './common';
 
 export type QspTuple = Array<string | number | QspTuple>;
 export type QspVariableType<Name extends string> = Name extends `$${infer _A}`
@@ -45,7 +46,8 @@ export interface QspAPI {
   enableDebugMode(): void;
   disableDebugMode(): void;
 
-  getLocationsList(): void;
+  getLocationsList(): string[];
+  getLocationActions(name: string): QspListItem[];
   getLocationCode(name: string): string[];
   getActionCode(name: string, index: number): string[];
 

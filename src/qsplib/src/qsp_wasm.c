@@ -313,58 +313,53 @@ void getCurStateData(QSPString *loc, int *actIndex, int *lineNum)
   QSPGetCurStateData(loc, actIndex, lineNum);
 }
 
-// TODO update when new api is ready
-// EMSCRIPTEN_KEEPALIVE
-// QSPString *getLocationsList(int *count)
-// {
-//   *count = qspLocsCount;
-//   QSPString *lines = (QSPString *)malloc(qspLocsCount * sizeof(QSPString));
-//   int i;
-//   for (i = 0; i < qspLocsCount; ++i)
-//   {
-//     lines[i] = qspLocs[i].Name;
-//   }
-//   return lines;
-// }
+EMSCRIPTEN_KEEPALIVE
+QSPString *getLocationsList(int *count)
+{
+  QSPString *lines = (QSPString *)malloc(MAX_LIST_ITEMS * sizeof(QSPString));
+  *count = QSPGetLocationNames(lines, MAX_LIST_ITEMS);
+  return lines;
+}
 
-// EMSCRIPTEN_KEEPALIVE
-// QSPString *getLocationCode(QSP_CHAR *name, int *count)
-// {
-//   int locInd = qspLocIndex(QSPStringFromC(name));
-//   if (locInd >= 0)
-//   {
-//     QSPLocation *loc = qspLocs + locInd;
+EMSCRIPTEN_KEEPALIVE
+QSPListItem *getLocationActions(QSP_CHAR *name, int *count)
+{
+  QSPListItem *items = (QSPListItem *)malloc(MAX_LIST_ITEMS * sizeof(QSPListItem));
+  *count = QSPGetLocationActions(QSPStringFromC(name), items, MAX_LIST_ITEMS);
+  return items;
+}
 
-//     *count = loc->OnVisitLinesCount;
-//     QSPString *lines = (QSPString *)malloc(loc->OnVisitLinesCount * sizeof(QSPString));
-//     int i;
-//     for (i = 0; i < loc->OnVisitLinesCount; ++i)
-//     {
-//       lines[i] = loc->OnVisitLines[i].Str;
-//     }
-//     return lines;
-//   }
-// }
+EMSCRIPTEN_KEEPALIVE
+QSPString *getLocationCode(QSP_CHAR *name, int *count)
+{
+  QSPLineInfo *lines = (QSPLineInfo *)malloc(MAX_LIST_ITEMS * sizeof(QSPLineInfo));
+  *count = QSPGetLocationCode(QSPStringFromC(name), lines, MAX_LIST_ITEMS);
 
-// EMSCRIPTEN_KEEPALIVE
-// QSPString *getActionCode(QSP_CHAR *name, int index, int *count)
-// {
-//   int locInd = qspLocIndex(QSPStringFromC(name));
+  QSPString *result = (QSPString *)malloc(*count * sizeof(QSPString));
+  int i;
+  for (i = 0; i < *count; ++i)
+  {
+    result[i] = lines[i].Line;
+  }
+  free(lines);
+  return result;
+}
 
-//   if (locInd >= 0 && index >= 0 && index < QSP_MAXACTIONS)
-//   {
-//     QSPLocation *loc = qspLocs + locInd;
-//     QSPLocAct *act = loc->Actions + index;
-//     *count = act->OnPressLinesCount;
-//     QSPString *lines = (QSPString *)malloc(act->OnPressLinesCount * sizeof(QSPString));
-//     int i;
-//     for (i = 0; i < act->OnPressLinesCount; ++i)
-//     {
-//       lines[i] = act->OnPressLines[i].Str;
-//     }
-//     return lines;
-//   }
-// }
+EMSCRIPTEN_KEEPALIVE
+QSPString *getActionCode(QSP_CHAR *name, int index, int *count)
+{
+  QSPLineInfo *lines = (QSPLineInfo *)malloc(MAX_LIST_ITEMS * sizeof(QSPLineInfo));
+  *count = QSPGetLocationActionCode(QSPStringFromC(name), index, lines, MAX_LIST_ITEMS);
+
+  QSPString *result = (QSPString *)malloc(*count * sizeof(QSPString));
+  int i;
+  for (i = 0; i < *count; ++i)
+  {
+    result[i] = lines[i].Line;
+  }
+  free(lines);
+  return result;
+}
 
 EMSCRIPTEN_KEEPALIVE
 void _run_checks()

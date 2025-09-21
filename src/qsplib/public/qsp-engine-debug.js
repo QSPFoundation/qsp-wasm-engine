@@ -2027,6 +2027,14 @@ var _disableDebugMode = Module["_disableDebugMode"] = makeInvalidEarlyAccess("_d
 
 var _getCurStateData = Module["_getCurStateData"] = makeInvalidEarlyAccess("_getCurStateData");
 
+var _getLocationsList = Module["_getLocationsList"] = makeInvalidEarlyAccess("_getLocationsList");
+
+var _getLocationActions = Module["_getLocationActions"] = makeInvalidEarlyAccess("_getLocationActions");
+
+var _getLocationCode = Module["_getLocationCode"] = makeInvalidEarlyAccess("_getLocationCode");
+
+var _getActionCode = Module["_getActionCode"] = makeInvalidEarlyAccess("_getActionCode");
+
 var __run_checks = Module["__run_checks"] = makeInvalidEarlyAccess("__run_checks");
 
 var _calloc = makeInvalidEarlyAccess("_calloc");
@@ -2153,6 +2161,10 @@ function assignWasmExports(wasmExports) {
   Module["_enableDebugMode"] = _enableDebugMode = createExportWrapper("enableDebugMode", 0);
   Module["_disableDebugMode"] = _disableDebugMode = createExportWrapper("disableDebugMode", 0);
   Module["_getCurStateData"] = _getCurStateData = createExportWrapper("getCurStateData", 3);
+  Module["_getLocationsList"] = _getLocationsList = createExportWrapper("getLocationsList", 1);
+  Module["_getLocationActions"] = _getLocationActions = createExportWrapper("getLocationActions", 2);
+  Module["_getLocationCode"] = _getLocationCode = createExportWrapper("getLocationCode", 2);
+  Module["_getActionCode"] = _getActionCode = createExportWrapper("getActionCode", 3);
   Module["__run_checks"] = __run_checks = createExportWrapper("_run_checks", 0);
   _calloc = createExportWrapper("calloc", 2);
   _fflush = createExportWrapper("fflush", 1);

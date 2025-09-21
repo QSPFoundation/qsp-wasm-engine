@@ -1,5 +1,10 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile, runTestFileWithGoto } from '../src/test-helpers';
+import {
+  prepareApi,
+  runTestFile,
+  runTestFileWithGoto,
+  loadTestLocations,
+} from '../src/test-helpers';
 import { QspAPI } from '../src/contracts/api';
 
 describe('locations', () => {
@@ -218,7 +223,7 @@ $xgt_location = $curloc
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    
+
     runTestFileWithGoto(
       api,
       `
@@ -446,7 +451,7 @@ end
 
     api.selectAction(0);
     api.execSelectedAction();
-  
+
     expect(api.readVariable('$args_0')).toBe('test');
     expect(api.readVariable('args_1')).toBe(12);
   });
@@ -501,8 +506,8 @@ first_result = result
 $second_0 = $args[0]
 second_1 = args[1]
 result = 2
-      `
-    ); 
+      `,
+    );
 
     expect(api.readVariable('$first_0_before')).toBe('fir');
     expect(api.readVariable('first_1_before')).toBe(1);
@@ -511,5 +516,136 @@ result = 2
     expect(api.readVariable('first_result')).toBe(1);
     expect(api.readVariable('$second_0')).toBe('sec');
     expect(api.readVariable('second_1')).toBe(2);
-  })
+  });
+
+  test('getLocationsList should return all location names', () => {
+    runTestFile(
+      api,
+      `
+*p 'main location'
+---
+# second
+*p 'second location'
+---
+# third
+*p 'third location'
+    `,
+    );
+
+    const locations = api.getLocationsList();
+    expect(locations).toEqual(expect.arrayContaining(['start', 'test', 'second', 'third']));
+    expect(locations.length).toBe(4);
+  });
+
+  test('getLocationCode should return location source code', () => {
+    runTestFile(
+      api,
+      `
+*p 'main location'
+x = 1
+$name = 'test'
+---
+# second
+*p 'second location'
+y = 2
+    `,
+    );
+
+    const testLocationCode = api.getLocationCode('test');
+    expect(testLocationCode).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("*P 'main location'"),
+        expect.stringContaining('X = 1'),
+        expect.stringContaining("$NAME = 'test'"),
+      ]),
+    );
+
+    const secondLocationCode = api.getLocationCode('second');
+    expect(secondLocationCode).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("*P 'second location'"),
+        expect.stringContaining('Y = 2'),
+      ]),
+    );
+  });
+
+  test('getLocationActions should return base actions for a location', () => {
+    loadTestLocations(api, [
+      {
+        name: 'test',
+        code: [],
+        description: [],
+        actions: [
+          {
+            name: 'test',
+            image: 'test.png',
+            code: ['x = 1', "$name = 'test'"],
+          },
+          {
+            name: 'test2',
+            image: 'test.png',
+            code: ['x = 2', "$name = 'test'"],
+          },
+        ],
+      },
+    ]);
+
+    const actions = api.getLocationActions('test');
+    expect(actions).toEqual([
+      {
+        name: 'test',
+        image: 'test.png',
+      },
+      {
+        name: 'test2',
+        image: 'test.png',
+      },
+    ]);
+
+    // Test with non-existent location
+    const nonExistentActions = api.getLocationActions('nonexistent');
+    expect(nonExistentActions).toEqual([]);
+  });
+
+  test('getActionCode should work with location base actions', () => {
+    loadTestLocations(api, [
+      {
+        name: 'test',
+        code: [],
+        description: [],
+        actions: [
+          {
+            name: 'test',
+            image: 'test.png',
+            code: ['x = 1', "$name = 'test'"],
+          },
+          {
+            name: 'test2',
+            image: 'test.png',
+            code: ['x = 2', "$name = 'test'"],
+          },
+        ],
+      },
+    ]);
+
+    const code = api.getActionCode('test', 0);
+    expect(code).toEqual(expect.arrayContaining(['X = 1', "$NAME = 'test'"]));
+
+    const code2 = api.getActionCode('test', 1);
+    expect(code2).toEqual(expect.arrayContaining(['X = 2', "$NAME = 'test'"]));
+  });
+
+  test('getLocationCode should return empty array for non-existent location', () => {
+    runTestFile(api, `*p 'test'`);
+
+    const code = api.getLocationCode('nonexistent');
+    expect(code).toEqual([]);
+  });
+
+  test('getActionCode should return empty array for non-existent action', () => {
+    runTestFile(api, ``);
+
+    const code = api.getActionCode('test', 5);
+    expect(code).toEqual([]);
+  });
 });

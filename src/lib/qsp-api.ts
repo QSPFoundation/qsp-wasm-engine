@@ -1,5 +1,5 @@
 import { QspAPI, QspTuple, QspVariableType } from '../contracts/api';
-import { QspPanel } from '../contracts/common';
+import { QspPanel, QspListItem } from '../contracts/common';
 import { QspEventKeys, QspEventListeners, QspEvents } from '../contracts/events';
 import { Ptr, QspCallType, QspWasmModule, QspWindow, StringPtr } from '../contracts/wasm-module';
 import {
@@ -253,6 +253,11 @@ export class QspAPIImpl implements QspAPI {
 
   getLocationsList(): string[] {
     return withStringListRead(this.module, (ptr: Ptr) => this.module._getLocationsList(ptr));
+  }
+
+  getLocationActions(name: string): QspListItem[] {
+    const namePtr = this.getStaticStringPointer(name);
+    return withListRead(this.module, (ptr: Ptr) => this.module._getLocationActions(namePtr, ptr));
   }
 
   getLocationCode(name: string): string[] {
