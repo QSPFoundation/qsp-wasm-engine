@@ -1,7 +1,7 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../src/test-helpers';
-import { QspAPI } from '../src/contracts/api';
-import { QspPanel } from '../src';
+import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { QspAPI } from '../../src/contracts/api';
+import { QspPanel } from '../../src';
 
 describe('user inputs panel', () => {
   let api: QspAPI;

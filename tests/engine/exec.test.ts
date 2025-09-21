@@ -1,6 +1,6 @@
 import { Mock, beforeEach, describe, vi, it, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../src/test-helpers';
-import { QspAPI } from '../src';
+import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { QspAPI } from '../../src';
 
 describe('exec', () => {
   let api: QspAPI;
