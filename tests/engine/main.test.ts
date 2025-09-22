@@ -14,7 +14,7 @@ describe('Main panel', () => {
     api.on('main_changed', mainChanged);
   });
   afterEach(() => {
-    api._cleanup();
+    api?._cleanup();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });

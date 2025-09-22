@@ -14,7 +14,7 @@ describe('MSG', () => {
     api.on('msg', msg);
   });
   afterEach(() => {
-    api._cleanup();
+    api?._cleanup();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });

@@ -11,7 +11,7 @@ describe('API variable reading with QSP features', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api._cleanup();
+    api?._cleanup();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });

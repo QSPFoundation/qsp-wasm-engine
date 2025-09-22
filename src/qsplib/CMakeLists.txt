@@ -19,6 +19,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/public")
 
 add_executable(qsp-engine ${SOURCES})
 target_include_directories(qsp-engine PRIVATE "${CMAKE_BINARY_DIR}/qsp-src" "${CMAKE_BINARY_DIR}/oniguruma-src" "${CMAKE_BINARY_DIR}/qsp-build")
+add_dependencies(qsp-engine qsp onig)
 target_link_libraries(qsp-engine PRIVATE qsp onig)
 
 set_target_properties(qsp-engine PROPERTIES LINK_FLAGS "-Wno-parentheses \
@@ -48,10 +49,9 @@ set_target_properties(qsp-engine PROPERTIES LINK_FLAGS "-Wno-parentheses \
 
 add_executable(qsp-engine-debug ${SOURCES})
 target_include_directories(qsp-engine-debug PRIVATE "${CMAKE_BINARY_DIR}/qsp-src" "${CMAKE_BINARY_DIR}/oniguruma-src" "${CMAKE_BINARY_DIR}/qsp-build")
+add_dependencies(qsp-engine-debug qsp onig)
 target_link_libraries(qsp-engine-debug PRIVATE qsp onig)
 
-target_compile_options(qsp-engine-debug PRIVATE -fsanitize=address)
-target_link_options(qsp-engine-debug PRIVATE -fsanitize=address)
 
 set_target_properties(qsp-engine-debug PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -Wno-empty-body \
@@ -59,7 +59,6 @@ set_target_properties(qsp-engine-debug PROPERTIES LINK_FLAGS "-Wno-parentheses \
     -Wcast-align \
     -Wover-aligned \
     -Wdeprecated-non-prototype \
-    -fsanitize=address \
     -gsource-map \
     -O1 \
     -sASSERTIONS \
