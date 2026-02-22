@@ -143,8 +143,8 @@ end
     );
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
-      description: 'Sign [:] not found!',
-      errorCode: 16,
+      description: 'Token [:] not found!',
+      errorCode: 17,
       line: 2,
       lineSrc: 'LOOP WHILE 0',
       localLine: 2,

@@ -28,7 +28,7 @@ describe('api', () => {
   });
 
   it('should read version', () => {
-    expect(api.version()).toEqual('5.9.4');
+    expect(api.version()).toEqual('5.9.5');
   });
 
   it('should watch variable by index', async () => {
@@ -108,12 +108,12 @@ describe('api', () => {
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Unknown action!',
-        errorCode: 28,
+        errorCode: 29,
         line: 0,
         lineSrc: '',
         localLine: 0,
         location: '',
-      }); 
+      });
       error.mockClear();
     });
 
@@ -122,7 +122,7 @@ describe('api', () => {
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Unknown action!',
-        errorCode: 28,
+        errorCode: 29,
         line: 0,
         lineSrc: '',
         localLine: 0,
@@ -177,7 +177,7 @@ describe('api', () => {
     });
 
     it('should get error descriptions', () => {
-      const desc = api.getErrorDescription(10); // QSP_ERR_DIVBYZERO
+      const desc = api.getErrorDescription(11); // QSP_ERR_DIVBYZERO
       expect(desc).toBe('Division by zero!');
     });
 

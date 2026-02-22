@@ -56,7 +56,7 @@ end
   test('statement argument cant be converted to number', () => {
     runTestFile(api, ` wait 'sdsd' `);
     expect(error).toHaveBeenCalledWith({
-      errorCode: 11,
+      errorCode: 12,
       description: 'Type mismatch!',
       location: 'test',
       actionIndex: -1,
@@ -80,7 +80,7 @@ end
   test('function argument cant be converted to number', () => {
     runTestFile(api, ` x = rgb('123', '65sd', 56) `);
     expect(error).toHaveBeenCalledWith({
-      errorCode: 11,
+      errorCode: 12,
       description: 'Type mismatch!',
       location: 'test',
       actionIndex: -1,

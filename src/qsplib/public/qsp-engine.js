@@ -1,12 +1,12 @@
 async function createQspModule(moduleArg = {}) {
   var moduleRtn;
   var Module = moduleArg;
-  var ENVIRONMENT_IS_WEB = typeof window == 'object';
-  var ENVIRONMENT_IS_WORKER = typeof WorkerGlobalScope != 'undefined';
+  var ENVIRONMENT_IS_WEB = !!globalThis.window;
+  var ENVIRONMENT_IS_WORKER = !!globalThis.WorkerGlobalScope;
   var ENVIRONMENT_IS_NODE =
-    typeof process == 'object' && process.versions?.node && process.type != 'renderer';
+    globalThis.process?.versions?.node && globalThis.process?.type != 'renderer';
   if (ENVIRONMENT_IS_NODE) {
-    const { createRequire } = await import('module');
+    const { createRequire } = await import('node:module');
     var require = createRequire(import.meta.url);
   }
   var arguments_ = [];
@@ -24,9 +24,10 @@ async function createQspModule(moduleArg = {}) {
   }
   var readAsync, readBinary;
   if (ENVIRONMENT_IS_NODE) {
-    var fs = require('fs');
+    var fs = require('node:fs');
     if (_scriptName.startsWith('file:')) {
-      scriptDirectory = require('path').dirname(require('url').fileURLToPath(_scriptName)) + '/';
+      scriptDirectory =
+        require('node:path').dirname(require('node:url').fileURLToPath(_scriptName)) + '/';
     }
     readBinary = (filename) => {
       filename = isFileURI(filename) ? new URL(filename) : filename;
@@ -119,7 +120,6 @@ async function createQspModule(moduleArg = {}) {
     }
   }
   var readyPromiseResolve, readyPromiseReject;
-  var wasmMemory;
   var HEAP8, HEAPU8, HEAP16, HEAPU16, HEAP32, HEAPU32, HEAPF32, HEAPF64;
   var HEAP64, HEAPU64;
   var runtimeInitialized = false;
@@ -220,16 +220,15 @@ async function createQspModule(moduleArg = {}) {
     return instantiateArrayBuffer(binaryFile, imports);
   }
   function getWasmImports() {
-    return { a: wasmImports };
+    var imports = { a: wasmImports };
+    return imports;
   }
   async function createWasm() {
     function receiveInstance(instance, module) {
       wasmExports = instance.exports;
       wasmExports = Asyncify.instrumentWasmExports(wasmExports);
-      wasmMemory = wasmExports['f'];
-      updateMemoryViews();
-      wasmTable = wasmExports['m'];
       assignWasmExports(wasmExports);
+      updateMemoryViews();
       return wasmExports;
     }
     function receiveInstantiationResult(result) {
@@ -238,8 +237,8 @@ async function createQspModule(moduleArg = {}) {
     var info = getWasmImports();
     if (Module['instantiateWasm']) {
       return new Promise((resolve, reject) => {
-        Module['instantiateWasm'](info, (mod, inst) => {
-          resolve(receiveInstance(mod, inst));
+        Module['instantiateWasm'](info, (inst, mod) => {
+          resolve(receiveInstance(inst, mod));
         });
       });
     }
@@ -321,8 +320,7 @@ async function createQspModule(moduleArg = {}) {
   var getExecutableName = () => thisProgram || './this.program';
   var getEnvStrings = () => {
     if (!getEnvStrings.strings) {
-      var lang =
-        ((typeof navigator == 'object' && navigator.language) || 'C').replace('-', '_') + '.UTF-8';
+      var lang = (globalThis.navigator?.language ?? 'C').replace('-', '_') + '.UTF-8';
       var env = {
         USER: 'web_user',
         LOGNAME: 'web_user',
@@ -464,10 +462,11 @@ async function createQspModule(moduleArg = {}) {
       return;
     }
     try {
-      func();
-      maybeExit();
+      return func();
     } catch (e) {
       handleException(e);
+    } finally {
+      maybeExit();
     }
   };
   var Asyncify = {
@@ -567,7 +566,7 @@ async function createQspModule(moduleArg = {}) {
     doRewind(ptr) {
       var original = Asyncify.getDataRewindFunc(ptr);
       var func = Asyncify.funcWrappers.get(original);
-      return func();
+      return callUserCallback(func);
     },
     handleSleep(startAsync) {
       if (ABORT) return;
@@ -630,13 +629,50 @@ async function createQspModule(moduleArg = {}) {
       return Asyncify.handleSleepReturnValue;
     },
     handleAsync: (startAsync) =>
-      Asyncify.handleSleep((wakeUp) => {
-        startAsync().then(wakeUp);
+      Asyncify.handleSleep(async (wakeUp) => {
+        wakeUp(await startAsync());
       }),
+  };
+  var wasmTableMirror = [];
+  var getWasmTableEntry = (funcPtr) => {
+    var func = wasmTableMirror[funcPtr];
+    if (!func) {
+      wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
+    }
+    return func;
+  };
+  var updateTableMap = (offset, count) => {
+    if (functionsInTableMap) {
+      for (var i = offset; i < offset + count; i++) {
+        var item = getWasmTableEntry(i);
+        if (item) {
+          functionsInTableMap.set(item, i);
+        }
+      }
+    }
+  };
+  var functionsInTableMap;
+  var getFunctionAddress = (func) => {
+    if (!functionsInTableMap) {
+      functionsInTableMap = new WeakMap();
+      updateTableMap(0, wasmTable.length);
+    }
+    return functionsInTableMap.get(func) || 0;
+  };
+  var freeTableIndexes = [];
+  var getEmptyTableSlot = () => {
+    if (freeTableIndexes.length) {
+      return freeTableIndexes.pop();
+    }
+    return wasmTable['grow'](1);
+  };
+  var setWasmTableEntry = (idx, func) => {
+    wasmTable.set(idx, func);
+    wasmTableMirror[idx] = wasmTable.get(idx);
   };
   var uleb128EncodeWithLen = (arr) => {
     const n = arr.length;
-    return [n % 128 | 128, n >> 7, ...arr];
+    return [(n % 128) | 128, n >> 7, ...arr];
   };
   var wasmTypeCodes = { i: 127, p: 127, j: 126, f: 125, d: 124, e: 111 };
   var generateTypePack = (types) =>
@@ -684,44 +720,6 @@ async function createQspModule(moduleArg = {}) {
     var instance = new WebAssembly.Instance(module, { e: { f: func } });
     var wrappedFunc = instance.exports['f'];
     return wrappedFunc;
-  };
-  var wasmTableMirror = [];
-  var wasmTable;
-  var getWasmTableEntry = (funcPtr) => {
-    var func = wasmTableMirror[funcPtr];
-    if (!func) {
-      wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
-    }
-    return func;
-  };
-  var updateTableMap = (offset, count) => {
-    if (functionsInTableMap) {
-      for (var i = offset; i < offset + count; i++) {
-        var item = getWasmTableEntry(i);
-        if (item) {
-          functionsInTableMap.set(item, i);
-        }
-      }
-    }
-  };
-  var functionsInTableMap;
-  var getFunctionAddress = (func) => {
-    if (!functionsInTableMap) {
-      functionsInTableMap = new WeakMap();
-      updateTableMap(0, wasmTable.length);
-    }
-    return functionsInTableMap.get(func) || 0;
-  };
-  var freeTableIndexes = [];
-  var getEmptyTableSlot = () => {
-    if (freeTableIndexes.length) {
-      return freeTableIndexes.pop();
-    }
-    return wasmTable['grow'](1);
-  };
-  var setWasmTableEntry = (idx, func) => {
-    wasmTable.set(idx, func);
-    wasmTableMirror[idx] = wasmTable.get(idx);
   };
   var addFunction = (func, sig) => {
     var rtn = getFunctionAddress(func);
@@ -823,75 +821,81 @@ async function createQspModule(moduleArg = {}) {
     _asyncify_start_unwind,
     _asyncify_stop_unwind,
     _asyncify_start_rewind,
-    _asyncify_stop_rewind;
+    _asyncify_stop_rewind,
+    memory,
+    __indirect_function_table,
+    wasmMemory,
+    wasmTable;
   function assignWasmExports(wasmExports) {
-    Module['___asan_default_options'] = ___asan_default_options = wasmExports['h'];
-    Module['_init'] = _init = wasmExports['i'];
-    Module['_dispose'] = _dispose = wasmExports['j'];
-    Module['_getVersion'] = _getVersion = wasmExports['k'];
-    Module['_setErrorCallback'] = _setErrorCallback = wasmExports['l'];
-    Module['_getMainDesc'] = _getMainDesc = wasmExports['n'];
-    Module['_getWindowsChangedState'] = _getWindowsChangedState = wasmExports['o'];
-    Module['_getVarsDesc'] = _getVarsDesc = wasmExports['p'];
-    Module['_getActions'] = _getActions = wasmExports['q'];
-    Module['_malloc'] = _malloc = wasmExports['r'];
-    Module['_selectAction'] = _selectAction = wasmExports['s'];
-    Module['_executeSelAction'] = _executeSelAction = wasmExports['t'];
-    Module['_getObjects'] = _getObjects = wasmExports['u'];
-    Module['_selectObject'] = _selectObject = wasmExports['v'];
-    Module['_loadGameData'] = _loadGameData = wasmExports['w'];
-    Module['_restartGame'] = _restartGame = wasmExports['x'];
-    Module['_saveGameData'] = _saveGameData = wasmExports['y'];
-    Module['_free'] = _free = wasmExports['z'];
-    Module['_loadSavedGameData'] = _loadSavedGameData = wasmExports['A'];
-    Module['_execString'] = _execString = wasmExports['B'];
-    Module['_execCounter'] = _execCounter = wasmExports['C'];
-    Module['_execLoc'] = _execLoc = wasmExports['D'];
-    Module['_execUserInput'] = _execUserInput = wasmExports['E'];
-    Module['_getLastError'] = _getLastError = wasmExports['F'];
-    Module['_getVarValue'] = _getVarValue = wasmExports['G'];
-    Module['_getVarValueByIndex'] = _getVarValueByIndex = wasmExports['H'];
-    Module['_getVarValueByKey'] = _getVarValueByKey = wasmExports['I'];
-    Module['_getVarSize'] = _getVarSize = wasmExports['J'];
-    Module['_setCallback'] = _setCallback = wasmExports['K'];
-    Module['_freeItemsList'] = _freeItemsList = wasmExports['L'];
-    Module['_freeObjectsList'] = _freeObjectsList = wasmExports['M'];
-    Module['_freeSaveBuffer'] = _freeSaveBuffer = wasmExports['N'];
-    Module['_freeStringsBuffer'] = _freeStringsBuffer = wasmExports['O'];
-    Module['_enableDebugMode'] = _enableDebugMode = wasmExports['P'];
-    Module['_disableDebugMode'] = _disableDebugMode = wasmExports['Q'];
-    Module['_getCurStateData'] = _getCurStateData = wasmExports['R'];
-    Module['_getLocationsList'] = _getLocationsList = wasmExports['S'];
-    Module['_getLocationActions'] = _getLocationActions = wasmExports['T'];
-    Module['_getLocationCode'] = _getLocationCode = wasmExports['U'];
-    Module['_getActionCode'] = _getActionCode = wasmExports['V'];
-    Module['_calculateStrExpression'] = _calculateStrExpression = wasmExports['W'];
-    Module['_calculateNumExpression'] = _calculateNumExpression = wasmExports['X'];
-    Module['_showWindow'] = _showWindow = wasmExports['Y'];
-    Module['_getSelActionIndex'] = _getSelActionIndex = wasmExports['Z'];
-    Module['_getSelObjectIndex'] = _getSelObjectIndex = wasmExports['_'];
-    Module['_getCompiledDateTime'] = _getCompiledDateTime = wasmExports['$'];
-    Module['_getErrorDesc'] = _getErrorDesc = wasmExports['aa'];
-    Module['_getLocationDesc'] = _getLocationDesc = wasmExports['ba'];
-    Module['__run_checks'] = __run_checks = wasmExports['ca'];
+    ___asan_default_options = Module['___asan_default_options'] = wasmExports['h'];
+    _init = Module['_init'] = wasmExports['i'];
+    _dispose = Module['_dispose'] = wasmExports['j'];
+    _getVersion = Module['_getVersion'] = wasmExports['k'];
+    _setErrorCallback = Module['_setErrorCallback'] = wasmExports['l'];
+    _getMainDesc = Module['_getMainDesc'] = wasmExports['n'];
+    _getWindowsChangedState = Module['_getWindowsChangedState'] = wasmExports['o'];
+    _getVarsDesc = Module['_getVarsDesc'] = wasmExports['p'];
+    _getActions = Module['_getActions'] = wasmExports['q'];
+    _malloc = Module['_malloc'] = wasmExports['r'];
+    _selectAction = Module['_selectAction'] = wasmExports['s'];
+    _executeSelAction = Module['_executeSelAction'] = wasmExports['t'];
+    _getObjects = Module['_getObjects'] = wasmExports['u'];
+    _selectObject = Module['_selectObject'] = wasmExports['v'];
+    _loadGameData = Module['_loadGameData'] = wasmExports['w'];
+    _restartGame = Module['_restartGame'] = wasmExports['x'];
+    _saveGameData = Module['_saveGameData'] = wasmExports['y'];
+    _free = Module['_free'] = wasmExports['z'];
+    _loadSavedGameData = Module['_loadSavedGameData'] = wasmExports['A'];
+    _execString = Module['_execString'] = wasmExports['B'];
+    _execCounter = Module['_execCounter'] = wasmExports['C'];
+    _execLoc = Module['_execLoc'] = wasmExports['D'];
+    _execUserInput = Module['_execUserInput'] = wasmExports['E'];
+    _getLastError = Module['_getLastError'] = wasmExports['F'];
+    _getVarValue = Module['_getVarValue'] = wasmExports['G'];
+    _getVarValueByIndex = Module['_getVarValueByIndex'] = wasmExports['H'];
+    _getVarValueByKey = Module['_getVarValueByKey'] = wasmExports['I'];
+    _getVarSize = Module['_getVarSize'] = wasmExports['J'];
+    _setCallback = Module['_setCallback'] = wasmExports['K'];
+    _freeItemsList = Module['_freeItemsList'] = wasmExports['L'];
+    _freeObjectsList = Module['_freeObjectsList'] = wasmExports['M'];
+    _freeSaveBuffer = Module['_freeSaveBuffer'] = wasmExports['N'];
+    _freeStringsBuffer = Module['_freeStringsBuffer'] = wasmExports['O'];
+    _enableDebugMode = Module['_enableDebugMode'] = wasmExports['P'];
+    _disableDebugMode = Module['_disableDebugMode'] = wasmExports['Q'];
+    _getCurStateData = Module['_getCurStateData'] = wasmExports['R'];
+    _getLocationsList = Module['_getLocationsList'] = wasmExports['S'];
+    _getLocationActions = Module['_getLocationActions'] = wasmExports['T'];
+    _getLocationCode = Module['_getLocationCode'] = wasmExports['U'];
+    _getActionCode = Module['_getActionCode'] = wasmExports['V'];
+    _calculateStrExpression = Module['_calculateStrExpression'] = wasmExports['W'];
+    _calculateNumExpression = Module['_calculateNumExpression'] = wasmExports['X'];
+    _showWindow = Module['_showWindow'] = wasmExports['Y'];
+    _getSelActionIndex = Module['_getSelActionIndex'] = wasmExports['Z'];
+    _getSelObjectIndex = Module['_getSelObjectIndex'] = wasmExports['_'];
+    _getCompiledDateTime = Module['_getCompiledDateTime'] = wasmExports['$'];
+    _getErrorDesc = Module['_getErrorDesc'] = wasmExports['aa'];
+    _getLocationDesc = Module['_getLocationDesc'] = wasmExports['ba'];
+    __run_checks = Module['__run_checks'] = wasmExports['ca'];
     _emscripten_stack_get_end = wasmExports['da'];
     _emscripten_stack_get_base = wasmExports['ea'];
     _emscripten_stack_init = wasmExports['fa'];
     _emscripten_stack_get_current = wasmExports['ga'];
-    Module['___set_stack_limits'] = ___set_stack_limits = wasmExports['ha'];
-    dynCalls['iii'] = dynCall_iii = wasmExports['ia'];
-    dynCalls['viii'] = dynCall_viii = wasmExports['ja'];
-    dynCalls['vi'] = dynCall_vi = wasmExports['ka'];
-    dynCalls['iiii'] = dynCall_iiii = wasmExports['la'];
-    dynCalls['iiiii'] = dynCall_iiiii = wasmExports['ma'];
-    dynCalls['ii'] = dynCall_ii = wasmExports['na'];
-    dynCalls['i'] = dynCall_i = wasmExports['oa'];
-    dynCalls['iidiiii'] = dynCall_iidiiii = wasmExports['pa'];
-    dynCalls['vii'] = dynCall_vii = wasmExports['qa'];
+    ___set_stack_limits = Module['___set_stack_limits'] = wasmExports['ha'];
+    dynCall_iii = dynCalls['iii'] = wasmExports['ia'];
+    dynCall_viii = dynCalls['viii'] = wasmExports['ja'];
+    dynCall_vi = dynCalls['vi'] = wasmExports['ka'];
+    dynCall_iiii = dynCalls['iiii'] = wasmExports['la'];
+    dynCall_iiiii = dynCalls['iiiii'] = wasmExports['ma'];
+    dynCall_ii = dynCalls['ii'] = wasmExports['na'];
+    dynCall_i = dynCalls['i'] = wasmExports['oa'];
+    dynCall_iidiiii = dynCalls['iidiiii'] = wasmExports['pa'];
+    dynCall_vii = dynCalls['vii'] = wasmExports['qa'];
     _asyncify_start_unwind = wasmExports['ra'];
     _asyncify_stop_unwind = wasmExports['sa'];
     _asyncify_start_rewind = wasmExports['ta'];
     _asyncify_stop_rewind = wasmExports['ua'];
+    memory = wasmMemory = wasmExports['f'];
+    __indirect_function_table = wasmTable = wasmExports['m'];
   }
   var wasmImports = {
     a: ___handle_stack_overflow,

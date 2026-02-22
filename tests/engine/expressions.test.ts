@@ -147,7 +147,7 @@ describe('operations', () => {
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
-        errorCode: 11,
+        errorCode: 12,
         line: 1,
         lineSrc: "RES = '2a' - '1'",
         localLine: 1,
@@ -195,7 +195,7 @@ describe('operations', () => {
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
-        errorCode: 11,
+        errorCode: 12,
         line: 1,
         lineSrc: "RES = -'2a'",
         localLine: 1,
@@ -228,7 +228,7 @@ describe('operations', () => {
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
-        errorCode: 11,
+        errorCode: 12,
         line: 1,
         lineSrc: "RES = '2a' / '1'",
         localLine: 1,
@@ -242,7 +242,7 @@ describe('operations', () => {
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Division by zero!',
-        errorCode: 10,
+        errorCode: 11,
         line: 1,
         lineSrc: 'RES = 2 / 0',
         localLine: 1,

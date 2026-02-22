@@ -843,8 +843,8 @@ else
       );
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
-        description: '[end] not found!',
-        errorCode: 21,
+        description: 'Token [end] not found!',
+        errorCode: 18,
         line: 2,
         lineSrc: 'IF ABCD = 3:',
         localLine: 2,
@@ -867,8 +867,8 @@ end
       );
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
-        description: '[end] not found!',
-        errorCode: 21,
+        description: 'Token [end] not found!',
+        errorCode: 18,
         line: 3,
         lineSrc: 'IF ABC <> 3:',
         localLine: 3,
@@ -887,7 +887,7 @@ end
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Unknown action!',
-        errorCode: 28,
+        errorCode: 29,
         line: 2,
         lineSrc: 'IF ABCD=3: K1=34 ELSE K1=25 END',
         localLine: 2,
@@ -906,8 +906,8 @@ end
       );
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
-        description: 'Sign [:] not found!',
-        errorCode: 16,
+        description: 'Token [:] not found!',
+        errorCode: 17,
         line: 2,
         lineSrc: 'IF 0',
         localLine: 2,
@@ -927,8 +927,8 @@ end
       );
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
-        description: 'Sign [:] not found!',
-        errorCode: 16,
+        description: 'Token [:] not found!',
+        errorCode: 17,
         line: 3,
         lineSrc: 'ELSEIF 3',
         localLine: 3,
@@ -948,8 +948,8 @@ end
       );
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
-        description: 'Sign [:] not found!',
-        errorCode: 16,
+        description: 'Token [:] not found!',
+        errorCode: 17,
         line: 3,
         lineSrc: 'ELSE IF 3',
         localLine: 3,
