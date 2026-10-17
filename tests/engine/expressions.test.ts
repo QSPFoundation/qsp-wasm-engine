@@ -15,7 +15,7 @@ describe('operations', () => {
   });
 
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -87,7 +87,7 @@ describe('operations', () => {
       });
       test('if string is not convertable to number - string is returned', () => {
         runTestFile(api, `$res = 1 + '2a'`);
-        expect(api.readVariable('res')).toBe(0);
+        expect(api.readVariable('#res')).toBe(0);
         expect(api.readVariable('$res')).toBe('12a');
       });
     });
@@ -142,8 +142,8 @@ describe('operations', () => {
       expect(api.readVariable('res3')).toBe(1);
     });
 
-    test('if string cannot be converted to number - error is shown', () => {
-      runTestFile(api, `res = '2a' - '1'`);
+    test('if string cannot be converted to number - error is shown', async () => {
+      await runTestFile(api, `res = '2a' - '1'`);
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
@@ -190,8 +190,8 @@ describe('operations', () => {
       expect(api.readVariable('res')).toBe(-2);
     });
 
-    test('error should be shown if string cannot be converted to number', () => {
-      runTestFile(api, `res = -'2a'`);
+    test('error should be shown if string cannot be converted to number', async () => {
+      await runTestFile(api, `res = -'2a'`);
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
@@ -202,6 +202,65 @@ describe('operations', () => {
         location: 'test',
       });
       error.mockReset();
+    });
+  });
+
+  describe('+ (unary plus)', () => {
+    test.each([
+      [2, 2],
+      [-2, -2],
+      [0, 0],
+    ])('+%i = %i', (a, result) => {
+      runTestFile(api, `res = +${a}`);
+      expect(api.readVariable('res')).toBe(result);
+    });
+
+    test('it converts string to number', () => {
+      runTestFile(api, `res = +'3'`);
+      expect(api.readVariable('res')).toBe(3);
+    });
+
+    test('it combines with other operators', () => {
+      runTestFile(api, `res = -+2 & res2 = 1 + +2`);
+      expect(api.readVariable('res')).toBe(-2);
+      expect(api.readVariable('res2')).toBe(3);
+    });
+
+    test('error should be shown if string cannot be converted to number', async () => {
+      await runTestFile(api, `res = +'2a'`);
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Type mismatch!',
+        errorCode: 12,
+        line: 1,
+        lineSrc: "RES = +'2a'",
+        localLine: 1,
+        location: 'test',
+      });
+      error.mockReset();
+    });
+  });
+
+  describe('? (undefined value)', () => {
+    test('it equals empty values of every type', () => {
+      runTestFile(api, `num = (? = 0) & str = (? = '') & tuple = (? = []) & other = (? = 1)`);
+      expect(api.readVariable('num')).toBe(1);
+      expect(api.readVariable('str')).toBe(1);
+      expect(api.readVariable('tuple')).toBe(1);
+      expect(api.readVariable('other')).toBe(0);
+    });
+
+    test('it acts as empty value in operations', () => {
+      runTestFile(api, `num = ? + 5 & $str = ? + 'a' & %tuple = ? + [1]`);
+      expect(api.readVariable('num')).toBe(5);
+      expect(api.readVariable('$str')).toBe('a');
+      expect(api.readVariable('%tuple')).toEqual([1]);
+    });
+
+    test('assigning it clears the value', () => {
+      runTestFile(api, `a = 5 & a = ? & $type = arrtype('a')`);
+      expect(api.readVariable('a')).toBeUndefined();
+      expect(api.readVariable('$type')).toBe('');
     });
   });
 
@@ -223,8 +282,8 @@ describe('operations', () => {
       expect(api.readVariable('res')).toBe(2);
     });
 
-    test('if string cannot be converted to number - error is shown', () => {
-      runTestFile(api, `res = '2a' / '1'`);
+    test('if string cannot be converted to number - error is shown', async () => {
+      await runTestFile(api, `res = '2a' / '1'`);
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
@@ -237,8 +296,8 @@ describe('operations', () => {
       error.mockReset();
     });
 
-    test('error on zero division', () => {
-      runTestFile(api, `res = 2 / 0`);
+    test('error on zero division', async () => {
+      await runTestFile(api, `res = 2 / 0`);
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Division by zero!',
@@ -465,8 +524,8 @@ describe('operations', () => {
     });
 
     test('number are convered to string and concatenated', () => {
-      runTestFile(api, `res = (1 & 2)`);
-      expect(api.readVariable('res')).toBe(12);
+      runTestFile(api, `$res = (1 & 2)`);
+      expect(api.readVariable('$res')).toBe('12');
     });
   });
 
@@ -523,6 +582,10 @@ describe('operations', () => {
     test('should return 0 if object does exists', () => {
       runTestFile(api, `res = OBJ('unknown')`);
       expect(api.readVariable('res')).toBe(0);
+    });
+    test('should return 1 if there are several objects with the same name', () => {
+      runTestFile(api, `addobj 'test' & addobj 'test' & res = OBJ('test')`);
+      expect(api.readVariable('res')).toBe(1);
     });
   });
 

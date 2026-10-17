@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('time', () => {
@@ -11,7 +11,7 @@ describe('time', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -25,7 +25,7 @@ describe('time', () => {
     onWait.mock.calls[0][1]();
   });
 
-  test('WAIT should pause execution', () => {
+  test('WAIT should pause execution', async () => {
     const onWait = vi.fn();
     api.on('wait', onWait);
     const onStatsChanged = vi.fn();
@@ -34,6 +34,7 @@ describe('time', () => {
     expect(onStatsChanged).toHaveBeenCalledWith('before wait\r\n');
     expect(onWait).toHaveBeenCalledWith(1000, expect.any(Function));
     onWait.mock.calls[0][1]();
+    await nextTick();
     expect(onStatsChanged).toHaveBeenCalledWith('before wait\r\nafter wait');
   });
 

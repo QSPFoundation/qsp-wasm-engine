@@ -11,7 +11,7 @@ describe('labels', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -115,7 +115,7 @@ end`,
         :end
       end`,
     );
-    expect(api.readVariable('x')).toBe(0);
+    expect(api.readVariable('x')).toBeUndefined();
 
     api.selectAction(0);
     api.execSelectedAction();
@@ -153,8 +153,8 @@ end`,
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('error jump from action', () => {
-    runTestFile(
+  test('error jump from action', async () => {
+    await runTestFile(
       api,
       `
 act '1': x = 1 & jump 'end'
@@ -162,8 +162,8 @@ act '1': x = 1 & jump 'end'
   `,
     );
 
-    api.selectAction(0);
-    api.execSelectedAction();
+    await api.selectAction(0);
+    await api.execSelectedAction();
     expect(api.readVariable('x')).toBe(1);
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
@@ -177,8 +177,8 @@ act '1': x = 1 & jump 'end'
     error.mockClear();
   });
 
-  test('error jump from dynamic', () => {
-    runTestFile(
+  test('error jump from dynamic', async () => {
+    await runTestFile(
       api,
       `
 dynamic { x = 1 & jump 'end' }
@@ -198,8 +198,8 @@ dynamic { x = 1 & jump 'end' }
     error.mockClear();
   });
 
-  test('error jump from dynaeval', () => {
-    runTestFile(
+  test('error jump from dynaeval', async () => {
+    await runTestFile(
       api,
       `
 DYNEVAL(" x = 1 & jump 'end' ")

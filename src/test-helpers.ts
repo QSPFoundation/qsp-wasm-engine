@@ -18,21 +18,22 @@ export async function prepareApi() {
   return api;
 }
 
-export function runTestFile(api: QspAPI, src: string) {
+// openGame runs no game code: the game is loaded when it returns, so tests can check sync effects
+export function runTestFile(api: QspAPI, src: string): Promise<void> {
   const binary = writeQsp(readQsps(prepareTest(src)));
-  api.openGame(binary, true);
-  api.execLoc('test');
+  void api.openGame(binary, true);
+  return api.execLoc('test');
 }
 
-export function loadTestLocations(api: QspAPI, locations: QspLocation[]) {
-  const binary = writeQsp((locations));
-  api.openGame(binary, true);
+export function loadTestLocations(api: QspAPI, locations: QspLocation[]): Promise<void> {
+  const binary = writeQsp(locations);
+  return api.openGame(binary, true);
 }
 
-export function runTestFileWithGoto(api: QspAPI, src: string) {
+export function runTestFileWithGoto(api: QspAPI, src: string): Promise<void> {
   const binary = writeQsp(readQsps(prepareTest(src)));
-  api.openGame(binary, true);
-  api.execCode('gt "test"');
+  void api.openGame(binary, true);
+  return api.execCode('gt "test"');
 }
 
 export function prepareTest(textData: string): string {

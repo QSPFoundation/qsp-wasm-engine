@@ -11,7 +11,7 @@ describe('arrays', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -37,7 +37,7 @@ $arr[1] = 'test'
   `,
     );
     expect(api.readVariableByIndex('$arr', 1)).toBe('test');
-    expect(api.readVariableByIndex('arr', 1)).toBe(0);
+    expect(api.readVariableByIndex('#arr', 1)).toBe(0);
   });
 
   test('last element assignment', () => {
@@ -83,7 +83,7 @@ $a = $objs[]
     expect(api.readVariable('$b')).toBe('xx');
     api.execCode(`killvar`);
 
-    expect(api.readVariable('a')).toBe(0);
+    expect(api.readVariable('a')).toBeUndefined();
     expect(api.readVariable('$b')).toBe('');
   });
 
@@ -94,8 +94,8 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 1)).toBe(2);
     api.execCode(`killvar 'a'`);
 
-    expect(api.readVariableByIndex('a', 0)).toBe(0);
-    expect(api.readVariableByIndex('a', 1)).toBe(0);
+    expect(api.readVariableByIndex('a', 0)).toBeUndefined();
+    expect(api.readVariableByIndex('a', 1)).toBeUndefined();
   });
 
   test('killvar whole string array', () => {
@@ -120,7 +120,7 @@ $a = $objs[]
 
     expect(api.readVariableByIndex('a', 0)).toBe(1);
     expect(api.readVariableByIndex('a', 1)).toBe(3);
-    expect(api.readVariableByIndex('a', 2)).toBe(0);
+    expect(api.readVariableByIndex('a', 2)).toBeUndefined();
   });
 
   test('killvar array index in string array', () => {
@@ -145,7 +145,7 @@ $a = $objs[]
 
     api.execCode(`killvar 'a', 'test'`);
 
-    expect(api.readVariableByKey('a', 'test')).toBe(0);
+    expect(api.readVariableByKey('a', 'test')).toBeUndefined();
     expect(api.readVariableByKey('a', 'other')).toBe(2);
   });
 
@@ -169,7 +169,7 @@ $a = $objs[]
 
     api.execCode(`killall`);
 
-    expect(api.readVariable('a')).toBe(0);
+    expect(api.readVariable('a')).toBeUndefined();
     expect(api.readVariable('$b')).toBe('');
   });
 
@@ -179,9 +179,9 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 0)).toBe(1);
     expect(api.readVariableByIndex('a', 1)).toBe(2);
     expect(api.readVariableByIndex('a', 2)).toBe(3);
-    expect(api.readVariableByIndex('b', 0)).toBe(0);
-    expect(api.readVariableByIndex('b', 1)).toBe(0);
-    expect(api.readVariableByIndex('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('b', 0)).toBeUndefined();
+    expect(api.readVariableByIndex('b', 1)).toBeUndefined();
+    expect(api.readVariableByIndex('b', 2)).toBeUndefined();
 
     api.execCode(`copyarr 'b', 'a'`);
 
@@ -219,9 +219,9 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 0)).toBe(1);
     expect(api.readVariableByIndex('a', 1)).toBe(2);
     expect(api.readVariableByIndex('a', 2)).toBe(3);
-    expect(api.readVariableByIndex('b', 0)).toBe(0);
-    expect(api.readVariableByIndex('b', 1)).toBe(0);
-    expect(api.readVariableByIndex('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('b', 0)).toBeUndefined();
+    expect(api.readVariableByIndex('b', 1)).toBeUndefined();
+    expect(api.readVariableByIndex('b', 2)).toBeUndefined();
 
     api.execCode(`copyarr 'b', 'a', 1`);
 
@@ -230,7 +230,7 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 2)).toBe(3);
     expect(api.readVariableByIndex('b', 0)).toBe(2);
     expect(api.readVariableByIndex('b', 1)).toBe(3);
-    expect(api.readVariableByIndex('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('b', 2)).toBeUndefined();
   });
 
   test('copyarr with start index in numeric array', () => {
@@ -259,9 +259,9 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 0)).toBe(1);
     expect(api.readVariableByIndex('a', 1)).toBe(2);
     expect(api.readVariableByIndex('a', 2)).toBe(3);
-    expect(api.readVariableByIndex('b', 0)).toBe(0);
-    expect(api.readVariableByIndex('b', 1)).toBe(0);
-    expect(api.readVariableByIndex('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('b', 0)).toBeUndefined();
+    expect(api.readVariableByIndex('b', 1)).toBeUndefined();
+    expect(api.readVariableByIndex('b', 2)).toBeUndefined();
 
     api.execCode(`copyarr 'b', 'a', 1, 1`);
 
@@ -269,8 +269,8 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 1)).toBe(2);
     expect(api.readVariableByIndex('a', 2)).toBe(3);
     expect(api.readVariableByIndex('b', 0)).toBe(2);
-    expect(api.readVariableByIndex('b', 1)).toBe(0);
-    expect(api.readVariableByIndex('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('b', 1)).toBeUndefined();
+    expect(api.readVariableByIndex('b', 2)).toBeUndefined();
   });
 
   test('copyarr with count in string array', () => {
@@ -299,9 +299,9 @@ $a = $objs[]
     expect(api.readVariableByIndex('a', 0)).toBe(1);
     expect(api.readVariableByIndex('$a', 1)).toBe('a');
     expect(api.readVariableByIndex('a', 2)).toBe(3);
-    expect(api.readVariableByIndex('b', 0)).toBe(0);
+    expect(api.readVariableByIndex('b', 0)).toBeUndefined();
     expect(api.readVariableByIndex('$b', 1)).toBe('');
-    expect(api.readVariableByIndex('b', 2)).toBe(0);
+    expect(api.readVariableByIndex('b', 2)).toBeUndefined();
 
     api.execCode(`copyarr 'b', 'a'`);
 
@@ -513,12 +513,63 @@ $a = $objs[]
 
       expect(api.readVariable('$res')).toBe("zz");
     });
+
+    test('finding first element when index is omitted', () => {
+      runTestFile(api, `arr[0] = 7 & arr[1] = 8 & res = arritem('arr')`);
+
+      expect(api.readVariable('res')).toBe(7);
+    });
+
+    test('type prefix of array name converts the value', () => {
+      runTestFile(api, `arr[1] = 5 & $str = arritem('$arr', 1) & num = arritem('arr', 1)`);
+
+      expect(api.readVariable('$str')).toBe('');
+      expect(api.readVariable('num')).toBe(5);
+    });
+  });
+
+  describe('ARRKEY', () => {
+    test('returning string key of element', () => {
+      runTestFile(api, `arr['first'] = 1 & $key = arrkey('arr', 0)`);
+
+      expect(api.readVariable('$key')).toBe('first');
+    });
+
+    test('returning tuple key of element', () => {
+      runTestFile(api, `arr[1,3] = 256 & %key = arrkey('arr', 0)`);
+
+      expect(api.readVariable('%key')).toEqual([1, 3]);
+    });
+
+    test('returning key of first element when index is omitted', () => {
+      runTestFile(api, `arr['first'] = 1 & arr['second'] = 2 & $key = arrkey('arr')`);
+
+      expect(api.readVariable('$key')).toBe('first');
+    });
+
+    test('type prefix of array name is ignored', () => {
+      runTestFile(api, `arr['first'] = 1 & $key = arrkey('$arr', 0)`);
+
+      expect(api.readVariable('$key')).toBe('first');
+    });
+
+    test('returning empty value for element without key', () => {
+      runTestFile(api, `arr['first'] = 1 & arr[5] = 2 & $key = arrkey('arr', 1)`);
+
+      expect(api.readVariable('$key')).toBe('');
+    });
+
+    test('returning empty value for missing element', () => {
+      runTestFile(api, `arr['first'] = 1 & $key = arrkey('arr', 9)`);
+
+      expect(api.readVariable('$key')).toBe('');
+    });
   });
 
   test('negative index', () => {
     runTestFile(api, `arr[0] = 123 & x = arr[-1] & arr[-1] = 234 & y = arr[0]`);
 
-    expect(api.readVariable('x')).toBe(0);
+    expect(api.readVariable('x')).toBeUndefined();
     expect(api.readVariable('y')).toBe(123);
   });
 
@@ -643,8 +694,8 @@ $res = $arr[1,3]
       expect(api.readVariableByIndex('$a', 2)).toEqual('a');
     });
 
-    test('sorting mized values should error', () => {
-      runTestFile(
+    test('sorting mized values should error', async () => {
+      await runTestFile(
         api,
         `
         a[] = 2

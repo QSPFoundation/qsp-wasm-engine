@@ -44,51 +44,63 @@ api.off(event: string, callback: Function): void;
 // returns current core version
 api.version(): string;
 // loads game or library code into engine
-api.openGame(data: ArrayBuffer, isNewGame: boolean): void;
+api.openGame(data: ArrayBuffer, isNewGame: boolean): Promise<void>;
 // returns save data representing current game state
-api.saveGame(): ArrayBuffer | null;
+api.saveGame(): Promise<ArrayBuffer | null>;
 // restores game state from save data
-api.loadSave(data: ArrayBuffer): void;
+api.loadSave(data: ArrayBuffer): Promise<void>;
 // restarts game currently loaded in engine
-api.restartGame(): void;
+api.restartGame(): Promise<void>;
 // selects action by index
-api.selectAction(index: number): void;
+api.selectAction(index: number): Promise<void>;
 // executes code of currently selected action
-api.execSelectedAction(): void;
+api.execSelectedAction(): Promise<void>;
 // selects object by index
-api.selectObject(index: number): void;
+api.selectObject(index: number): Promise<void>;
 // updates user input variable
-api.updateUserInput(code: string): void;
+api.updateUserInput(code: string): Promise<void>;
 // executes arbitrary QSP code
-api.execCode(code: string): void;
+api.execCode(code: string): Promise<void>;
 // executes code of $counter location
-api.execCounter(): void;
+api.execCounter(): Promise<void>;
 // executes code from some location by name
-api.execLoc(name: string): void;
+api.execLoc(name: string): Promise<void>;
+// terminate the engine and free the memory held by the API (the instance can't be used afterwards)
+api.dispose(): void;
 // reads content of some variable (0th index)
-api.readVariable(name: string): string | number | QspTuple;
+// a name without a type prefix returns the stored value as is (string | number | QspTuple | undefined),
+// $name / #name / %name return it as a string / number / tuple (the empty value if the stored type differs)
+api.readVariable(name: string, useCache?: boolean): QspVariableValue;
 // reads content of some variable by index
-api.readVariableByIndex(name: string, index: number): string | number | QspTuple;
-// reads content of some variable by string key
-api.readVariableByKey(name: string, key: string): string | number | QspTuple;
+api.readVariableByIndex(name: string, index: number, useCache?: boolean): QspVariableValue;
+// reads content of some variable by key (a string, a tuple or a number as position)
+api.readVariableByKey(name: string, key: QspVariableKey, useCache?: boolean): QspVariableValue;
+// reads index of an array item by its key (-1 if there is no such item)
+api.readVariableIndexByKey(name: string, key: QspVariableKey): number;
+// reads an array item with its key (key is undefined if the item has no key)
+api.readVariableItem(name: string, index: number): { value: QspVariableValue; key: string | QspTuple | undefined };
+// useCache: a value is read from the engine once until the engine runs code (calls that execute
+// code, events); the watchers use it, so watchers of the same variable share one read
+// drops the cached values (they are dropped automatically when the engine runs code)
+api.clearCache(): void;
 // reads size of some variable
 api.readVariableSize(name: string): number;
 // allows to subscribe to variable changes (main intention is to watch UI related variables)
 api.watchVariable(
     name: string,
-    callback: (value: string | number | QspTuple) => void
+    callback: (value: QspVariableValue) => void
   ): () => void;
 // allows to subscribe to variable index changes (main intention is to watch UI related variables)
-api.watchVariable(
+api.watchVariableByIndex(
     name: string,
     index: number,
-    callback: (value: string | number | QspTuple) => void
+    callback: (value: QspVariableValue) => void
   ): () => void;
 // allows to subscribe to variable key changes (main intention is to watch UI related variables)
 api.watchVariableByKey(
     name: string,
-    key: string,
-    callback: (value: string | number | QspTuple) => void
+    key: QspVariableKey,
+    callback: (value: QspVariableValue) => void
   ): () => void;
 // enable debug mode
 api.enableDebugMode(): void;
@@ -105,9 +117,9 @@ api.registerEventLogger(logger: QspEventLogger): void;
 // get list of actions for a location
 api.getLocationActions(name: string): QspListItem[];
 // calculate string expression and return result
-api.calculateStringExpression(expression: string): string;
+api.calculateStringExpression(expression: string): Promise<string>;
 // calculate numeric expression and return result
-api.calculateNumericExpression(expression: string): number | null;
+api.calculateNumericExpression(expression: string): Promise<number | null>;
 // show or hide a window panel
 api.showWindow(type: number, show: boolean): void;
 // get index of currently selected action
@@ -205,6 +217,11 @@ Here is the list of currently supported events.
 - `system_cmd` - event is triggered when `EXEC` operator is called in game
   Arguments:
   1. `cmd` - command string (depends on player)
+  The engine waits for the promise returned by a listener (an `async` listener can call the API or ask the user).
+- `init_game` - event is triggered when the game state is initialized: by `api.restartGame` (`isNewGame` is `true`) and by `api.loadSave` after the saved state is restored (`isNewGame` is `false`), before `$ONGLOAD` runs
+  Arguments:
+  1. `isNewGame` - `true` when the game is started from the beginning
+  The engine waits for the promise returned by a listener.
 - `error` - event is triggered whenever error has happened while executing QSP code:
   Arguments:
   1. `errorData` - object containing information about error

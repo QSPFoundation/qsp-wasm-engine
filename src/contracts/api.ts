@@ -1,33 +1,54 @@
 import { QspEvents, QspEventLogger } from './events';
 import { QspListItem } from './common';
 
-export type QspTuple = Array<string | number | QspTuple>;
+import type { QspTuple, QspVariableKey, QspVariableValue } from '../qsplib/public/qsp-wasm-module';
+export type { QspTuple, QspVariableKey, QspVariableValue } from '../qsplib/public/qsp-wasm-module';
+// a name without a type prefix reads the stored value as is, $name / #name / %name read it
+// as a string / number / tuple (the empty value of that type if the stored type differs)
 export type QspVariableType<Name extends string> = Name extends `$${infer _A}`
   ? string
   : Name extends `%${infer _A}`
     ? QspTuple
-    : number;
+    : Name extends `#${infer _A}`
+      ? number
+      : QspVariableValue;
+export interface QspVariableItem<Name extends string> {
+  value: QspVariableType<Name>;
+  key: string | QspTuple | undefined; // undefined if the item has no key
+}
 
 export interface QspAPI {
   on<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
   off<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
   registerEventLogger(logger: QspEventLogger): void;
   version(): string;
-  openGame(data: ArrayBuffer, isNewGame: boolean): void;
-  saveGame(): ArrayBuffer | null;
-  loadSave(data: ArrayBuffer): void;
-  restartGame(): void;
-  selectAction(index: number): void;
-  execSelectedAction(): void;
-  selectObject(index: number): void;
-  readVariable<Name extends string>(name: Name): QspVariableType<Name>;
-  readVariableByIndex<Name extends string>(name: Name, index: number): QspVariableType<Name>;
-  readVariableByKey<Name extends string>(name: Name, key: string): QspVariableType<Name>;
+  // The calls that execute game code resolve when the engine finishes them
+  openGame(data: ArrayBuffer, isNewGame: boolean): Promise<void>;
+  saveGame(): Promise<ArrayBuffer | null>;
+  loadSave(data: ArrayBuffer): Promise<void>;
+  restartGame(): Promise<void>;
+  selectAction(index: number): Promise<void>;
+  execSelectedAction(): Promise<void>;
+  selectObject(index: number): Promise<void>;
+  // useCache: the value is read once until the engine runs code
+  readVariable<Name extends string>(name: Name, useCache?: boolean): QspVariableType<Name>;
+  readVariableByIndex<Name extends string>(
+    name: Name,
+    index: number,
+    useCache?: boolean,
+  ): QspVariableType<Name>;
+  readVariableByKey<Name extends string>(
+    name: Name,
+    key: QspVariableKey,
+    useCache?: boolean,
+  ): QspVariableType<Name>;
+  readVariableIndexByKey(name: string, key: QspVariableKey): number;
+  readVariableItem<Name extends string>(name: Name, index: number): QspVariableItem<Name>;
   readVariableSize(name: string): number;
-  execCode(code: string): void;
-  execCounter(): void;
-  updateUserInput(code: string): void;
-  execLoc(name: string): void;
+  execCode(code: string): Promise<void>;
+  execCounter(): Promise<void>;
+  updateUserInput(code: string): Promise<void>;
+  execLoc(name: string): Promise<void>;
   watchVariable<Name extends string>(
     name: Name,
     callback: (value: QspVariableType<Name>) => void,
@@ -39,10 +60,9 @@ export interface QspAPI {
   ): () => void;
   watchVariableByKey<Name extends string>(
     name: Name,
-    key: string,
+    key: QspVariableKey,
     callback: (value: QspVariableType<Name>) => void,
   ): () => void;
-  clearCache(): void;
 
   enableDebugMode(): void;
   disableDebugMode(): void;
@@ -53,8 +73,8 @@ export interface QspAPI {
   getActionCode(name: string, index: number): string[];
 
   // Expression evaluation
-  calculateStringExpression(expression: string): string | null;
-  calculateNumericExpression(expression: string): number | null;
+  calculateStringExpression(expression: string): Promise<string>;
+  calculateNumericExpression(expression: string): Promise<number | null>;
 
   // Window management
   showWindow(type: number, show: boolean): void;
@@ -70,6 +90,8 @@ export interface QspAPI {
   // Location description
   getLocationDescription(name: string): string;
 
-  _cleanup(): void;
+  // Terminates the engine and frees the memory of the API, the instance can't be used afterwards
+  dispose(): void;
+  clearCache(): void;
   _run_checks(): void;
 }

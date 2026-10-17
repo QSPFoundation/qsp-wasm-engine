@@ -1,39 +1,82 @@
-import { QspAPI, QspTuple, QspVariableType } from '../contracts/api';
+import {
+  QspAPI,
+  QspVariableItem,
+  QspVariableKey,
+  QspVariableType,
+  QspVariableValue,
+} from '../contracts/api';
 import { QspPanel, QspListItem } from '../contracts/common';
 import { QspEventKeys, QspEventListeners, QspEvents, QspEventLogger } from '../contracts/events';
-import { Ptr, QspCallType, QspWasmModule, QspWindow, StringPtr } from '../contracts/wasm-module';
 import {
-  asAsync,
+  CharsPtr,
+  IntPtr,
+  Ptr,
+  QspExportName,
+  QspTuple,
+  QspWasmHost,
+  QspWasmModule,
+  QspWindow,
+  StringPtr,
+  VariantPtr,
+} from '../qsplib/public/qsp-wasm-module';
+import {
+  allocListBuffer,
+  allocPointer,
+  freeListBuffer,
+  freePointer,
+  ListBuffer,
+  POINTER_SIZE,
+  readInt,
   readListItems,
   readString,
+  readVariant,
+  withCharsRead,
   withBufferRead,
   withBufferWrite,
+  withErrorRead,
+  withLinesRead,
   withListRead,
   withObjectRead,
   withStringListRead,
-  withStringRead,
   withStringWrite,
+  withVariantWrite,
   writeString,
-  writeUTF32String,
-  readError,
-  allocPointer,
-  derefPointer,
-  withVariantRead,
-  allocErrorInfoPointer,
-} from './pointers';
+} from '../qsplib/public/qsp-wasm-memory';
+
+type TypePrefix = '$' | '#' | '%';
+
+const MAX_STRING_RESULT_LENGTH = 32 * 1024; // 64 KB
 
 export class QspAPIImpl implements QspAPI {
   private listeners = new Map<QspEventKeys, QspEventListeners[]>();
   private variableWatchers = new Set<() => void>();
-  private variableValues = new Map<string, string | number | QspTuple>();
+  // Values read with useCache, cleared whenever the engine may have run code (exec, notify, reset)
+  private variableValues = new Map<string, QspVariableValue>();
   private eventLogger: QspEventLogger | null = null;
 
   private time: number = Date.now();
 
-  private staticStrings: Map<string, Ptr> = new Map();
+  // Upper-cased names passed to the engine
+  private staticStrings: Map<string, CharsPtr> = new Map();
+
+  // Output slots of the calls that only read the state (nothing can re-enter while a slot is used),
+  // the calls that execute code allocate their outputs per call
+  private slots: Ptr;
+  private lists: ListBuffer;
+  private valueSlot: VariantPtr;
+  private keySlot: VariantPtr;
+  private stringSlot: StringPtr;
+  private intSlot: IntPtr;
 
   constructor(private module: QspWasmModule) {
-    this.init();
+    this.slots = this.module._malloc(POINTER_SIZE * 9);
+    this.lists = allocListBuffer(this.module);
+    this.valueSlot = this.slots as number as VariantPtr;
+    this.keySlot = (this.slots + POINTER_SIZE * 3) as number as VariantPtr;
+    this.stringSlot = (this.slots + POINTER_SIZE * 6) as number as StringPtr;
+    this.intSlot = (this.slots + POINTER_SIZE * 8) as number as IntPtr;
+    this.module.qspHost = this.createHost();
+    this.module._QSPInit();
   }
 
   on<E extends keyof QspEvents>(event: E, listener: QspEvents[E]): void {
@@ -60,19 +103,7 @@ export class QspAPIImpl implements QspAPI {
     name: Name,
     callback: (value: QspVariableType<Name>) => void,
   ): () => void {
-    let value: QspVariableType<Name> = this.readVariable(name);
-    callback(value);
-    const updater = () => {
-      const newValue = this.readVariable(name);
-      if (value !== newValue) {
-        value = newValue;
-        callback(value);
-      }
-    };
-    this.variableWatchers.add(updater);
-    return () => {
-      this.variableWatchers.delete(updater);
-    };
+    return this.watch(() => this.readVariable(name, true), callback);
   }
 
   watchVariableByIndex<Name extends string>(
@@ -80,29 +111,22 @@ export class QspAPIImpl implements QspAPI {
     index: number,
     callback: (value: QspVariableType<Name>) => void,
   ): () => void {
-    let value: QspVariableType<Name> = this.readVariableByIndex(name, index);
-    callback(value);
-    const updater = () => {
-      const newValue = this.readVariableByIndex(name, index);
-      if (value !== newValue) {
-        value = newValue;
-        callback(value);
-      }
-    };
-    this.variableWatchers.add(updater);
-    return () => {
-      this.variableWatchers.delete(updater);
-    };
+    return this.watch(() => this.readVariableByIndex(name, index, true), callback);
   }
+
   watchVariableByKey<Name extends string>(
     name: Name,
-    key: string,
+    key: QspVariableKey,
     callback: (value: QspVariableType<Name>) => void,
   ): () => void {
-    let value: QspVariableType<Name> = this.readVariableByKey(name, key);
+    return this.watch(() => this.readVariableByKey(name, key, true), callback);
+  }
+
+  private watch<T>(read: () => T, callback: (value: T) => void): () => void {
+    let value = read();
     callback(value);
     const updater = () => {
-      const newValue = this.readVariableByKey(name, key);
+      const newValue = read();
       if (value !== newValue) {
         value = newValue;
         callback(value);
@@ -118,79 +142,78 @@ export class QspAPIImpl implements QspAPI {
     event: E,
     ...args: Parameters<CB>
   ): void {
+    this.notify(event, ...args);
+  }
+
+  // Returns the results of the listeners
+  private notify<E extends keyof QspEvents, CB extends QspEvents[E] = QspEvents[E]>(
+    event: E,
+    ...args: Parameters<CB>
+  ): unknown[] {
+    this.clearCache(); // the engine may have run code
     if (this.eventLogger) {
       this.eventLogger.log(event, ...args);
     }
     const list = this.listeners.get(event) ?? [];
-    for (const listener of list) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      listener(...args);
-    }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return list.map((listener) => listener(...args));
   }
 
-  openGame(data: ArrayBuffer, isNewGame: boolean): void {
-    if (isNewGame) this._cleanup();
-    withBufferWrite(this.module, data, (ptr, size) =>
-      this.module._loadGameData(ptr, size, isNewGame ? 1 : 0),
+  openGame(data: ArrayBuffer, isNewGame: boolean): Promise<void> {
+    if (isNewGame) this.reset();
+    return withBufferWrite(this.module, data, async (ptr, size) => {
+      await this.run('QSPLoadGameWorldFromData', [ptr, size, isNewGame ? 1 : 0]);
+    });
+  }
+
+  async saveGame(): Promise<ArrayBuffer | null> {
+    const data = await withBufferRead(this.module, (buffer, size) =>
+      this.exec('QSPSaveGameAsData', [buffer, size, 0]),
     );
+    if (!data) this.onError();
+    return data;
   }
 
-  saveGame(): ArrayBuffer | null {
-    const buffer = withBufferRead(this.module, (ptr) => this.module._saveGameData(ptr));
-    if (!buffer) {
-      this.onError();
-      return null;
-    }
-    return buffer;
+  loadSave(data: ArrayBuffer): Promise<void> {
+    return withBufferWrite(this.module, data, async (ptr, size) => {
+      await this.run('QSPOpenSavedGameFromData', [ptr, size, 1]);
+    });
   }
 
-  loadSave(data: ArrayBuffer): void {
-    withBufferWrite(this.module, data, (ptr, size) => this.module._loadSavedGameData(ptr, size));
-  }
-
-  restartGame(): void {
+  async restartGame(): Promise<void> {
     this.time = Date.now();
-    this.module._restartGame();
+    await this.run('QSPRestartGame', [1]);
   }
 
-  selectAction(index: number): void {
-    this.module._selectAction(index);
+  async selectAction(index: number): Promise<void> {
+    await this.run('QSPSetSelActionIndex', [index, 1]);
   }
 
-  execSelectedAction(): void {
-    this.module._executeSelAction();
+  async execSelectedAction(): Promise<void> {
+    await this.run('QSPExecuteSelActionCode', [1]);
   }
 
-  selectObject(index: number): void {
-    this.module._selectObject(index);
+  async selectObject(index: number): Promise<void> {
+    await this.run('QSPSetSelObjectIndex', [index, 1]);
   }
 
   version(): string {
-    return withStringRead(this.module, (ptr) => this.module._getVersion(ptr));
+    this.module._QSPGetVersion(this.stringSlot);
+    return readString(this.module, this.stringSlot);
   }
 
-  getStaticStringPointer(name: string): Ptr {
-    const preparedName = name.toLocaleUpperCase();
-    const namePtr = this.staticStrings.get(preparedName);
-    if (namePtr) return namePtr;
-    const newPtr = writeString(this.module, name);
-    this.staticStrings.set(preparedName, newPtr);
-    return newPtr;
+  getStaticStringPointer(name: string): CharsPtr {
+    let namePtr = this.staticStrings.get(name);
+    if (!namePtr) {
+      namePtr = writeString(this.module, name.toUpperCase());
+      this.staticStrings.set(name, namePtr);
+    }
+    return namePtr;
   }
 
   readVariable<Name extends string>(name: Name, useCache = false): QspVariableType<Name> {
-    const nameUpper = name.toUpperCase();
-    const cacheKey = `${nameUpper}[0]`;
-    if (useCache && this.variableValues.has(cacheKey)) {
-      return this.variableValues.get(cacheKey) as QspVariableType<Name>;
-    }
-    const namePtr = this.getStaticStringPointer(nameUpper);
-    const value = withVariantRead(this.module, name, (resPtr) =>
-      this.module._getVarValue(namePtr, resPtr),
-    ) as QspVariableType<Name>;
-    this.variableValues.set(cacheKey, value);
-    return value;
+    return this.readVariableByIndex(name, 0, useCache);
   }
 
   readVariableByIndex<Name extends string>(
@@ -198,389 +221,298 @@ export class QspAPIImpl implements QspAPI {
     index: number,
     useCache = false,
   ): QspVariableType<Name> {
-    const nameUpper = name.toUpperCase();
-    const cacheKey = `${nameUpper}[${index}]`;
-    if (useCache && this.variableValues.has(cacheKey)) {
-      return this.variableValues.get(cacheKey) as QspVariableType<Name>;
-    }
-    const namePtr = this.getStaticStringPointer(nameUpper);
-    const value = withVariantRead(this.module, name, (resPtr) =>
-      this.module._getVarValueByIndex(namePtr, index, resPtr),
-    ) as QspVariableType<Name>;
-    this.variableValues.set(cacheKey, value);
-    return value;
+    if (useCache) return this.readCached(`${name}[${index}]`, () => this.readValue(name, index));
+    return this.readValue(name, index);
   }
 
   readVariableByKey<Name extends string>(
     name: Name,
-    key: string,
+    key: QspVariableKey,
     useCache = false,
   ): QspVariableType<Name> {
-    const nameUpper = name.toUpperCase();
-    const cacheKey = `${nameUpper}["${key}"]`;
-    if (useCache && this.variableValues.has(cacheKey)) {
-      return this.variableValues.get(cacheKey) as QspVariableType<Name>;
+    if (useCache) {
+      return this.readCached(`${name}[${JSON.stringify(key)}]`, () =>
+        this.readValue(name, this.readVariableIndexByKey(name, key)),
+      );
     }
-    const namePtr = this.getStaticStringPointer(nameUpper);
-    const keyPtr = this.getStaticStringPointer(key);
-    const value = withVariantRead(this.module, name, (resPtr) =>
-      this.module._getVarValueByKey(namePtr, keyPtr, resPtr),
-    ) as QspVariableType<Name>;
+    return this.readValue(name, this.readVariableIndexByKey(name, key));
+  }
+
+  private readValue<Name extends string>(name: Name, index: number): QspVariableType<Name> {
+    this.module._QSPGetVarValue(this.getStaticStringPointer(name), index, this.valueSlot, 0);
+    return this.applyTypePrefix(name, readVariant(this.module, this.valueSlot));
+  }
+
+  private readCached<T extends QspVariableValue>(cacheKey: string, read: () => T): T {
+    if (this.variableValues.has(cacheKey)) return this.variableValues.get(cacheKey) as T;
+    const value = read();
     this.variableValues.set(cacheKey, value);
     return value;
   }
 
+  readVariableIndexByKey(name: string, key: QspVariableKey): number {
+    const namePtr = this.getStaticStringPointer(name);
+    withVariantWrite(this.module, key, (keyPtr) =>
+      this.module._QSPGetVarIndexByKey(namePtr, keyPtr, this.intSlot),
+    );
+    return readInt(this.module, this.intSlot);
+  }
+
+  readVariableItem<Name extends string>(name: Name, index: number): QspVariableItem<Name> {
+    const namePtr = this.getStaticStringPointer(name);
+    this.module._QSPGetVarValue(namePtr, index, this.valueSlot, this.keySlot);
+    return {
+      value: this.applyTypePrefix(name, readVariant(this.module, this.valueSlot)),
+      key: readVariant(this.module, this.keySlot),
+    } as QspVariableItem<Name>;
+  }
+
   readVariableSize(name: string): number {
-    const namePtr = this.getStaticStringPointer(name.toLocaleUpperCase());
-    return this.module._getVarSize(namePtr);
+    this.module._QSPGetVarValuesCount(this.getStaticStringPointer(name), this.intSlot);
+    return readInt(this.module, this.intSlot);
   }
 
-  execCode(code: string, isRefresh = true): void {
-    withStringWrite(this.module, code, (ptr) => this.module._execString(ptr, isRefresh ? 1 : 0));
+  execCode(code: string, isRefresh = true): Promise<void> {
+    return withStringWrite(this.module, code, async (ptr) => {
+      await this.run('QSPExecString', [ptr, isRefresh ? 1 : 0]);
+    });
   }
 
-  execCounter(): void {
-    this.module._execCounter();
+  async execCounter(): Promise<void> {
+    await this.run('QSPExecCounter', [1]);
   }
 
-  execLoc(name: string): void {
-    withStringWrite(this.module, name, (ptr) => this.module._execLoc(ptr));
+  execLoc(name: string): Promise<void> {
+    return withStringWrite(this.module, name, async (ptr) => {
+      await this.run('QSPExecLocationCode', [ptr, 1]);
+    });
   }
 
-  updateUserInput(code: string): void {
-    withStringWrite(this.module, code, (ptr) => this.module._execUserInput(ptr));
+  updateUserInput(code: string): Promise<void> {
+    return withStringWrite(this.module, code, async (ptr) => {
+      await this.run('QSPExecUserInput', [ptr, 1]);
+    });
   }
 
   enableDebugMode(): void {
-    this.module._enableDebugMode();
+    this.module._QSPEnableDebugMode(1);
   }
   disableDebugMode(): void {
-    this.module._disableDebugMode();
+    this.module._QSPEnableDebugMode(0);
   }
 
   getLocationsList(): string[] {
-    return withStringListRead(this.module, (ptr: Ptr) => this.module._getLocationsList(ptr));
+    return withStringListRead(this.module, this.lists, (items, bufSize) =>
+      this.module._QSPGetLocationNames(items as number as StringPtr, bufSize),
+    );
   }
 
   getLocationActions(name: string): QspListItem[] {
     const namePtr = this.getStaticStringPointer(name);
-    return withListRead(this.module, (ptr: Ptr) => this.module._getLocationActions(namePtr, ptr));
+    return withListRead(this.module, this.lists, (items, bufSize) =>
+      this.module._QSPGetLocationActions(namePtr, items, bufSize),
+    );
   }
 
   getLocationCode(name: string): string[] {
     const namePtr = this.getStaticStringPointer(name);
-    return withStringListRead(this.module, (ptr: Ptr) =>
-      this.module._getLocationCode(namePtr, ptr),
+    return withLinesRead(this.module, this.lists, (lines, bufSize) =>
+      this.module._QSPGetLocationCode(namePtr, lines, bufSize),
     );
   }
+
   getActionCode(location: string, index: number): string[] {
     const namePtr = this.getStaticStringPointer(location);
-    return withStringListRead(this.module, (ptr: Ptr) =>
-      this.module._getActionCode(namePtr, index, ptr),
+    return withLinesRead(this.module, this.lists, (lines, bufSize) =>
+      this.module._QSPGetLocationActionCode(namePtr, index, lines, bufSize),
     );
   }
 
-  calculateStringExpression(expression: string): string {
-    const exprPtr = writeString(this.module, expression);
-    try {
-      return withStringRead(this.module, (resultPtr) => {
-        const success = this.module._calculateStrExpression(exprPtr, resultPtr);
-        if (success === 0) {
-          this.onError();
-        }
-      });
-    } finally {
-      this.module._free(exprPtr);
-    }
+  // The result is cut to MAX_STRING_RESULT_LENGTH characters
+  calculateStringExpression(expression: string): Promise<string> {
+    return withStringWrite(this.module, expression, (exprPtr) =>
+      withCharsRead(this.module, MAX_STRING_RESULT_LENGTH, (buffer, size) =>
+        this.run('QSPCalculateStrExpression', [exprPtr, buffer, size, 1]),
+      ),
+    );
   }
 
-  calculateNumericExpression(expression: string): number | null {
-    const resultPtr = allocPointer(this.module);
-    const exprPtr = writeString(this.module, expression);
-    try {
-      const success = this.module._calculateNumExpression(exprPtr, resultPtr);
-      if (success === 0) {
-        this.onError();
-        return null;
-      }
-      return derefPointer(this.module, resultPtr);
-    } finally {
-      this.module._free(resultPtr);
-      this.module._free(exprPtr);
-    }
+  async calculateNumericExpression(expression: string): Promise<number | null> {
+    const resPtr = allocPointer(this.module);
+    const success = await withStringWrite(this.module, expression, (exprPtr) =>
+      this.run('QSPCalculateNumExpression', [exprPtr, resPtr, 1]),
+    );
+    const result = success ? readInt(this.module, resPtr) : null;
+    freePointer(this.module, resPtr);
+    return result;
   }
 
   showWindow(type: number, show: boolean): void {
-    this.module._showWindow(type, show ? 1 : 0);
+    this.module._QSPShowWindow(type, show ? 1 : 0);
   }
 
   getSelectedActionIndex(): number {
-    return this.module._getSelActionIndex();
+    return this.module._QSPGetSelActionIndex();
   }
 
   getSelectedObjectIndex(): number {
-    return this.module._getSelObjectIndex();
+    return this.module._QSPGetSelObjectIndex();
   }
 
   getCompiledDateTime(): string {
-    return withStringRead(this.module, (ptr) => this.module._getCompiledDateTime(ptr));
+    this.module._QSPGetCompiledDateTime(this.stringSlot);
+    return readString(this.module, this.stringSlot);
   }
 
   getErrorDescription(errorNum: number): string {
-    return withStringRead(this.module, (ptr) => this.module._getErrorDesc(errorNum, ptr));
+    this.module._QSPGetErrorDesc(errorNum, this.stringSlot);
+    return readString(this.module, this.stringSlot);
   }
 
   getLocationDescription(name: string): string {
-    const namePtr = this.getStaticStringPointer(name);
-    return withStringRead(this.module, (ptr) => this.module._getLocationDesc(namePtr, ptr));
+    this.module._QSPGetLocationDesc(this.getStaticStringPointer(name), this.stringSlot);
+    return readString(this.module, this.stringSlot);
   }
 
-  private init(): void {
-    this.module._init();
-
-    this.registerCallbacks();
+  // Blocking events: the engine waits until a listener calls resolve, without a listener
+  // it gets the default answer at once
+  private ask<T>(
+    event: QspEventKeys,
+    emit: (resolve: (value: T) => void) => void,
+  ): Promise<T> | undefined {
+    return this.listeners.has(event) ? new Promise<T>(emit) : undefined;
   }
 
-  private registerCallbacks(): void {
-    this.module._setErrorCallback(this.module.addFunction(this.onError, 'i'));
-
-    const callbacks = [
-      [QspCallType.REFRESHINT, this.onRefresh, 'iii'],
-      [QspCallType.SHOWWINDOW, this.onShowWindow, 'iii'],
-      [QspCallType.SHOWMENU, this.onMenu, 'iii'],
-      [QspCallType.SHOWMSGSTR, this.onMsg, 'ii'],
-      [QspCallType.INPUTBOX, this.onInput, 'iiii'],
-      [QspCallType.SLEEP, this.onWait, 'ii'],
-      [QspCallType.SETTIMER, this.onSetTimer, 'ii'],
-      [QspCallType.SETINPUTSTRTEXT, this.onSetUserInput, 'ii'],
-      [QspCallType.SHOWIMAGE, this.onView, 'ii'],
-      [QspCallType.DEBUG, this.onDebug, 'ii'],
-      [QspCallType.GETMSCOUNT, this.onGetMS, 'i'],
-      [QspCallType.OPENGAME, this.onOpenGame, 'iii'],
-      [QspCallType.OPENGAMESTATUS, this.onOpenGameStatus, 'ii'],
-      [QspCallType.SAVEGAMESTATUS, this.onSaveGameStatus, 'ii'],
-      [QspCallType.ISPLAYINGFILE, this.onIsPlay, 'ii'],
-      [QspCallType.PLAYFILE, this.onPlayFile, 'iii'],
-      [QspCallType.CLOSEFILE, this.onCloseFile, 'ii'],
-      [QspCallType.SYSTEM, this.onSystemCmd, 'ii'],
-      [QspCallType.VERSION, this.onVersion, 'iiii'],
-    ] as const;
-
-    for (const [type, callback, signature] of callbacks) {
-      this.registerCallback(type, callback, signature);
-    }
+  // A promise returned to the engine suspends it until the promise settles
+  private createHost(): QspWasmHost {
+    return {
+      onRefreshInt: (isForced, isNewLoc) => this.onRefresh(isForced, isNewLoc),
+      onShowWindow: (type, isShown) =>
+        this.emit('panel_visibility', type as number as QspPanel, isShown),
+      onShowMenu: (items, count) =>
+        this.ask<number>('menu', (resolve) =>
+          this.emit('menu', readListItems(this.module, items, count), resolve),
+        ) ?? -1,
+      onShowMessage: (text) => this.ask<void>('msg', (resolve) => this.emit('msg', text, resolve)),
+      onInputBox: (text) =>
+        this.ask<string>('input', (resolve) => this.emit('input', text, resolve)) ?? '',
+      onVersion: (param) =>
+        this.ask<string>('version', (resolve) => this.emit('version', param, resolve)) ?? '',
+      onSleep: (ms) => this.ask<void>('wait', (resolve) => this.emit('wait', ms, resolve)),
+      onSetTimer: (ms) => this.emit('timer', ms),
+      onSetInputStrText: (text) => this.emit('user_input', text),
+      onShowPicture: (path) => this.emit('view', path),
+      onDebug: (code) => this.onDebug(code),
+      onSystem: (cmd) => {
+        this.onRefresh(false, false);
+        return waitForAll(this.notify('system_cmd', cmd));
+      },
+      onInitGame: (isNewGame) => waitForAll(this.notify('init_game', isNewGame)),
+      onGetMSCount: () => {
+        const elapsed = Date.now() - this.time;
+        this.time = Date.now();
+        return elapsed;
+      },
+      onOpenGame: (path, isNewGame) =>
+        this.ask<void>('open_game', (resolve) => this.emit('open_game', path, isNewGame, resolve)),
+      onOpenGameStatus: (path) =>
+        this.ask<void>('load_save', (resolve) => this.emit('load_save', path, resolve)),
+      onSaveGameStatus: (path) =>
+        this.ask<void>('save_game', (resolve) => this.emit('save_game', path, resolve)),
+      onIsPlayingFile: (file) =>
+        this.ask<boolean>('is_play', (resolve) => this.emit('is_play', file, resolve)) ?? false,
+      onPlayFile: (file, volume) =>
+        this.ask<void>('play_file', (resolve) => this.emit('play_file', file, volume, resolve)),
+      onCloseFile: (file) =>
+        this.ask<void>('close_file', (resolve) => this.emit('close_file', file, resolve)),
+    };
   }
 
-  private registerCallback(
-    type: QspCallType,
-    callback: (...args: never) => unknown,
-    signature: string,
-  ): void {
-    this.module._setCallback(type, this.module.addFunction(callback, signature));
-  }
-
-  onError = (): void => {
-    const ptr = allocErrorInfoPointer(this.module);
-    this.module._getLastError(ptr);
-    const error = readError(this.module, ptr);
-    if (error.errorCode > 0)
-      this.emit('error', error);
-    this.module._free(ptr);
-  };
-
-  onRefresh = (isForced: boolean, isNewDesc: boolean): void => {
-    const changedState = this.module._getWindowsChangedState();
+  private onRefresh(isForced: boolean, isNewLoc: boolean): void {
+    const changedState = this.module._QSPGetWindowsChangedState();
 
     if (isForced || (changedState & QspWindow.MAIN) !== 0) {
-      const mainDesc = withStringRead(this.module, (ptr) => this.module._getMainDesc(ptr));
-      this.emit('main_changed', mainDesc, Boolean(isNewDesc));
+      this.module._QSPGetMainDesc(this.stringSlot);
+      this.emit('main_changed', readString(this.module, this.stringSlot), isNewLoc);
     }
 
     if (isForced || (changedState & QspWindow.VARS) !== 0) {
-      const varsDesc = withStringRead(this.module, (ptr) => this.module._getVarsDesc(ptr));
-      this.emit('stats_changed', varsDesc);
+      this.module._QSPGetVarsDesc(this.stringSlot);
+      this.emit('stats_changed', readString(this.module, this.stringSlot));
     }
 
     if (isForced || (changedState & QspWindow.ACTS) !== 0) {
-      const actions = withListRead(this.module, (ptr) => this.module._getActions(ptr));
+      const actions = withListRead(this.module, this.lists, (items, bufSize) =>
+        this.module._QSPGetActions(items, bufSize),
+      );
       this.emit('actions_changed', actions);
     }
 
     if (isForced || (changedState & QspWindow.OBJS) !== 0) {
-      const objects = withObjectRead(this.module, (ptr) => this.module._getObjects(ptr));
+      const objects = withObjectRead(this.module, this.lists, (items, bufSize) =>
+        this.module._QSPGetObjects(items, bufSize),
+      );
       this.emit('objects_changed', objects);
     }
     setTimeout(() => this.reportWatched(), 0);
-  };
+  }
 
-  onShowWindow = (type: QspPanel, isShown: boolean): void => {
-    this.emit('panel_visibility', type, isShown);
-  };
+  private onDebug(code: string): Promise<void> | undefined {
+    if (!this.listeners.has('debug')) return undefined;
+    // the key slot holds the two ints of the state here
+    const actIndexPtr = this.keySlot as number as IntPtr;
+    const linePtr = (actIndexPtr + POINTER_SIZE) as number as IntPtr;
+    this.module._QSPGetCurStateData(this.stringSlot, actIndexPtr, linePtr);
+    const loc = readString(this.module, this.stringSlot);
+    const line = readInt(this.module, linePtr);
+    const actIndex = readInt(this.module, actIndexPtr);
+    return new Promise((resolve) => this.emit('debug', { code, loc, line, actIndex }, resolve));
+  }
 
-  onMenu = (listPtr: Ptr, count: number): void => {
-    const items = readListItems(this.module, listPtr, count);
-    return asAsync(this.module, (done) => {
-      this.emit('menu', items, (index: number) => {
-        done(index);
-      });
-    });
-  };
+  // Runs an export that executes game code, resolves when the engine finishes it
+  // (a host promise can delay that, see qsp-wasm-host.js)
+  private async exec(name: QspExportName, args: number[]): Promise<number> {
+    const types = args.map(() => 'number' as const);
+    this.clearCache();
+    const result = await this.module.ccall(name, 'number', types, args, { async: true });
+    this.clearCache();
+    return result;
+  }
 
-  onMsg = (textPtr: StringPtr): void => {
-    const text = readString(this.module, textPtr);
-    return asAsync(this.module, (done) => {
-      this.emit('msg', text, () => {
-        done();
-      });
-    });
-  };
+  // Reports the error of a failed call
+  private async run(name: QspExportName, args: number[]): Promise<number> {
+    const result = await this.exec(name, args);
+    if (!result) this.onError();
+    return result;
+  }
 
-  onInput = (textPtr: StringPtr, retPtr: Ptr, maxSize: number): void => {
-    const text = readString(this.module, textPtr);
-    return asAsync(this.module, (done) => {
-      const onInput = (inputText: string): void => {
-        writeUTF32String(this.module, inputText, retPtr, maxSize);
-        done();
-      };
-      this.emit('input', text, onInput);
-    });
-  };
+  private onError(): void {
+    const error = withErrorRead(this.module, (ptr) => this.module._QSPGetLastErrorData(ptr));
+    if (error.errorCode > 0) this.emit('error', error);
+  }
 
-  onVersion = (textPtr: StringPtr, retPtr: Ptr, maxSize: number): void => {
-    const params = readString(this.module, textPtr);
-    return asAsync(this.module, (done) => {
-      const onVersion = (versionText: string): void => {
-        writeUTF32String(this.module, versionText, retPtr, maxSize);
-        done();
-      };
-      this.emit('version', params, onVersion);
-    });
-  };
-
-  onWait = (ms: number): void => {
-    return asAsync(this.module, (done) => {
-      this.emit('wait', ms, () => {
-        done();
-      });
-    });
-  };
-
-  onSetTimer = (ms: number): void => {
-    this.emit('timer', ms);
-  };
-
-  onSetUserInput = (textPtr: StringPtr): void => {
-    const text = readString(this.module, textPtr);
-    this.emit('user_input', text);
-  };
-
-  onView = (pathPtr: StringPtr): void => {
-    const path = readString(this.module, pathPtr);
-    this.emit('view', path);
-  };
-
-  onDebug = (strPtr: StringPtr): void => {
-    const code = readString(this.module, strPtr);
-
-    const actIndexPtr = allocPointer(this.module);
-    const linePtr = allocPointer(this.module);
-    const loc = withStringRead(this.module, (ptr) =>
-      this.module._getCurStateData(ptr, actIndexPtr, linePtr),
-    );
-    const line = derefPointer(this.module, linePtr);
-    this.module._free(linePtr);
-    const actIndex = derefPointer(this.module, actIndexPtr);
-    this.module._free(actIndexPtr);
-
-    return asAsync(this.module, (done) => {
-      this.emit(
-        'debug',
-        {
-          code,
-          loc,
-          line,
-          actIndex,
-        },
-        done,
-      );
-    });
-  };
-
-  onSystemCmd = (strPtr: StringPtr): void => {
-    this.onRefresh(false, false);
-    const text = readString(this.module, strPtr);
-    this.emit('system_cmd', text);
-  };
-
-  onGetMS = (): number => {
-    const elapsed = Date.now() - this.time;
-    this.time = Date.now();
-    return elapsed;
-  };
-
-  onOpenGame = (pathPtr: StringPtr, isNewGame: boolean): void => {
-    const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) => {
-      this.emit('open_game', path, isNewGame, () => {
-        done();
-      });
-    });
-  };
-
-  onOpenGameStatus = (pathPtr: StringPtr): void => {
-    const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) => {
-      this.emit('load_save', path, () => {
-        done();
-      });
-    });
-  };
-
-  onSaveGameStatus = (pathPtr: StringPtr): void => {
-    const path = readString(this.module, pathPtr);
-    return asAsync(this.module, (done) => {
-      this.emit('save_game', path, () => {
-        done();
-      });
-    });
-  };
-
-  onIsPlay = (filePtr: StringPtr): void => {
-    const file = readString(this.module, filePtr);
-    return asAsync(this.module, (done) => {
-      this.emit('is_play', file, (result: boolean) => {
-        done(result ? 1 : 0);
-      });
-    });
-  };
-
-  onPlayFile = (filePtr: StringPtr, volume: number): void => {
-    const file = readString(this.module, filePtr);
-    return asAsync(this.module, (done) => {
-      this.emit('play_file', file, volume, () => {
-        done();
-      });
-    });
-  };
-
-  onCloseFile = (filePtr: StringPtr): void => {
-    const file = readString(this.module, filePtr);
-    return asAsync(this.module, (done) => {
-      this.emit('close_file', file, () => {
-        done();
-      });
-    });
-  };
-
-  clearCache() {
-    this.variableValues.clear();
+  // $name / #name / %name: the empty value of that type if the stored type differs
+  private applyTypePrefix<Name extends string>(
+    name: Name,
+    value: QspVariableValue,
+  ): QspVariableType<Name> {
+    const requested = getTypePrefix(name);
+    if (requested && requested !== getValueTypePrefix(value)) {
+      return getEmptyValue(requested) as QspVariableType<Name>;
+    }
+    return value as QspVariableType<Name>;
   }
 
   _run_checks() {
-    this.module.__run_checks();
+    this.module._QSPRunChecks();
   }
 
-  _cleanup() {
+  clearCache(): void {
+    this.variableValues.clear();
+  }
+
+  // Forgets the state of the current game
+  private reset(): void {
     this.clearCache();
     this.variableWatchers.clear();
     for (const ptr of this.staticStrings.values()) {
@@ -589,8 +521,17 @@ export class QspAPIImpl implements QspAPI {
     this.staticStrings.clear();
   }
 
+  // Terminates the engine and frees the memory of the API
+  dispose(): void {
+    if (!this.slots) return;
+    this.reset();
+    this.module._QSPTerminate();
+    freeListBuffer(this.module, this.lists);
+    this.module._free(this.slots);
+    this.slots = 0 as number as Ptr;
+  }
+
   private reportWatched() {
-    this.clearCache();
     for (const updater of this.variableWatchers.values()) {
       updater();
     }
@@ -599,4 +540,33 @@ export class QspAPIImpl implements QspAPI {
   toJSON(): string {
     return '[QSP API]';
   }
+}
+
+function isPromise(value: unknown): value is Promise<unknown> {
+  return typeof (value as { then?: unknown } | undefined)?.then === 'function';
+}
+
+// The engine waits for the promises the listeners returned, if there are any
+function waitForAll(results: unknown[]): Promise<void> | undefined {
+  const pending = results.filter(isPromise);
+  return pending.length ? Promise.all(pending).then(() => undefined) : undefined;
+}
+
+function getTypePrefix(name: string): TypePrefix | undefined {
+  const prefix = name.charAt(0);
+  return prefix === '$' || prefix === '#' || prefix === '%' ? prefix : undefined;
+}
+
+function getValueTypePrefix(value: QspVariableValue): TypePrefix | undefined {
+  switch (typeof value) {
+    case 'string':
+      return '$';
+    case 'number':
+      return '#';
+  }
+  return Array.isArray(value) ? '%' : undefined;
+}
+
+function getEmptyValue(prefix: TypePrefix): string | number | QspTuple {
+  return prefix === '$' ? '' : prefix === '#' ? 0 : [];
 }

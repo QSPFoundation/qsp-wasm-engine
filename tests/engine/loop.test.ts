@@ -11,7 +11,7 @@ describe('loop', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -133,8 +133,8 @@ end
     expect(api.readVariable('s')).toBe(6);
   });
 
-  test('multiline loop requires colon', () => {
-    runTestFile(
+  test('multiline loop requires colon', async () => {
+    await runTestFile(
       api,
       `
         loop while 0

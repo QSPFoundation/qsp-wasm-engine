@@ -21,7 +21,9 @@ export type QspEvents = {
   is_play: (file: string, onResult: (result: boolean) => void) => void;
   play_file: (path: string, volume: number, onReady: () => void) => void;
   close_file: (path: string, onReady: () => void) => void;
-  system_cmd: (cmd: string) => void;
+  // the engine waits for the promises the listeners return
+  system_cmd: (cmd: string) => void | Promise<void>;
+  init_game: (isNewGame: boolean) => void | Promise<void>;
   debug: (
     record: DebugRecord,
     resume: () => void,

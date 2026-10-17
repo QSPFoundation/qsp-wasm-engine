@@ -11,7 +11,7 @@ describe('misc code', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -35,6 +35,32 @@ end
     expect(api.readVariable('$type')).toBe('new');
   });
 
+  test('long line split with tab before marker', () => {
+    runTestFile(
+      api,
+      `
+t = 1
+if t	_
+   or	_
+   t:
+  $type = 'new'
+else
+  $type = 'old'
+end
+    `,
+    );
+
+    expect(api.readVariable('$type')).toBe('new');
+  });
+
+  test('empty statements between separators are allowed', () => {
+    runTestFile(api, `a = 1 && b = 2 & & c = 3`);
+
+    expect(api.readVariable('a')).toBe(1);
+    expect(api.readVariable('b')).toBe(2);
+    expect(api.readVariable('c')).toBe(3);
+  });
+
   test('statement argument gets converted to string', () => {
     const onMsg: Mock = vi.fn();
     api.on('msg', onMsg);
@@ -53,8 +79,8 @@ end
     onWait.mock.calls[0][1]();
   });
 
-  test('statement argument cant be converted to number', () => {
-    runTestFile(api, ` wait 'sdsd' `);
+  test('statement argument cant be converted to number', async () => {
+    await runTestFile(api, ` wait 'sdsd' `);
     expect(error).toHaveBeenCalledWith({
       errorCode: 12,
       description: 'Type mismatch!',
@@ -77,8 +103,8 @@ end
     expect(api.readVariable('x')).toBe(-14620148);
   });
 
-  test('function argument cant be converted to number', () => {
-    runTestFile(api, ` x = rgb('123', '65sd', 56) `);
+  test('function argument cant be converted to number', async () => {
+    await runTestFile(api, ` x = rgb('123', '65sd', 56) `);
     expect(error).toHaveBeenCalledWith({
       errorCode: 12,
       description: 'Type mismatch!',

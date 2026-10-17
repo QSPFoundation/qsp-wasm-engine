@@ -11,7 +11,7 @@ describe('tuples', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -71,13 +71,13 @@ describe('tuples', () => {
     test('empty tuple with parenthesis', () => {
       runTestFile(api, `a = 2 & %a = ()`);
       expect(api.readVariable('%a')).toEqual([]);
-      expect(api.readVariable('a')).toEqual(0);
+      expect(api.readVariable('a')).toEqual([]);
     });
 
     test('empty tuple with brackets', () => {
       runTestFile(api, `a = 2 & %a = []`);
       expect(api.readVariable('%a')).toEqual([]);
-      expect(api.readVariable('a')).toEqual(0);
+      expect(api.readVariable('a')).toEqual([]);
     });
 
     test('nested tuple with single item', () => {
@@ -154,7 +154,7 @@ describe('tuples', () => {
 
       expect(api.readVariable('$b')).toEqual('a');
       expect(api.readVariable('$c')).toEqual('c');
-      expect(api.readVariable('d')).toEqual(0);
+      expect(api.readVariable('d')).toBeUndefined();
       expect(api.readVariable('$f')).toEqual('');
       expect(api.readVariable('%rest')).toEqual([]);
     });
@@ -331,7 +331,7 @@ describe('tuples', () => {
         `,
       );
 
-      expect(api.readVariable('res')).toEqual(0);
+      expect(api.readVariable('res')).toBeUndefined();
     });
   });
 
@@ -436,8 +436,8 @@ $a, $b = func('other')
     });
   });
 
-  test('it errors out on more than 20 elements', () => {
-    runTestFile(
+  test('it errors out on more than 20 elements', async () => {
+    await runTestFile(
       api,
       `
       %a = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"]

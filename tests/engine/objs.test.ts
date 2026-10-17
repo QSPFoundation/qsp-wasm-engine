@@ -15,7 +15,7 @@ describe('objects', () => {
     api.on('objects_changed', objectsChanged);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -24,10 +24,10 @@ describe('objects', () => {
     const panelVisibility = vi.fn();
     api.on('panel_visibility', panelVisibility);
     runTestFile(api, `SHOWOBJS 0`);
-    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.OBJS, 0);
+    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.OBJS, false);
 
     api.execCode(`SHOWOBJS 1`);
-    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.OBJS, 1);
+    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.OBJS, true);
   });
 
   test('ADDOBJ should add object to end of list', () => {
@@ -199,8 +199,8 @@ describe('objects', () => {
     expect(objectsChanged).toHaveBeenCalledWith([]);
   });
 
-  test('DEL OBJ should delete object by name', () => {
-    runTestFile(api, `ADDOBJ 'first', '1.png'`);
+  test('DEL OBJ should delete object by name', async () => {
+    await runTestFile(api, `ADDOBJ 'first', '1.png'`);
 
     expect(objectsChanged).toHaveBeenCalledWith([
       {
@@ -210,13 +210,13 @@ describe('objects', () => {
       },
     ]);
     objectsChanged.mockClear();
-    api.execCode(`DEL OBJ 'first'`);
+    await api.execCode(`DEL OBJ 'first'`);
     expect(error).not.toHaveBeenCalled();
     expect(objectsChanged).toHaveBeenCalledWith([]);
   });
 
-  test('DELOBJ deletes first object in list if there are several objects with the same name', () => {
-    runTestFile(api, `ADDOBJ 'first', '1.png' & ADDOBJ 'first', '2.png'`);
+  test('DELOBJ deletes first object in list if there are several objects with the same name', async () => {
+    await runTestFile(api, `ADDOBJ 'first', '1.png' & ADDOBJ 'first', '2.png'`);
 
     expect(objectsChanged).toHaveBeenCalledWith([
       {
@@ -231,7 +231,7 @@ describe('objects', () => {
       },
     ]);
     objectsChanged.mockClear();
-    api.execCode(`DELOBJ 'first'`);
+    await api.execCode(`DELOBJ 'first'`);
     expect(error).not.toHaveBeenCalled();
     expect(objectsChanged).toHaveBeenCalledWith([
       {
@@ -324,6 +324,14 @@ describe('objects', () => {
     runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & count = COUNTOBJ`);
 
     expect(api.readVariable('count')).toBe(2);
+  });
+
+  test('COUNTOBJ with name should return number of objects with that name', () => {
+    runTestFile(api, `ADDOBJ 'first' & ADDOBJ 'second' & ADDOBJ 'first'`);
+    api.execCode(`count = COUNTOBJ('first') & missing = COUNTOBJ('third')`);
+
+    expect(api.readVariable('count')).toBe(2);
+    expect(api.readVariable('missing')).toBe(0);
   });
 
   test('$GETOBJ should return object name at position', () => {

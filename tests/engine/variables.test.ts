@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile, runTestFileWithGoto } from '../../src/test-helpers';
+import { prepareApi, runTestFile, runTestFileWithGoto, nextTick } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('variables', () => {
@@ -11,13 +11,13 @@ describe('variables', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('default number value', () => {
-    expect(api.readVariable('not_defined')).toBe(0);
+  test('default value without type prefix', () => {
+    expect(api.readVariable('not_defined')).toBeUndefined();
   });
 
   test('default string value', () => {
@@ -51,8 +51,8 @@ describe('variables', () => {
   test('assignment to array item by numeric index', () => {
     runTestFile(api, `money[2] = 100`);
 
-    expect(api.readVariableByIndex('money', 0)).toBe(0);
-    expect(api.readVariableByIndex('money', 1)).toBe(0);
+    expect(api.readVariableByIndex('money', 0)).toBeUndefined();
+    expect(api.readVariableByIndex('money', 1)).toBeUndefined();
     expect(api.readVariableByIndex('money', 2)).toBe(100);
   });
 
@@ -104,7 +104,7 @@ describe('variables', () => {
     expect(api.readVariable('a')).toBe(3);
     expect(api.readVariable('$b')).toBe('test');
     expect(api.readVariable('$c')).toBe('');
-    expect(api.readVariable('d')).toBe(0);
+    expect(api.readVariable('d')).toBeUndefined();
     expect(api.readVariable('%e')).toEqual([]);
   });
 
@@ -119,9 +119,9 @@ end
 a_old, $b_old, c_old = a, $b, c
     `);
 
-    expect(api.readVariable('a_new')).toBe(0);
+    expect(api.readVariable('a_new')).toBeUndefined();
     expect(api.readVariable('$b_new')).toBe('');
-    expect(api.readVariable('c_new')).toBe(0);
+    expect(api.readVariable('c_new')).toBeUndefined();
     expect(api.readVariable('a_old')).toBe(1);
     expect(api.readVariable('$b_old')).toBe('old');
     expect(api.readVariable('c_old')).toBe(2);
@@ -162,7 +162,7 @@ a_old, $b_old, $c_old, d_old = a, $b, $c, d
     expect(api.readVariable('a_new')).toBe(3);
     expect(api.readVariable('$b_new')).toBe('test');
     expect(api.readVariable('$c_new')).toBe('');
-    expect(api.readVariable('d_new')).toBe(0);
+    expect(api.readVariable('d_new')).toBeUndefined();
     expect(api.readVariable('a_old')).toBe(1);
     expect(api.readVariable('$b_old')).toBe('old');
     expect(api.readVariable('$c_old')).toBe('oldest');
@@ -179,7 +179,7 @@ a_old, $b_old, $c_old, d_old = a, $b, $c, d
   test('multi assignment with the same variable and last string value', () => {
     runTestFile(api, `$a, a, $A = 'test', 3, 'new'`);
 
-    expect(api.readVariable('a')).toBe(0);
+    expect(api.readVariable('#a')).toBe(0);
     expect(api.readVariable('$a')).toBe('new');
   });
 
@@ -201,7 +201,7 @@ local $a, a, $A = 'test', 3, 'new'
 new_num, $new_str = a, $a
     `);
 
-    expect(api.readVariable('new_num')).toBe(0);
+    expect(api.readVariable('new_num')).toBe('new');
     expect(api.readVariable('$new_str')).toBe('new');
   });
 
@@ -211,6 +211,40 @@ new_num, $new_str = a, $a
     expect(api.readVariableByIndex('a', 1)).toBe(2);
     expect(api.readVariableByIndex('$a', 2)).toBe('test');
     expect(api.readVariableByIndex('a', 3)).toBe(4);
+  });
+
+  test('variable without type prefix keeps the type of assigned value', () => {
+    runTestFile(api, `a = 'text' & $type = arrtype('a') & $str = a`);
+    api.execCode(`a = 5 & $type2 = arrtype('a')`);
+
+    expect(api.readVariable('$type')).toBe('$');
+    expect(api.readVariable('$str')).toBe('text');
+    expect(api.readVariable('$type2')).toBe('#');
+  });
+
+  test('type prefix on read converts value of another type to empty value', () => {
+    runTestFile(api, `a = 5 & $str = $a & %tuple = %a & $b = 'text' & num = #b`);
+
+    expect(api.readVariable('$str')).toBe('');
+    expect(api.readVariable('%tuple')).toEqual([]);
+    expect(api.readVariable('num')).toBe(0);
+  });
+
+  test('killvar without arguments keeps local variables', () => {
+    runTestFile(api,
+      `
+a = 1 & $b = 'test'
+if 1:
+  local a, $b = 5, 'local'
+  killvar
+  local_a = a & $local_b = $b
+end
+    `);
+
+    expect(api.readVariable('local_a')).toBe(5);
+    expect(api.readVariable('$local_b')).toBe('local');
+    expect(api.readVariable('a')).toBeUndefined();
+    expect(api.readVariable('$b')).toBe('');
   });
 
   test('local variables get removed on killvar', () => {
@@ -223,9 +257,9 @@ if 1:
 end
     `);
 
-    expect(api.readVariable('a')).toBe(0);
+    expect(api.readVariable('a')).toBeUndefined();
     expect(api.readVariable('$b')).toBe('');
-    expect(api.readVariable('c')).toBe(0);
+    expect(api.readVariable('c')).toBeUndefined();
   });
 
   test('variable swap', () => {
@@ -411,7 +445,7 @@ end
     expect(onMain).toHaveBeenCalledWith('lii\r\nii\r\n', false);
   });
 
-  test('local variables available with flow stop in callbacks', () => {
+  test('local variables available with flow stop in callbacks', async () => {
     const onMsg = vi.fn();
     api.on('msg', onMsg);
 
@@ -422,6 +456,7 @@ end
 
     expect(api.readVariable('$i')).toBe("ii");
     onMsg.mock.calls[0][1]();
+    await nextTick();
     expect(api.readVariable('$i')).toBe("");
   });
 });

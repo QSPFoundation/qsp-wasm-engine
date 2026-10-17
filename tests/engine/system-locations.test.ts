@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('system locations', () => {
@@ -11,12 +11,12 @@ describe('system locations', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('$ONGLOAD', () => {
+  test('$ONGLOAD', async () => {
     const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
     runTestFile(
@@ -29,15 +29,33 @@ $ONGLOAD = 'gload'
 x = 1
 `,
     );
-    const save = api.saveGame();
+    const save = await api.saveGame();
     if (!save) throw new Error('failed to save');
     api.loadSave(save);
     onCloseFile.mock.calls[0][1]();
+    await nextTick();
     
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('$ONGSAVE', () => {
+  test('saves and loads a state bigger than the initial buffer', async () => {
+    api.on('close_file', (_file, resolve) => resolve());
+    await runTestFile(api, `x = 7`);
+    await api.execCode(
+      `loop i = 0 while i < 4000 step i += 1: $a[i] = $str(i) + ' some text to make the save big'`,
+    );
+    const save = await api.saveGame();
+    if (!save) throw new Error('failed to save');
+    expect(save.byteLength).toBeGreaterThan(64 * 1024);
+    await api.execCode(`x = 0 & killvar '$a'`);
+    await api.loadSave(save);
+
+    expect(api.readVariable('x')).toBe(7);
+    expect(api.readVariableSize('$a')).toBe(4000);
+    expect(api.readVariableByIndex('$a', 3999)).toBe('3999 some text to make the save big');
+  });
+
+  test('$ONGSAVE', async () => {
     runTestFile(
       api,
       `
@@ -48,7 +66,7 @@ $ONGSAVE = 'gsave'
 x = 1
 `,
     );
-    const save = api.saveGame();
+    const save = await api.saveGame();
     if (!save) throw new Error('failed to save');
     expect(api.readVariable('x')).toBe(1);
   });

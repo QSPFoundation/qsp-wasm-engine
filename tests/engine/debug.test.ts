@@ -1,6 +1,6 @@
 import { Mock, beforeEach, describe, vi, expect, it, afterEach } from 'vitest';
 import { DebugRecord, QspAPI } from '../../src';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
 
 describe('debug', () => {
   let api: QspAPI;
@@ -11,13 +11,13 @@ describe('debug', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
 
-  it('should report every line in loc when debug is on', () => {
+  it('should report every line in loc when debug is on', async () => {
     const data: DebugRecord[] = [];
     api.on('debug', (record, resume) => {
       data.push(record);
@@ -32,6 +32,7 @@ describe('debug', () => {
       a = 10
 'third line'`,
     );
+    await nextTick();
 
     api.disableDebugMode();
 

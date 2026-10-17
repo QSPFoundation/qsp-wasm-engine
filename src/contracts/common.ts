@@ -1,23 +1,4 @@
-export interface QspErrorData {
-  errorCode: number;
-  description: string;
-  location: string;
-  actionIndex: number;  
-  line: number;
-  localLine: number;
-  lineSrc: string;
-}
-
-export interface QspListItem {
-  name: string;
-  image: string;
-}
-
-export interface QspObjectItem {
-  name: string;
-  image: string;
-  title: string;
-}
+export type { QspErrorData, QspListItem, QspObjectItem } from '../qsplib/public/qsp-wasm-module';
 
 export enum QspPanel {
   MAIN = 1,

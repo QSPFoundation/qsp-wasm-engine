@@ -16,7 +16,7 @@ describe('actions', () => {
   });
 
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -25,10 +25,10 @@ describe('actions', () => {
     const panelVisibility = vi.fn();
     api.on('panel_visibility', panelVisibility);
     runTestFile(api, `SHOWACTS 0`);
-    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.ACTS, 0);
+    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.ACTS, false);
 
     runTestFile(api, `SHOWACTS 1`);
-    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.ACTS, 1);
+    expect(panelVisibility).toHaveBeenCalledWith(QspPanel.ACTS, true);
   });
 
   test('single line ACT', () => {
@@ -252,8 +252,8 @@ end
     expect(api.readVariable('x')).toBe(2);
   });
 
-  test('multiline act requires colon', () => {
-    runTestFile(
+  test('multiline act requires colon', async () => {
+    await runTestFile(
       api,
       `
         act 'test'

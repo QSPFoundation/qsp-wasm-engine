@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('menu', () => {
@@ -14,7 +14,7 @@ describe('menu', () => {
     api.on('menu', menu);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -150,7 +150,7 @@ menu '$stone'
     menu.mock.calls[0][1](-1);
   });
 
-  test('corresponding location should be called when menu item is selected', () => {
+  test('corresponding location should be called when menu item is selected', async () => {
     const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
     runTestFile(
@@ -182,11 +182,12 @@ p 'thrown'
       expect.any(Function),
     );
     menu.mock.calls[0][1](1);
+    await nextTick();
 
     expect(statsChanged).toHaveBeenCalledWith('thrown');
   });
 
-  test('index(1 based) of selected item should be passed into processing loc', () => {
+  test('index(1 based) of selected item should be passed into processing loc', async () => {
     const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
     runTestFile(
@@ -202,6 +203,7 @@ r = args[0]
     );
 
     menu.mock.calls[0][1](1);
+    await nextTick();
 
     expect(api.readVariable('r')).toBe(2);
   });

@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 import { QspPanel } from '../../src';
 
@@ -12,7 +12,7 @@ describe('user inputs panel', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -22,10 +22,10 @@ describe('user inputs panel', () => {
     api.on('panel_visibility', onPanelVisibility);
     runTestFile(api, `SHOWINPUT 0`);
 
-    expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, 0);
+    expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, false);
 
     api.execCode(`SHOWINPUT 1`);
-    expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, 1);
+    expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, true);
   });
 
   test('USER_TEXT should return text from user cmd', () => {
@@ -75,7 +75,7 @@ describe('user inputs panel', () => {
     expect(api.readVariable('$textAfter')).toBe('');
   });
 
-  test('INPUT should interrupt execution flow and receive entered text', () => {
+  test('INPUT should interrupt execution flow and receive entered text', async () => {
     const onInput = vi.fn();
     api.on('input', onInput);
     const mainChanged = vi.fn();
@@ -86,7 +86,28 @@ describe('user inputs panel', () => {
     expect(onInput).toHaveBeenCalledWith('Question?', expect.any(Function));
 
     onInput.mock.calls[0][1]('Answer');
+    await nextTick();
     expect(api.readVariable('$text')).toBe('Answer');
     expect(mainChanged).toHaveBeenCalledWith('12', false);
+  });
+
+  test('INPUT cuts the answer to 511 characters', async () => {
+    const onInput = vi.fn();
+    api.on('input', onInput);
+    runTestFile(api, `$text = $input('Question?')`);
+
+    onInput.mock.calls[0][1]('a'.repeat(600));
+    await nextTick();
+    expect(api.readVariable('$text')).toBe('a'.repeat(511));
+  });
+
+  test('INPUT without an answer returns an empty string', async () => {
+    const onInput = vi.fn();
+    api.on('input', onInput);
+    runTestFile(api, `$text = 'before' & $text = $input('Question?')`);
+
+    onInput.mock.calls[0][1](undefined);
+    await nextTick();
+    expect(api.readVariable('$text')).toBe('');
   });
 });

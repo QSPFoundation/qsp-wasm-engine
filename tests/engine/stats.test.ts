@@ -15,7 +15,7 @@ describe('stats panel', () => {
     api.on('stats_changed', statsChanged);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -93,9 +93,9 @@ describe('stats panel', () => {
     const panelVisibilityChanged = vi.fn();
     api.on('panel_visibility', panelVisibilityChanged);
     runTestFile(api, `SHOWSTAT 0`);
-    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, 0);
+    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, false);
 
     api.execCode(`SHOWSTAT 1`);
-    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, 1);
+    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, true);
   });
 });

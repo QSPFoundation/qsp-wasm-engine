@@ -15,7 +15,7 @@ describe('locations', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api._run_checks();
   });
@@ -469,6 +469,25 @@ $second = $args[1]
 
     expect(api.readVariable('first')).toBe(1);
     expect(api.readVariable('$second')).toBe('test');
+  });
+
+  test('user func shorthand with space after @', () => {
+    runTestFile(
+      api,
+      `
+@ target(1, 'test')
+x = @ target(2, 'other')
+---
+# target
+first = args[0]
+$second = $args[1]
+result = args[0] * 10
+    `,
+    );
+
+    expect(api.readVariable('first')).toBe(2);
+    expect(api.readVariable('$second')).toBe('other');
+    expect(api.readVariable('x')).toBe(20);
   });
 
   test('user func shorthand RESULT', () => {

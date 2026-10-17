@@ -1,6 +1,7 @@
 import { Mock, beforeEach, describe, vi, it, expect, afterEach } from 'vitest';
 import { prepareApi, runTestFile, loadTestLocations } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
+import { QspLocation } from '@qsp/converters';
 
 describe('location data retrieval API', () => {
   let api: QspAPI;
@@ -11,7 +12,7 @@ describe('location data retrieval API', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -33,6 +34,46 @@ describe('location data retrieval API', () => {
     const locations = api.getLocationsList();
     expect(locations).toEqual(expect.arrayContaining(['start', 'test', 'second', 'third']));
     expect(locations.length).toBe(4);
+  });
+
+  it('lists bigger than the reusable buffer are read completely', async () => {
+    const lines = Array.from({ length: 400 }, (_, i) => `X = ${i}`); // the engine upper-cases code
+    const locations: QspLocation[] = Array.from({ length: 700 }, (_, i) => ({
+      name: `loc${i}`,
+      code: [],
+      description: [],
+      actions: [],
+    }));
+    locations.push({
+      name: 'big',
+      code: lines,
+      description: [],
+      actions: [{ name: 'act', image: 'act.png', code: lines }],
+    });
+    await loadTestLocations(api, locations);
+
+    const names = api.getLocationsList();
+    expect(names.length).toBe(701);
+    expect(names[0]).toBe('loc0');
+    expect(names[699]).toBe('loc699');
+    expect(names[700]).toBe('big');
+    expect(api.getLocationCode('big')).toEqual(lines);
+    expect(api.getActionCode('big', 0)).toEqual(lines);
+    expect(api.getLocationActions('big')).toEqual([{ name: 'act', image: 'act.png' }]);
+    expect(api.getLocationCode('loc5')).toEqual([]);
+  });
+
+  it('objects bigger than the reusable buffer are read completely', async () => {
+    const objects = vi.fn();
+    api.on('objects_changed', objects);
+    await runTestFile(
+      api,
+      `loop i = 0 while i < 200 step i += 1: addobj 'object' + $str(i), 'img' + $str(i) + '.png'`,
+    );
+
+    const list = objects.mock.lastCall?.[0];
+    expect(list.length).toBe(200);
+    expect(list[199]).toEqual({ name: 'object199', image: 'img199.png', title: 'object199' });
   });
 
   it('getLocationCode should return location source code', () => {

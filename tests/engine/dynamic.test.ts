@@ -11,7 +11,7 @@ describe('dynamics', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -97,7 +97,7 @@ describe('dynamics', () => {
       expect(api.readVariable('after_2')).toBe(4);
       expect(api.readVariable('$in_0')).toBe('other');
       expect(api.readVariable('in_1')).toBe(3);
-      expect(api.readVariable('in_2')).toBe(0);
+      expect(api.readVariable('in_2')).toBeUndefined();
     });
   });
 
@@ -170,7 +170,7 @@ after_result = result
       expect(api.readVariable('after_2')).toBe(4);
       expect(api.readVariable('$in_0')).toBe('other');
       expect(api.readVariable('in_1')).toBe(3);
-      expect(api.readVariable('in_2')).toBe(0);
+      expect(api.readVariable('in_2')).toBeUndefined();
       expect(api.readVariable('dyn_result')).toBe(10);
       expect(api.readVariable('after_result')).toBe(5);
       expect(api.readVariable('top_result')).toBe(5);

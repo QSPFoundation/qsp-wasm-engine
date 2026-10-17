@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('base functions', () => {
@@ -11,29 +11,51 @@ describe('base functions', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('$QSPVER', () => {
+  test('$QSPVER', async () => {
     const onVersion = vi.fn();
     api.on('version', onVersion);
     runTestFile(api, `$ver = $QSPVER`);
     expect(onVersion).toHaveBeenCalledWith('', expect.any(Function));
     onVersion.mock.calls[0][1]('5.9.0');
+    await nextTick();
 
     expect(api.readVariable('$ver')).toBe('5.9.0');
   });
 
-  test('QSPVER platform', () => {
+  test('QSPVER platform', async () => {
     const onVersion = vi.fn();
     api.on('version', onVersion);
     runTestFile(api, `$ver = $QSPVER('platform')`);
     expect(onVersion).toHaveBeenCalledWith('platform', expect.any(Function));
     onVersion.mock.calls[0][1]('qspider');
+    await nextTick();
 
     expect(api.readVariable('$ver')).toBe('qspider');
+  });
+
+  test('$QSPVER without an answer returns the version of the engine', async () => {
+    const onVersion = vi.fn();
+    api.on('version', onVersion);
+    runTestFile(api, `$ver = $QSPVER`);
+    onVersion.mock.calls[0][1](undefined);
+    await nextTick();
+
+    expect(api.readVariable('$ver')).toBe('5.9.6');
+  });
+
+  test('$QSPVER cuts the answer to 511 characters', async () => {
+    const onVersion = vi.fn();
+    api.on('version', onVersion);
+    runTestFile(api, `$ver = $QSPVER('long')`);
+    onVersion.mock.calls[0][1]('v'.repeat(600));
+    await nextTick();
+
+    expect(api.readVariable('$ver')).toBe('v'.repeat(511));
   });
 
   test('$CURLOC', () => {
@@ -83,7 +105,7 @@ $cloc = $CURLOC`,
       expect(api.readVariable('$res')).toBe('rx');
     });
     test('return max from mixed array', () => {
-      runTestFile(api, `$b[0] = 'dd' & b[1] = 77 & $b[2] = 'yy' & b[3] = 86 & $b[4] = ' ' & res = MAX('b')`);
+      runTestFile(api, `$b[0] = 'dd' & b[1] = 77 & $b[2] = 'yy' & b[3] = 86 & $b[4] = ' ' & res = MAX('#b')`);
       expect(api.readVariable('res')).toBe(86);
     });
     test('ignores numbers when search for string', () => {
@@ -91,8 +113,21 @@ $cloc = $CURLOC`,
       expect(api.readVariable('$res')).toBe('44');
     });
     test('ignores strings when search for number', () => {
-      runTestFile(api, `$b[0] = '999' & b[1] = 66 & $b[2] = '99' & b[3] = 50 & res = MAX('b')`);
+      runTestFile(api, `$b[0] = '999' & b[1] = 66 & $b[2] = '99' & b[3] = 50 & res = MAX('#b')`);
       expect(api.readVariable('res')).toBe(66);
+    });
+    test('mixed array without type prefix shows error', async () => {
+      await runTestFile(api, `$b[0] = 'a' & b[1] = 1 & res = MAX('b')`);
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Type mismatch!',
+        errorCode: 12,
+        line: 1,
+        lineSrc: "$B[0] = 'a' & B[1] = 1 & RES = MAX('b')",
+        localLine: 1,
+        location: 'test',
+      });
+      error.mockReset();
     });
   });
 
@@ -130,7 +165,7 @@ $cloc = $CURLOC`,
       expect(api.readVariable('$res')).toBe('gg');
     });
     test('return min from mixed array', () => {
-      runTestFile(api, `$b[0] = 'a' & b[1] = 86 & $b[2] = 'kk' & b[3] = 77 & $b[4] = '' & res = MIN('b')`);
+      runTestFile(api, `$b[0] = 'a' & b[1] = 86 & $b[2] = 'kk' & b[3] = 77 & $b[4] = '' & res = MIN('#b')`);
       expect(api.readVariable('res')).toBe(77);
     });
     test('ignores numbers when search for string', () => {
@@ -138,14 +173,27 @@ $cloc = $CURLOC`,
       expect(api.readVariable('$res')).toBe('22');
     });
     test('ignores strings when search for number', () => {
-      runTestFile(api, `$b[0] = '9' & b[1] = 66 & $b[2] = '40' & b[3] = 50 & res = MIN('b')`);
+      runTestFile(api, `$b[0] = '9' & b[1] = 66 & $b[2] = '40' & b[3] = 50 & res = MIN('#b')`);
       expect(api.readVariable('res')).toBe(50);
+    });
+    test('mixed array without type prefix shows error', async () => {
+      await runTestFile(api, `$b[0] = 'a' & b[1] = 1 & res = MIN('b')`);
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Type mismatch!',
+        errorCode: 12,
+        line: 1,
+        lineSrc: "$B[0] = 'a' & B[1] = 1 & RES = MIN('b')",
+        localLine: 1,
+        location: 'test',
+      });
+      error.mockReset();
     });
   });
 
   test('RND', () => {
     runTestFile(api, 'res = RND');
-    const result = api.readVariable('res');
+    const result = api.readVariable('#res');
 
     expect(result > 0).toBeTruthy();
     expect(result <= 1000).toBeTruthy();
@@ -153,7 +201,7 @@ $cloc = $CURLOC`,
 
   test('RAND', () => {
     runTestFile(api, 'res = RAND(1, 4)');
-    const result = api.readVariable('res');
+    const result = api.readVariable('#res');
 
     expect(result >= 1).toBeTruthy();
     expect(result <= 4).toBeTruthy();
@@ -161,7 +209,7 @@ $cloc = $CURLOC`,
 
   test('RAND reversed', () => {
     runTestFile(api, 'res = RAND(4, 1)');
-    const result = api.readVariable('res');
+    const result = api.readVariable('#res');
 
     expect(result >= 1).toBeTruthy();
     expect(result <= 4).toBeTruthy();
@@ -169,9 +217,17 @@ $cloc = $CURLOC`,
 
   test('RAND without second param', () => {
     runTestFile(api, 'res = RAND 2');
-    const result = api.readVariable('res');
+    const result = api.readVariable('#res');
 
     expect(result >= 1).toBeTruthy();
     expect(result <= 2).toBeTruthy();
+  });
+
+  test('RAND with mean stays within range', () => {
+    runTestFile(api, 'res = RAND(1, 10, 5)');
+    const result = api.readVariable('#res');
+
+    expect(result >= 1).toBeTruthy();
+    expect(result <= 10).toBeTruthy();
   });
 });

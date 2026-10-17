@@ -11,7 +11,7 @@ describe('conditionals', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -827,12 +827,12 @@ end
       `,
       );
 
-      expect(api.readVariable('k1')).toBe(0);
+      expect(api.readVariable('k1')).toBeUndefined();
       expect(api.readVariable('k2')).toBe(35);
     });
 
-    test('multi line if without end shows error', () => {
-      runTestFile(
+    test('multi line if without end shows error', async () => {
+      await runTestFile(
         api,
         `
 if abcd = 3:
@@ -853,8 +853,8 @@ else
       error.mockReset();
     });
 
-    test('nested multi line if without end shows error', () => {
-      runTestFile(
+    test('nested multi line if without end shows error', async () => {
+      await runTestFile(
         api,
         `
 abc = 4
@@ -877,8 +877,8 @@ end
       error.mockReset();
     });
 
-    test('end in single line if shows error', () => {
-      runTestFile(
+    test('end in single line if shows error', async () => {
+      await runTestFile(
         api,
         `
         if abcd=3: k1=34 else k1=25 end
@@ -896,8 +896,8 @@ end
       error.mockReset();
     });
 
-    test('multiline if requires colon', () => {
-      runTestFile(
+    test('multiline if requires colon', async () => {
+      await runTestFile(
         api,
         `
         if 0
@@ -916,8 +916,8 @@ end
       error.mockReset();
     });
 
-    test('multiline elseif requires colon', () => {
-      runTestFile(
+    test('multiline elseif requires colon', async () => {
+      await runTestFile(
         api,
         `
         if 0:
@@ -937,8 +937,8 @@ end
       error.mockReset();
     });
 
-    test('multiline else if requires colon', () => {
-      runTestFile(
+    test('multiline else if requires colon', async () => {
+      await runTestFile(
         api,
         `
         if 0:

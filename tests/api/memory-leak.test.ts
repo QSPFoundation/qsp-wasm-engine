@@ -11,13 +11,13 @@ describe('Memory leaks', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('no leak on dynamic with error', () => {
-    runTestFile(
+  test('no leak on dynamic with error', async () => {
+    await runTestFile(
       api,
       `
       dynamic '$bug="<<434+>>"'
@@ -29,8 +29,8 @@ describe('Memory leaks', () => {
     error.mockReset();
   });
 
-  test('no leak on tuple unpack', () => {
-    api.execCode("local ,='4','5'");
+  test('no leak on tuple unpack', async () => {
+    await api.execCode("local ,='4','5'");
 
     expect(error).toHaveBeenCalled();
     error.mockReset();

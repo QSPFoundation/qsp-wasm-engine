@@ -1,6 +1,5 @@
 node_modules
-/src/qsplib/build/*
-!/src/qsplib/build/.gitkeep
+/src/qsplib/build/
 dist
 .DS_Store
 /.idea/

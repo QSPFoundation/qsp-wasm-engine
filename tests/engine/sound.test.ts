@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('sound', () => {
@@ -11,7 +11,7 @@ describe('sound', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -34,7 +34,7 @@ describe('sound', () => {
     onPlay.mock.calls[0][2]();
   });
 
-  test('PLAY should pause flow until released', () => {
+  test('PLAY should pause flow until released', async () => {
     const onPlay = vi.fn();
     api.on('play_file', onPlay);
     const statsChanged = vi.fn();
@@ -42,21 +42,23 @@ describe('sound', () => {
     runTestFile(api, `PLAY 'sound/music.mp3' & p 'after play'`);
     expect(statsChanged).not.toHaveBeenCalled();
     onPlay.mock.calls[0][2]();
+    await nextTick();
 
     expect(statsChanged).toHaveBeenCalledWith('after play');
   });
 
-  test('ISPLAY resolves to playing status', () => {
+  test('ISPLAY resolves to playing status', async () => {
     const onIsPlay = vi.fn();
     api.on('is_play', onIsPlay);
     runTestFile(api, `playing = ISPLAY('test.mp3')`);
     expect(onIsPlay).toHaveBeenCalledWith('test.mp3', expect.any(Function));
     onIsPlay.mock.calls[0][1](1);
+    await nextTick();
 
     expect(api.readVariable('playing')).toBe(1);
   });
 
-  test('CLOSE should trigger stopping file', () => {
+  test('CLOSE should trigger stopping file', async () => {
     const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
     const onPlay = vi.fn();
@@ -64,6 +66,7 @@ describe('sound', () => {
 
     runTestFile(api, `PLAY 'test.mp3' & CLOSE 'test.mp3'`);
     onPlay.mock.calls[0][2]();
+    await nextTick();
 
     expect(onCloseFile).toHaveBeenCalledWith('test.mp3', expect.any(Function));
     onCloseFile.mock.calls[0][1]();
@@ -77,13 +80,14 @@ describe('sound', () => {
     expect(onCloseFile).not.toHaveBeenCalled();
   });
 
-  test('CLOSE ALL should trigger stopping sound', () => {
+  test('CLOSE ALL should trigger stopping sound', async () => {
     const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
     const onPlay = vi.fn();
     api.on('play_file', onPlay);
     runTestFile(api, `PLAY 'test.mp3' & CLOSE ALL`);
     onPlay.mock.calls[0][2]();
+    await nextTick();
 
     expect(onCloseFile).toHaveBeenCalledWith('', expect.any(Function));
     onCloseFile.mock.calls[0][1]();
