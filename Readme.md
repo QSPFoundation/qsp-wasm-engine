@@ -155,7 +155,7 @@ Here is the list of currently supported events.
   1. `objects` - array of objects (every object has three fields - `name`, `image`, and `title`)
 - `panel_visibility` - event is triggered whenever one of panels is shown/hidden.
   Arguments:
-  1. `type` - code of panel that changed
+  1. `type` - `QspPanel` flags of the panels that changed: one panel for the statements (`SHOWACTS`, …), several combined ones (`type & QspPanel.OBJS`) after `api.restartGame` and `api.loadSave`
   1. `isShown` - if panel is shown now
 - `user_input` - event is triggered whenever user input is changed (either from game of using `api.updateUserInput`)
   Arguments:

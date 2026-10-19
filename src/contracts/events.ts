@@ -5,6 +5,7 @@ export type QspEvents = {
   stats_changed: (text: string) => void;
   actions_changed: (actions: QspListItem[]) => void;
   objects_changed: (objects: QspObjectItem[]) => void;
+  // type: QspPanel flags, several panels can be combined
   panel_visibility: (type: QspPanel, isShown: boolean) => void;
   user_input: (text: string) => void;
   error: (errorData: QspErrorData) => void;

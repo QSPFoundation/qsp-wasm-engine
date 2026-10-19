@@ -1,6 +1,7 @@
 import { Mock, beforeEach, describe, vi, it, expect, afterEach } from 'vitest';
 import { delay, prepareApi, runTestFile } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
+import { QspPanel } from '../../src/contracts/common';
 
 // TODO add save/load test
 describe('api', () => {
@@ -143,6 +144,21 @@ describe('api', () => {
     it('should handle empty string expression', async () => {
       const result = await api.calculateStringExpression('""');
       expect(result).toBe('');
+    });
+  });
+
+  describe('panel visibility', () => {
+    it('should report one panel for a statement and flags of several for a restart', async () => {
+      api.on('close_file', (_file, resolve) => resolve());
+      const onVisibility = vi.fn();
+      api.on('panel_visibility', onVisibility);
+      await runTestFile(api, `showobjs 0`);
+      expect(onVisibility).toHaveBeenLastCalledWith(QspPanel.OBJS, false);
+
+      onVisibility.mockClear();
+      await api.restartGame();
+      const shown = QspPanel.MAIN | QspPanel.VARS | QspPanel.ACTS | QspPanel.OBJS | QspPanel.INPUT;
+      expect(onVisibility).toHaveBeenLastCalledWith(shown, true);
     });
   });
 
