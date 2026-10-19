@@ -16,8 +16,8 @@ describe('labels', () => {
     api?._run_checks();
   });
 
-  test('JUMP should go to label', () => {
-    runTestFile(
+  test('JUMP should go to label', async () => {
+    await runTestFile(
       api,
       `
 x = 1
@@ -30,8 +30,8 @@ x = 2
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('statements are allowed after label', () => {
-    runTestFile(
+  test('statements are allowed after label', async () => {
+    await runTestFile(
       api,
       `
 x = 1
@@ -45,8 +45,8 @@ x = 2
     expect(api.readVariable('y')).toBe(3);
   });
 
-  test('labels at the beginning can be ignored', () => {
-    runTestFile(
+  test('labels at the beginning can be ignored', async () => {
+    await runTestFile(
       api,
       `
 :end & x = 1
@@ -58,8 +58,8 @@ y = 2
     expect(api.readVariable('y')).toBe(2);
   });
 
-  test('labels in the middle can be ignored', () => {
-    runTestFile(
+  test('labels in the middle can be ignored', async () => {
+    await runTestFile(
       api,
       `
 x = 1 & :end & y = 2
@@ -72,8 +72,8 @@ z = 3
     expect(api.readVariable('z')).toBe(3);
   });
 
-  test('labels are case insensitive', () => {
-    runTestFile(
+  test('labels are case insensitive', async () => {
+    await runTestFile(
       api,
       `
 x = 1
@@ -86,10 +86,10 @@ x = 2
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('jump loops', () => {
+  test('jump loops', async () => {
     const onStat = vi.fn();
     api.on('stats_changed', onStat);
-    runTestFile(
+    await runTestFile(
       api,
       `
 s=0
@@ -104,8 +104,8 @@ end`,
     expect(onStat).toHaveBeenCalledWith('123456789');
   });
 
-  test('JUMP works inside action code', () => {
-    runTestFile(
+  test('JUMP works inside action code', async () => {
+    await runTestFile(
       api,
       `
       act 'test':
@@ -123,8 +123,8 @@ end`,
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('JUMP works inside DYNAMIC', () => {
-    runTestFile(
+  test('JUMP works inside DYNAMIC', async () => {
+    await runTestFile(
       api,
       `
       x = 3
@@ -138,8 +138,8 @@ end`,
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('JUMP works inside DYNEVAL', () => {
-    runTestFile(
+  test('JUMP works inside DYNEVAL', async () => {
+    await runTestFile(
       api,
       `
       x = 3

@@ -1,5 +1,10 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile, runTestFileWithGoto, nextTick } from '../../src/test-helpers';
+import {
+  prepareApi,
+  runTestFile,
+  startTestFile,
+  runTestFileWithGoto,
+} from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('variables', () => {
@@ -24,46 +29,46 @@ describe('variables', () => {
     expect(api.readVariable('$not_defined')).toBe('');
   });
 
-  test('variables are case insensitive', () => {
-    runTestFile(api, `money = 100 & MONEY += 1`);
+  test('variables are case insensitive', async () => {
+    await runTestFile(api, `money = 100 & MONEY += 1`);
 
     expect(api.readVariable('MoNeY')).toBe(101);
   });
 
-  test('LET assignment', () => {
-    runTestFile(api, `LET money = 100`);
+  test('LET assignment', async () => {
+    await runTestFile(api, `LET money = 100`);
 
     expect(api.readVariable('money')).toBe(100);
   });
 
-  test('SET assignment', () => {
-    runTestFile(api, `SET money = 100`);
+  test('SET assignment', async () => {
+    await runTestFile(api, `SET money = 100`);
 
     expect(api.readVariable('money')).toBe(100);
   });
 
-  test('assignment', () => {
-    runTestFile(api, `money = 100`);
+  test('assignment', async () => {
+    await runTestFile(api, `money = 100`);
 
     expect(api.readVariable('money')).toBe(100);
   });
 
-  test('assignment to array item by numeric index', () => {
-    runTestFile(api, `money[2] = 100`);
+  test('assignment to array item by numeric index', async () => {
+    await runTestFile(api, `money[2] = 100`);
 
     expect(api.readVariableByIndex('money', 0)).toBeUndefined();
     expect(api.readVariableByIndex('money', 1)).toBeUndefined();
     expect(api.readVariableByIndex('money', 2)).toBe(100);
   });
 
-  test('assignment to array item by string index', () => {
-    runTestFile(api, `money['key'] = 100`);
+  test('assignment to array item by string index', async () => {
+    await runTestFile(api, `money['key'] = 100`);
 
     expect(api.readVariableByKey('money', 'key')).toBe(100);
   });
 
-  test('multi assignment', () => {
-    runTestFile(api, `a, $b, $c, d = 1, 'test', 'other', 2`);
+  test('multi assignment', async () => {
+    await runTestFile(api, `a, $b, $c, d = 1, 'test', 'other', 2`);
 
     expect(api.readVariable('a')).toBe(1);
     expect(api.readVariable('$b')).toBe('test');
@@ -71,8 +76,8 @@ describe('variables', () => {
     expect(api.readVariable('d')).toBe(2);
   });
 
-  test('multi assignment with explicit tuple', () => {
-    runTestFile(api, `a, $b, $c, d = [1, 'test', 'other', 2]`);
+  test('multi assignment with explicit tuple', async () => {
+    await runTestFile(api, `a, $b, $c, d = [1, 'test', 'other', 2]`);
 
     expect(api.readVariable('a')).toBe(1);
     expect(api.readVariable('$b')).toBe('test');
@@ -80,8 +85,8 @@ describe('variables', () => {
     expect(api.readVariable('d')).toBe(2);
   });
 
-  test('multi assignment with array and numeric indices', () => {
-    runTestFile(api, `a[3], $b[2], $c[1], d = 1, 'test', 'other', 2`);
+  test('multi assignment with array and numeric indices', async () => {
+    await runTestFile(api, `a[3], $b[2], $c[1], d = 1, 'test', 'other', 2`);
 
     expect(api.readVariableByIndex('a', 3)).toBe(1);
     expect(api.readVariableByIndex('$b', 2)).toBe('test');
@@ -89,8 +94,8 @@ describe('variables', () => {
     expect(api.readVariable('d')).toBe(2);
   });
 
-  test('multi assignment with array and string indices', () => {
-    runTestFile(api, `a['t1'], $b['t2'], $c['t3'], d = 1, 'test', 'other', 2`);
+  test('multi assignment with array and string indices', async () => {
+    await runTestFile(api, `a['t1'], $b['t2'], $c['t3'], d = 1, 'test', 'other', 2`);
 
     expect(api.readVariableByKey('a', 't1')).toBe(1);
     expect(api.readVariableByKey('$b', 't2')).toBe('test');
@@ -98,8 +103,8 @@ describe('variables', () => {
     expect(api.readVariable('d')).toBe(2);
   });
 
-  test('partial assignment', () => {
-    runTestFile(api, `a, $b, $c, d, %e = 3, 'test'`);
+  test('partial assignment', async () => {
+    await runTestFile(api, `a, $b, $c, d, %e = 3, 'test'`);
 
     expect(api.readVariable('a')).toBe(3);
     expect(api.readVariable('$b')).toBe('test');
@@ -108,8 +113,8 @@ describe('variables', () => {
     expect(api.readVariable('%e')).toEqual([]);
   });
 
-  test('local without assignment', () => {
-    runTestFile(api,
+  test('local without assignment', async () => {
+    await runTestFile(api,
       `
 a, $b, c = 1, 'old', 2
 if 1:
@@ -127,8 +132,8 @@ a_old, $b_old, c_old = a, $b, c
     expect(api.readVariable('c_old')).toBe(2);
   });
 
-  test('multi assignment local', () => {
-    runTestFile(api,
+  test('multi assignment local', async () => {
+    await runTestFile(api,
       `
 a, $b, $c, d = 1, 'old', 'oldest', 2
 if 1:
@@ -148,8 +153,8 @@ a_old, $b_old, $c_old, d_old = a, $b, $c, d
     expect(api.readVariable('d_old')).toBe(2);
   });
 
-  test('local with partial assignment', () => {
-    runTestFile(api,
+  test('local with partial assignment', async () => {
+    await runTestFile(api,
       `
 a, $b, $c, d = 1, 'old', 'oldest', 2
 if 1:
@@ -169,22 +174,22 @@ a_old, $b_old, $c_old, d_old = a, $b, $c, d
     expect(api.readVariable('d_old')).toBe(2);
   });
 
-  test('multi assignment with the same variable and last num value', () => {
-    runTestFile(api, `a, $a, A = 2, 'test', 4`);
+  test('multi assignment with the same variable and last num value', async () => {
+    await runTestFile(api, `a, $a, A = 2, 'test', 4`);
 
     expect(api.readVariable('a')).toBe(4);
     expect(api.readVariable('$a')).toBe('');
   });
 
-  test('multi assignment with the same variable and last string value', () => {
-    runTestFile(api, `$a, a, $A = 'test', 3, 'new'`);
+  test('multi assignment with the same variable and last string value', async () => {
+    await runTestFile(api, `$a, a, $A = 'test', 3, 'new'`);
 
     expect(api.readVariable('#a')).toBe(0);
     expect(api.readVariable('$a')).toBe('new');
   });
 
-  test('multi assignment local with the same variable and last num value', () => {
-    runTestFile(api,
+  test('multi assignment local with the same variable and last num value', async () => {
+    await runTestFile(api,
       `
 local a, $a, A = 2, 'test', 4
 new_num, $new_str = a, $a
@@ -194,8 +199,8 @@ new_num, $new_str = a, $a
     expect(api.readVariable('$new_str')).toBe('');
   });
 
-  test('multi assignment local with the same variable and last string value', () => {
-    runTestFile(api,
+  test('multi assignment local with the same variable and last string value', async () => {
+    await runTestFile(api,
       `
 local $a, a, $A = 'test', 3, 'new'
 new_num, $new_str = a, $a
@@ -205,16 +210,16 @@ new_num, $new_str = a, $a
     expect(api.readVariable('$new_str')).toBe('new');
   });
 
-  test('multi assignment with the same array', () => {
-    runTestFile(api, `a[1], $a[2], A[3] = 2, 'test', 4`);
+  test('multi assignment with the same array', async () => {
+    await runTestFile(api, `a[1], $a[2], A[3] = 2, 'test', 4`);
 
     expect(api.readVariableByIndex('a', 1)).toBe(2);
     expect(api.readVariableByIndex('$a', 2)).toBe('test');
     expect(api.readVariableByIndex('a', 3)).toBe(4);
   });
 
-  test('variable without type prefix keeps the type of assigned value', () => {
-    runTestFile(api, `a = 'text' & $type = arrtype('a') & $str = a`);
+  test('variable without type prefix keeps the type of assigned value', async () => {
+    await runTestFile(api, `a = 'text' & $type = arrtype('a') & $str = a`);
     api.execCode(`a = 5 & $type2 = arrtype('a')`);
 
     expect(api.readVariable('$type')).toBe('$');
@@ -222,16 +227,16 @@ new_num, $new_str = a, $a
     expect(api.readVariable('$type2')).toBe('#');
   });
 
-  test('type prefix on read converts value of another type to empty value', () => {
-    runTestFile(api, `a = 5 & $str = $a & %tuple = %a & $b = 'text' & num = #b`);
+  test('type prefix on read converts value of another type to empty value', async () => {
+    await runTestFile(api, `a = 5 & $str = $a & %tuple = %a & $b = 'text' & num = #b`);
 
     expect(api.readVariable('$str')).toBe('');
     expect(api.readVariable('%tuple')).toEqual([]);
     expect(api.readVariable('num')).toBe(0);
   });
 
-  test('killvar without arguments keeps local variables', () => {
-    runTestFile(api,
+  test('killvar without arguments keeps local variables', async () => {
+    await runTestFile(api,
       `
 a = 1 & $b = 'test'
 if 1:
@@ -247,8 +252,8 @@ end
     expect(api.readVariable('$b')).toBe('');
   });
 
-  test('local variables get removed on killvar', () => {
-    runTestFile(api,
+  test('local variables get removed on killvar', async () => {
+    await runTestFile(api,
       `
 a = 1 & $b = 'test' & c = 3
 if 1:
@@ -262,8 +267,8 @@ end
     expect(api.readVariable('c')).toBeUndefined();
   });
 
-  test('variable swap', () => {
-    runTestFile(
+  test('variable swap', async () => {
+    await runTestFile(
       api,
       `
 $x = "aa"
@@ -275,8 +280,8 @@ $y, $x = $x, $y
     expect(api.readVariable('$y')).toBe("aa");
   });
 
-  test('local', () => {
-    runTestFile(
+  test('local', async () => {
+    await runTestFile(
       api,
       `
 $a = "aa" & $b = "bb" & c = 11 & $d = "dd"
@@ -301,8 +306,8 @@ $ld = $d
   });
 
   test.each(['gt', 'goto', 'xgt', 'xgoto'])
-  ('global variables get restored on %s', (s) => {
-    runTestFile(api,
+  ('global variables get restored on %s', async (s) => {
+    await runTestFile(api,
       `
 $test='value'
 local $test='value 1'
@@ -320,11 +325,11 @@ $glob_test = $test
     expect(api.readVariable('$glob_test')).toBe("value");
   });
 
-  test('global variables get restored if ONGSAVE calls goto', () => {
+  test('global variables get restored if ONGSAVE calls goto', async () => {
     const onSaveGame = vi.fn((_, callback) => { api.saveGame(); callback(); });
     api.on('save_game', onSaveGame);
 
-    runTestFile(api,
+    await runTestFile(api,
       `
 $ongsave = 'other'
 $test='value'
@@ -358,8 +363,8 @@ end
     expect(api.readVariable('$glob_test3')).toBe("value");
   });
 
-  test('local variables in nested calls are preserved (shadowing global)', () => {
-    runTestFile(
+  test('local variables in nested calls are preserved (shadowing global)', async () => {
+    await runTestFile(
       api,
       `
 $a = "aa"
@@ -379,8 +384,8 @@ $na = $a
     expect(api.readVariable('$na')).toBe("la");
   });
 
-  test('local reset on subsequent calls', () => {
-    runTestFile(
+  test('local reset on subsequent calls', async () => {
+    await runTestFile(
       api,
       `
 gs 'other', 'first', "ff"
@@ -399,11 +404,11 @@ $res[$args[0]] = $a[0]
     expect(api.readVariableByKey('size', 'second')).toBe(1);
   });
 
-  test('local variables are not visible in actions (unlike args)', () => {
+  test('local variables are not visible in actions (unlike args)', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
 
-    runTestFileWithGoto(
+    await runTestFileWithGoto(
       api,
       `
 local $a = "aa"
@@ -417,11 +422,11 @@ act '1': $a & $args[0]
     expect(onMain).toHaveBeenCalledWith('\r\nbb\r\n', false);
   });
 
-  test('local variables inside actions', () => {
+  test('local variables inside actions', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
 
-    runTestFile(
+    await runTestFile(
       api,
       `
 $i="ii"
@@ -449,14 +454,14 @@ end
     const onMsg = vi.fn();
     api.on('msg', onMsg);
 
-    runTestFile(
+    const { done } = await startTestFile(
       api,
       `local $i="ii" & msg ''`
     );
 
     expect(api.readVariable('$i')).toBe("ii");
     onMsg.mock.calls[0][1]();
-    await nextTick();
+    await done;
     expect(api.readVariable('$i')).toBe("");
   });
 });

@@ -18,10 +18,10 @@ describe('api', () => {
   });
 
 
-  it('should exec code', () => {
+  it('should exec code', async () => {
     const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
-    runTestFile(api, ``);
+    await runTestFile(api, ``);
     expect(statsChanged).not.toHaveBeenCalled();
     api.execCode(`p 'works'`);
     expect(statsChanged).toHaveBeenCalledWith('works');
@@ -32,7 +32,7 @@ describe('api', () => {
   });
 
   it('should watch variable by index', async () => {
-    runTestFile(api, ``);
+    await runTestFile(api, ``);
     const watchVariables = vi.fn();
     api.watchVariableByIndex('$test', 1, watchVariables);
     await delay(10);
@@ -43,7 +43,7 @@ describe('api', () => {
   });
 
   it('should see variable change before msg', async () => {
-    runTestFile(api, ``);
+    await runTestFile(api, ``);
     const watchVariables = vi.fn();
     const msg = vi.fn();
     api.on('msg', msg);
@@ -58,7 +58,7 @@ describe('api', () => {
   });
 
   it('should watch variable by key', async () => {
-    runTestFile(api, ``);
+    await runTestFile(api, ``);
     const watchVariables = vi.fn();
     api.watchVariableByKey('$test', 'key', watchVariables);
     await delay(10);
@@ -69,8 +69,8 @@ describe('api', () => {
   });
 
   describe('expression evaluation', () => {
-    beforeEach(() => {
-      runTestFile(api, `
+    beforeEach(async () => {
+      await runTestFile(api, `
         numVar = 10
         $strVar = 'hello'
         %arrVar[0] = 5
@@ -177,8 +177,8 @@ done = 1`,
   });
 
   describe('selection getters', () => {
-    beforeEach(() => {
-      runTestFile(api, `
+    beforeEach(async () => {
+      await runTestFile(api, `
         act 'Action 1': end
         act 'Action 2': end
         addobj 'Object 1'

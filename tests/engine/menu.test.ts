@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
+import { prepareApi, startTestFile } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('menu', () => {
@@ -19,8 +19,8 @@ describe('menu', () => {
     api?._run_checks();
   });
 
-  test('MENU should trigger showing menu', () => {
-    runTestFile(
+  test('MENU should trigger showing menu', async () => {
+    const { done } = await startTestFile(
       api,
       `
 $stone[0]='Take stone:takestone'
@@ -44,10 +44,11 @@ menu '$stone'
       expect.any(Function),
     );
     menu.mock.calls[0][1](-1);
+    await done;
   });
 
-  test('MENU should trigger showing menu without $ in name', () => {
-    runTestFile(
+  test('MENU should trigger showing menu without $ in name', async () => {
+    const { done } = await startTestFile(
       api,
       `
 $stone[0]='Take stone:takestone'
@@ -71,10 +72,11 @@ menu 'stone'
       expect.any(Function),
     );
     menu.mock.calls[0][1](-1);
+    await done;
   });
 
-  test('MENU should trigger showing menu with icon', () => {
-    runTestFile(
+  test('MENU should trigger showing menu with icon', async () => {
+    const { done } = await startTestFile(
       api,
       `
 $stone[0]='Take stone:takestone:1.png'
@@ -93,10 +95,11 @@ menu '$stone'
       expect.any(Function),
     );
     menu.mock.calls[0][1](-1);
+    await done;
   });
 
-  test('MENU stops on first empty item', () => {
-    runTestFile(
+  test('MENU stops on first empty item', async () => {
+    const { done } = await startTestFile(
       api,
       `
 $stone[0]='Take stone:takestone'
@@ -116,10 +119,11 @@ menu '$stone'
       expect.any(Function),
     );
     menu.mock.calls[0][1](-1);
+    await done;
   });
 
-  test('MENU should support separator as -:-', () => {
-    runTestFile(
+  test('MENU should support separator as -:-', async () => {
+    const { done } = await startTestFile(
       api,
       `
 $stone[0]='Take stone:takestone'
@@ -148,12 +152,13 @@ menu '$stone'
       expect.any(Function),
     );
     menu.mock.calls[0][1](-1);
+    await done;
   });
 
   test('corresponding location should be called when menu item is selected', async () => {
     const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
-    runTestFile(
+    const { done } = await startTestFile(
       api,
       `
 $stone[0]='Take stone:takestone'
@@ -182,7 +187,7 @@ p 'thrown'
       expect.any(Function),
     );
     menu.mock.calls[0][1](1);
-    await nextTick();
+    await done;
 
     expect(statsChanged).toHaveBeenCalledWith('thrown');
   });
@@ -190,7 +195,7 @@ p 'thrown'
   test('index(1 based) of selected item should be passed into processing loc', async () => {
     const statsChanged = vi.fn();
     api.on('stats_changed', statsChanged);
-    runTestFile(
+    const { done } = await startTestFile(
       api,
       `
 $stone[0]='Take stone:stone'
@@ -203,13 +208,13 @@ r = args[0]
     );
 
     menu.mock.calls[0][1](1);
-    await nextTick();
+    await done;
 
     expect(api.readVariable('r')).toBe(2);
   });
 
-  test('name can contain : as searching for : starts from end', () => {
-    runTestFile(
+  test('name can contain : as searching for : starts from end', async () => {
+    const { done } = await startTestFile(
       api,
       `
 $stone[0]='Take: stone:takestone:'
@@ -228,5 +233,6 @@ menu 'stone'
       expect.any(Function),
     );
     menu.mock.calls[0][1](-1);
+    await done;
   })
 });

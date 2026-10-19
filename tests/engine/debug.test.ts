@@ -1,6 +1,6 @@
 import { Mock, beforeEach, describe, vi, expect, it, afterEach } from 'vitest';
 import { DebugRecord, QspAPI } from '../../src';
-import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
+import { prepareApi, runTestFile } from '../../src/test-helpers';
 
 describe('debug', () => {
   let api: QspAPI;
@@ -26,13 +26,12 @@ describe('debug', () => {
 
     api.enableDebugMode();
 
-    runTestFile(
+    await runTestFile(
       api,
       `'first line'
       a = 10
 'third line'`,
     );
-    await nextTick();
 
     api.disableDebugMode();
 

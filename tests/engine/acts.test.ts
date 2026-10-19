@@ -21,18 +21,18 @@ describe('actions', () => {
     api?._run_checks();
   });
 
-  test('SHOWACTS should toggle acts visibility', () => {
+  test('SHOWACTS should toggle acts visibility', async () => {
     const panelVisibility = vi.fn();
     api.on('panel_visibility', panelVisibility);
-    runTestFile(api, `SHOWACTS 0`);
+    await runTestFile(api, `SHOWACTS 0`);
     expect(panelVisibility).toHaveBeenCalledWith(QspPanel.ACTS, false);
 
-    runTestFile(api, `SHOWACTS 1`);
+    await runTestFile(api, `SHOWACTS 1`);
     expect(panelVisibility).toHaveBeenCalledWith(QspPanel.ACTS, true);
   });
 
-  test('single line ACT', () => {
-    runTestFile(api, `act '1': p 1`);
+  test('single line ACT', async () => {
+    await runTestFile(api, `act '1': p 1`);
 
     expect(actsChanged).toHaveBeenCalledWith([
       {
@@ -42,8 +42,8 @@ describe('actions', () => {
     ]);
   });
 
-  test('single line ACT with image', () => {
-    runTestFile(api, `act '1', '1.png': p 1`);
+  test('single line ACT with image', async () => {
+    await runTestFile(api, `act '1', '1.png': p 1`);
     
     expect(actsChanged).toHaveBeenCalledWith([
       {
@@ -53,8 +53,8 @@ describe('actions', () => {
     ]);
   });
 
-  test('multi line ACT', () => {
-    runTestFile(
+  test('multi line ACT', async () => {
+    await runTestFile(
       api,
       `act '1':
   p 1
@@ -69,8 +69,8 @@ end`,
     ]);
   });
 
-  test('multi line ACT with image', () => {
-    runTestFile(
+  test('multi line ACT with image', async () => {
+    await runTestFile(
       api,
       `act '1', '1.png':
   p 1
@@ -85,8 +85,8 @@ end`,
     ]);
   });
 
-  test('ACTs with same name are ignored', () => {
-    runTestFile(api, `act '1': p 1`);
+  test('ACTs with same name are ignored', async () => {
+    await runTestFile(api, `act '1': p 1`);
 
     expect(actsChanged).toHaveBeenCalledWith([
       {
@@ -99,19 +99,19 @@ end`,
     expect(actsChanged).not.toHaveBeenCalled();
   });
 
-  test('executing action', () => {
+  test('executing action', async () => {
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     
-    runTestFile(api, `act '1': p 'a'`);
+    await runTestFile(api, `act '1': p 'a'`);
 
     api.selectAction(0);
     api.execSelectedAction();
     expect(onStats).toHaveBeenCalledWith('a');
   })
 
-  test('DELACT should delete action', () => {
-    runTestFile(api, `act '1': p 1`);
+  test('DELACT should delete action', async () => {
+    await runTestFile(api, `act '1': p 1`);
 
     expect(actsChanged).toHaveBeenCalledWith([
       {
@@ -124,8 +124,8 @@ end`,
     expect(actsChanged).toHaveBeenCalledWith([]);
   });
 
-  test('DEL ACT should delete action', () => {
-    runTestFile(api, `act '1': p 1`);
+  test('DEL ACT should delete action', async () => {
+    await runTestFile(api, `act '1': p 1`);
 
     expect(actsChanged).toHaveBeenCalledWith([
       {
@@ -138,10 +138,10 @@ end`,
     expect(actsChanged).toHaveBeenCalledWith([]);
   });
 
-  test('$CURACTS should return acts list as code', () => {
+  test('$CURACTS should return acts list as code', async () => {
     const statChanged = vi.fn();
     api.on('stats_changed', statChanged);
-    runTestFile(
+    await runTestFile(
       api,
       `
 act '1': p '1'
@@ -156,10 +156,10 @@ p $CURACTS
     expect(statChanged).toHaveBeenCalledWith(`ACT '1': P '1'\r\nACT '2':\r\nP '2'\r\nP '3'\r\nEND\r\n`);
   });
 
-  test('actions can be restored from CURACTS', () => {
+  test('actions can be restored from CURACTS', async () => {
     const statChanged = vi.fn();
     api.on('stats_changed', statChanged);
-    runTestFile(
+    await runTestFile(
       api,
       `
       act '1': p 'a'
@@ -200,15 +200,15 @@ $acts = $CURACTS`
     ]);
   })
 
-  test('$SELACT should return currently selected action', () => {
-    runTestFile(api, `act '1': p 1`);
+  test('$SELACT should return currently selected action', async () => {
+    await runTestFile(api, `act '1': p 1`);
     api.selectAction(0);
     api.execCode('$selected = $SELACT');
     expect(api.readVariable('$selected')).toBe('1');
   });
 
-  test('CLA should clear list of actions', () => {
-    runTestFile(api, `act '1': p 1`);
+  test('CLA should clear list of actions', async () => {
+    await runTestFile(api, `act '1': p 1`);
 
     expect(actsChanged).toHaveBeenCalledWith([
       {
@@ -221,8 +221,8 @@ $acts = $CURACTS`
     expect(actsChanged).toHaveBeenCalledWith([]);
   });
 
-  test('CLS should clear list of actions', () => {
-    runTestFile(api, `act '1': p 1`);
+  test('CLS should clear list of actions', async () => {
+    await runTestFile(api, `act '1': p 1`);
 
     expect(actsChanged).toHaveBeenCalledWith([
       {
@@ -235,8 +235,8 @@ $acts = $CURACTS`
     expect(actsChanged).toHaveBeenCalledWith([]);
   });
 
-  test('multi line act supports comments', () => {
-    runTestFile(
+  test('multi line act supports comments', async () => {
+    await runTestFile(
       api,
       `
 x = 1

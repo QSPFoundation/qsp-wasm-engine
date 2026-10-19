@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
+import { prepareApi, runTestFile, startTestFile } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 import { QspPanel } from '../../src';
 
@@ -17,10 +17,10 @@ describe('user inputs panel', () => {
     api?._run_checks();
   });
 
-  test('SHOWINPUT should toggle user cmd visibility', () => {
+  test('SHOWINPUT should toggle user cmd visibility', async () => {
     const onPanelVisibility = vi.fn();
     api.on('panel_visibility', onPanelVisibility);
-    runTestFile(api, `SHOWINPUT 0`);
+    await runTestFile(api, `SHOWINPUT 0`);
 
     expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, false);
 
@@ -28,47 +28,47 @@ describe('user inputs panel', () => {
     expect(onPanelVisibility).toHaveBeenCalledWith(QspPanel.INPUT, true);
   });
 
-  test('USER_TEXT should return text from user cmd', () => {
+  test('USER_TEXT should return text from user cmd', async () => {
     api.updateUserInput('works');
-    runTestFile(api, `$text = USER_TEXT`);
+    await runTestFile(api, `$text = USER_TEXT`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('USRTXT should return text from user cmd', () => {
+  test('USRTXT should return text from user cmd', async () => {
     api.updateUserInput('works');
-    runTestFile(api, `$text = USRTXT`);
+    await runTestFile(api, `$text = USRTXT`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('CMDCLEAR should clear user input', () => {
+  test('CMDCLEAR should clear user input', async () => {
     const userInput = vi.fn();
     api.on('user_input', userInput);
     api.updateUserInput('works');
-    runTestFile(api, `$textBefore = USRTXT & CMDCLEAR & $textAfter = USRTXT`);
+    await runTestFile(api, `$textBefore = USRTXT & CMDCLEAR & $textAfter = USRTXT`);
 
     expect(userInput).toHaveBeenCalledWith('');
     expect(api.readVariable('$textBefore')).toBe('works');
     expect(api.readVariable('$textAfter')).toBe('');
   });
 
-  test('CMDCLR should clear user input', () => {
+  test('CMDCLR should clear user input', async () => {
     const userInput = vi.fn();
     api.on('user_input', userInput);
     api.updateUserInput('works');
-    runTestFile(api, `$textBefore = USRTXT & CMDCLR & $textAfter = USRTXT`);
+    await runTestFile(api, `$textBefore = USRTXT & CMDCLR & $textAfter = USRTXT`);
 
     expect(userInput).toHaveBeenCalledWith('');
     expect(api.readVariable('$textBefore')).toBe('works');
     expect(api.readVariable('$textAfter')).toBe('');
   });
 
-  test('CLS should clear user input', () => {
+  test('CLS should clear user input', async () => {
     const userInput = vi.fn();
     api.on('user_input', userInput);
     api.updateUserInput('works');
-    runTestFile(api, `$textBefore = USRTXT & CLS & $textAfter = USRTXT`);
+    await runTestFile(api, `$textBefore = USRTXT & CLS & $textAfter = USRTXT`);
 
     expect(userInput).toHaveBeenCalledWith('');
     expect(api.readVariable('$textBefore')).toBe('works');
@@ -80,13 +80,13 @@ describe('user inputs panel', () => {
     api.on('input', onInput);
     const mainChanged = vi.fn();
     api.on('main_changed', mainChanged);
-    runTestFile(api, `*p '1' & $text = $input('Question?') & *p '2'`);
+    const { done } = await startTestFile(api, `*p '1' & $text = $input('Question?') & *p '2'`);
    
     expect(mainChanged).toHaveBeenCalledWith('1', false);
     expect(onInput).toHaveBeenCalledWith('Question?', expect.any(Function));
 
     onInput.mock.calls[0][1]('Answer');
-    await nextTick();
+    await done;
     expect(api.readVariable('$text')).toBe('Answer');
     expect(mainChanged).toHaveBeenCalledWith('12', false);
   });
@@ -94,20 +94,20 @@ describe('user inputs panel', () => {
   test('INPUT cuts the answer to 511 characters', async () => {
     const onInput = vi.fn();
     api.on('input', onInput);
-    runTestFile(api, `$text = $input('Question?')`);
+    const { done } = await startTestFile(api, `$text = $input('Question?')`);
 
     onInput.mock.calls[0][1]('a'.repeat(600));
-    await nextTick();
+    await done;
     expect(api.readVariable('$text')).toBe('a'.repeat(511));
   });
 
   test('INPUT without an answer returns an empty string', async () => {
     const onInput = vi.fn();
     api.on('input', onInput);
-    runTestFile(api, `$text = 'before' & $text = $input('Question?')`);
+    const { done } = await startTestFile(api, `$text = 'before' & $text = $input('Question?')`);
 
     onInput.mock.calls[0][1](undefined);
-    await nextTick();
+    await done;
     expect(api.readVariable('$text')).toBe('');
   });
 });

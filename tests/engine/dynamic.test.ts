@@ -17,8 +17,8 @@ describe('dynamics', () => {
   });
 
   describe('DYNAMIC', () => {
-    test('creating dynamic var name', () => {
-      runTestFile(
+    test('creating dynamic var name', async () => {
+      await runTestFile(
         api,
         `
         $a = 'test'
@@ -28,11 +28,11 @@ describe('dynamics', () => {
       expect(api.readVariable('test_1')).toBe(12);
     });
 
-    test('regular strings evaluate expressions when created', () => {
+    test('regular strings evaluate expressions when created', async () => {
       const onMain = vi.fn();
       api.on('main_changed', onMain);
 
-      runTestFile(
+      await runTestFile(
         api,
         `
         $args[0] = 'qwerty'
@@ -48,11 +48,11 @@ describe('dynamics', () => {
       expect(onMain).toHaveBeenCalledWith('qwerty\r\nasdfg\r\n', false);
     });
 
-    test('curly braces evaluate expressions when dynamic is called', () => {
+    test('curly braces evaluate expressions when dynamic is called', async () => {
       const onMain = vi.fn();
       api.on('main_changed', onMain);
 
-      runTestFile(
+      await runTestFile(
         api,
         `
         $args[0] = 'qwerty'
@@ -68,8 +68,8 @@ describe('dynamics', () => {
       expect(onMain).toHaveBeenCalledWith('asdfg\r\nasdfg\r\n', false);
     });
 
-    test('args should be isolated from location', () => {
-      runTestFile(
+    test('args should be isolated from location', async () => {
+      await runTestFile(
         api,
         `
       gt 'with_dynamic', 'test', 2, 4
@@ -102,8 +102,8 @@ describe('dynamics', () => {
   });
 
   describe('DYNEVAL', () => {
-    test('returning number result', () => {
-      runTestFile(
+    test('returning number result', async () => {
+      await runTestFile(
         api,
         `
         res = dyneval('result = 3 + 4')
@@ -113,8 +113,8 @@ describe('dynamics', () => {
       expect(api.readVariable('res')).toBe(7);
     });
 
-    test('returning string result', () => {
-      runTestFile(
+    test('returning string result', async () => {
+      await runTestFile(
         api,
         `
           $res = $dyneval('$result = mid("abcd", 2, 1) + "qwerty"')
@@ -124,10 +124,10 @@ describe('dynamics', () => {
       expect(api.readVariable('$res')).toBe('bqwerty');
     });
 
-    test('inplicit operator should not add new line if there was no return', () => {
+    test('inplicit operator should not add new line if there was no return', async () => {
       const onMain = vi.fn();
       api.on('main_changed', onMain);
-      runTestFile(
+      await runTestFile(
         api,
         `
 123
@@ -138,8 +138,8 @@ code          `,
       expect(onMain).toHaveBeenCalledWith('123\r\n1013\r\n', false);
     });
   
-    test('args should be isolated from locations', () => {
-      runTestFile(
+    test('args should be isolated from locations', async () => {
+      await runTestFile(
         api,
         `
       top_result = func('with_dyneval', 'test', 2, 4)

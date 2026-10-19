@@ -17,8 +17,8 @@ describe('location data retrieval API', () => {
     api?._run_checks();
   });
 
-  it('getLocationsList should return all location names', () => {
-    runTestFile(
+  it('getLocationsList should return all location names', async () => {
+    await runTestFile(
       api,
       `
 *p 'main location'
@@ -76,8 +76,8 @@ describe('location data retrieval API', () => {
     expect(list[199]).toEqual({ name: 'object199', image: 'img199.png', title: 'object199' });
   });
 
-  it('getLocationCode should return location source code', () => {
-    runTestFile(
+  it('getLocationCode should return location source code', async () => {
+    await runTestFile(
       api,
       `
 *p 'main location'
@@ -108,8 +108,8 @@ y = 2
     );
   });
 
-  it('getLocationActions should return base actions for a location', () => {
-    loadTestLocations(api, [
+  it('getLocationActions should return base actions for a location', async () => {
+    await loadTestLocations(api, [
       {
         name: 'test',
         code: [],
@@ -146,8 +146,8 @@ y = 2
     expect(nonExistentActions).toEqual([]);
   });
 
-  it('getActionCode should work with location base actions', () => {
-    loadTestLocations(api, [
+  it('getActionCode should work with location base actions', async () => {
+    await loadTestLocations(api, [
       {
         name: 'test',
         code: [],
@@ -174,28 +174,28 @@ y = 2
     expect(code2).toEqual(expect.arrayContaining(['X = 2', "$NAME = 'test'"]));
   });
 
-  it('getLocationCode should return empty array for non-existent location', () => {
-    runTestFile(api, `*p 'test'`);
+  it('getLocationCode should return empty array for non-existent location', async () => {
+    await runTestFile(api, `*p 'test'`);
 
     const code = api.getLocationCode('nonexistent');
     expect(code).toEqual([]);
   });
 
-  it('getActionCode should return empty array for non-existent action', () => {
-    runTestFile(api, ``);
+  it('getActionCode should return empty array for non-existent action', async () => {
+    await runTestFile(api, ``);
 
     const code = api.getActionCode('test', 5);
     expect(code).toEqual([]);
   });
 
-  it('should read list of locations (debug)', () => {
-    runTestFile(api, '');
+  it('should read list of locations (debug)', async () => {
+    await runTestFile(api, '');
     const locations = api.getLocationsList();
     expect(locations).toEqual(['start', 'test']);
   });
 
-  it('should read location code (debug)', () => {
-    runTestFile(
+  it('should read location code (debug)', async () => {
+    await runTestFile(
       api,
       `'first line'
 
@@ -210,8 +210,8 @@ end`,
   });
 
   describe('getLocationDescription', () => {
-    it('should return description for location with static description', () => {
-      loadTestLocations(api, [
+    it('should return description for location with static description', async () => {
+      await loadTestLocations(api, [
         {
           name: 'testloc',
           code: [],
@@ -225,8 +225,8 @@ end`,
       expect(desc).toContain('test location');
     });
 
-    it('should return description for location with single line description', () => {
-      loadTestLocations(api, [
+    it('should return description for location with single line description', async () => {
+      await loadTestLocations(api, [
         {
           name: 'simpleloc',
           code: [],
@@ -240,8 +240,8 @@ end`,
       expect(desc).toContain('Simple location');
     });
 
-    it('should handle location with no description', () => {
-      loadTestLocations(api, [
+    it('should handle location with no description', async () => {
+      await loadTestLocations(api, [
         {
           name: 'emptyloc',
           code: [],
@@ -255,8 +255,8 @@ end`,
       expect(desc).toBe('');
     });
 
-    it('should handle non-existent location', () => {
-      runTestFile(api, `'test'`);
+    it('should handle non-existent location', async () => {
+      await runTestFile(api, `'test'`);
 
       const desc = api.getLocationDescription('nonexistent');
       expect(typeof desc).toBe('string');

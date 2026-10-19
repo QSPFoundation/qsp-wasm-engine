@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
+import { prepareApi, runTestFile } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('system locations', () => {
@@ -19,7 +19,7 @@ describe('system locations', () => {
   test('$ONGLOAD', async () => {
     const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
-    runTestFile(
+    await runTestFile(
       api,
       `
 x = 2
@@ -31,10 +31,10 @@ x = 1
     );
     const save = await api.saveGame();
     if (!save) throw new Error('failed to save');
-    api.loadSave(save);
+    const loaded = api.loadSave(save);
     onCloseFile.mock.calls[0][1]();
-    await nextTick();
-    
+    await loaded;
+
     expect(api.readVariable('x')).toBe(1);
   });
 
@@ -56,7 +56,7 @@ x = 1
   });
 
   test('$ONGSAVE', async () => {
-    runTestFile(
+    await runTestFile(
       api,
       `
 x = 2
@@ -71,8 +71,8 @@ x = 1
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('$ONOBJADD', () => {
-    runTestFile(
+  test('$ONOBJADD', async () => {
+    await runTestFile(
       api,
       `
 $ONOBJADD = 'objadd'
@@ -87,8 +87,8 @@ $image = $args[1]
     expect(api.readVariable('$image')).toBe('1.png');
   });
 
-  test('$ONOBJDEL', () => {
-    runTestFile(
+  test('$ONOBJDEL', async () => {
+    await runTestFile(
       api,
       `
 $ONOBJDEL = 'objdel'
@@ -102,8 +102,8 @@ $name = $args[0]
     expect(api.readVariable('$name')).toBe('test');
   });
 
-  test('$ONOBJSEL', () => {
-    runTestFile(
+  test('$ONOBJSEL', async () => {
+    await runTestFile(
       api,
       `
 $ONOBJSEL = 'objsel'
@@ -118,10 +118,10 @@ $name = $selobj
     expect(api.readVariable('$name')).toBe('test1');
   });
 
-  test('$ONNEWLOC', () => {
+  test('$ONNEWLOC', async () => {
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    runTestFile(
+    await runTestFile(
       api,
       `
 $ONNEWLOC = 'newloc' 
@@ -140,8 +140,8 @@ pl 'other'
     expect(api.readVariable('$cur')).toBe('other');
   });
 
-  test('$ONNEWLOC should receive args on actual location', () => {
-    runTestFile(
+  test('$ONNEWLOC should receive args on actual location', async () => {
+    await runTestFile(
       api,
       `
 $ONNEWLOC = 'newloc' 
@@ -159,8 +159,8 @@ args_1 = args[1]
     expect(api.readVariable('args_1')).toBe(1);
   });
 
-  test('$ONACTSEL', () => {
-    runTestFile(
+  test('$ONACTSEL', async () => {
+    await runTestFile(
       api,
       `
 $ONACTSEL = 'actsel'
@@ -185,8 +185,8 @@ $sel = $SELACT
     expect(api.readVariable('$sel')).toBe('');
   });
 
-  test('$USERCOM', () => {
-    runTestFile(
+  test('$USERCOM', async () => {
+    await runTestFile(
       api,
       `
     x = 1

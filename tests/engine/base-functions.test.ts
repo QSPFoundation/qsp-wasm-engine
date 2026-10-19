@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile, nextTick } from '../../src/test-helpers';
+import { prepareApi, runTestFile, startTestFile } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('base functions', () => {
@@ -19,10 +19,10 @@ describe('base functions', () => {
   test('$QSPVER', async () => {
     const onVersion = vi.fn();
     api.on('version', onVersion);
-    runTestFile(api, `$ver = $QSPVER`);
+    const { done } = await startTestFile(api, `$ver = $QSPVER`);
     expect(onVersion).toHaveBeenCalledWith('', expect.any(Function));
     onVersion.mock.calls[0][1]('5.9.0');
-    await nextTick();
+    await done;
 
     expect(api.readVariable('$ver')).toBe('5.9.0');
   });
@@ -30,10 +30,10 @@ describe('base functions', () => {
   test('QSPVER platform', async () => {
     const onVersion = vi.fn();
     api.on('version', onVersion);
-    runTestFile(api, `$ver = $QSPVER('platform')`);
+    const { done } = await startTestFile(api, `$ver = $QSPVER('platform')`);
     expect(onVersion).toHaveBeenCalledWith('platform', expect.any(Function));
     onVersion.mock.calls[0][1]('qspider');
-    await nextTick();
+    await done;
 
     expect(api.readVariable('$ver')).toBe('qspider');
   });
@@ -41,9 +41,9 @@ describe('base functions', () => {
   test('$QSPVER without an answer returns the version of the engine', async () => {
     const onVersion = vi.fn();
     api.on('version', onVersion);
-    runTestFile(api, `$ver = $QSPVER`);
+    const { done } = await startTestFile(api, `$ver = $QSPVER`);
     onVersion.mock.calls[0][1](undefined);
-    await nextTick();
+    await done;
 
     expect(api.readVariable('$ver')).toBe('5.9.6');
   });
@@ -51,15 +51,15 @@ describe('base functions', () => {
   test('$QSPVER cuts the answer to 511 characters', async () => {
     const onVersion = vi.fn();
     api.on('version', onVersion);
-    runTestFile(api, `$ver = $QSPVER('long')`);
+    const { done } = await startTestFile(api, `$ver = $QSPVER('long')`);
     onVersion.mock.calls[0][1]('v'.repeat(600));
-    await nextTick();
+    await done;
 
     expect(api.readVariable('$ver')).toBe('v'.repeat(511));
   });
 
-  test('$CURLOC', () => {
-    runTestFile(
+  test('$CURLOC', async () => {
+    await runTestFile(
       api,
       `
 gt 'other'
@@ -72,48 +72,60 @@ $cloc = $CURLOC`,
   });
 
   describe('MAX', () => {
-    test('returning max number', () => {
-      runTestFile(api, `res = MAX(1,2,5,2,0)`);
+    test('returning max number', async () => {
+      await runTestFile(api, `res = MAX(1,2,5,2,0)`);
       expect(api.readVariable('res')).toBe(5);
     });
-    test('returning max number from variables', () => {
-      runTestFile(api, `a = 1 & b = 5 & c = 3 & res = MAX(a,b,c)`);
+    test('returning max number from variables', async () => {
+      await runTestFile(api, `a = 1 & b = 5 & c = 3 & res = MAX(a,b,c)`);
       expect(api.readVariable('res')).toBe(5);
     });
-    test('returning max from array when called with 1 param', () => {
-      runTestFile(api, `a[0] = 1 & a[1] = 5 & a[3] = 2 & res = MAX('a')`);
+    test('returning max from array when called with 1 param', async () => {
+      await runTestFile(api, `a[0] = 1 & a[1] = 5 & a[3] = 2 & res = MAX('a')`);
       expect(api.readVariable('res')).toBe(5);
     });
-    test('returning max from array with holes', () => {
-      runTestFile(api, `a[0] = 1 & a[3] = 5 & a[5] = 2 & res = MAX('a')`);
+    test('returning max from array with holes', async () => {
+      await runTestFile(api, `a[0] = 1 & a[3] = 5 & a[5] = 2 & res = MAX('a')`);
       expect(api.readVariable('res')).toBe(5);
     });
-    test('return lexicographically bigger string', () => {
-      runTestFile(api, `$res = MAX('aa','zz','ab')`);
+    test('return lexicographically bigger string', async () => {
+      await runTestFile(api, `$res = MAX('aa','zz','ab')`);
       expect(api.readVariable('$res')).toBe('zz');
     });
-    test('return lexicographically bigger string from array', () => {
-      runTestFile(api, `$b[0] = 'aa' & $b[1] = 'zz' & $b[2] = 'ab' & $res = MAX('$b')`);
+    test('return lexicographically bigger string from array', async () => {
+      await runTestFile(api, `$b[0] = 'aa' & $b[1] = 'zz' & $b[2] = 'ab' & $res = MAX('$b')`);
       expect(api.readVariable('$res')).toBe('zz');
     });
-    test('return lexicographically bigger string from array with holes', () => {
-      runTestFile(api, `$b[0] = 'aa' & $b[3] = 'zz' & $b[5] = 'ab' & $res = MAX('$b')`);
+    test('return lexicographically bigger string from array with holes', async () => {
+      await runTestFile(api, `$b[0] = 'aa' & $b[3] = 'zz' & $b[5] = 'ab' & $res = MAX('$b')`);
       expect(api.readVariable('$res')).toBe('zz');
     });
-    test('return lexicographically bigger string from mixed array', () => {
-      runTestFile(api, `$b[0] = 'a' & b[1] = 77 & $b[2] = 'rx' & b[3] = 66 & $b[4] = 'n' & $res = MAX('$b')`);
+    test('return lexicographically bigger string from mixed array', async () => {
+      await runTestFile(
+        api,
+        `$b[0] = 'a' & b[1] = 77 & $b[2] = 'rx' & b[3] = 66 & $b[4] = 'n' & $res = MAX('$b')`,
+      );
       expect(api.readVariable('$res')).toBe('rx');
     });
-    test('return max from mixed array', () => {
-      runTestFile(api, `$b[0] = 'dd' & b[1] = 77 & $b[2] = 'yy' & b[3] = 86 & $b[4] = ' ' & res = MAX('#b')`);
+    test('return max from mixed array', async () => {
+      await runTestFile(
+        api,
+        `$b[0] = 'dd' & b[1] = 77 & $b[2] = 'yy' & b[3] = 86 & $b[4] = ' ' & res = MAX('#b')`,
+      );
       expect(api.readVariable('res')).toBe(86);
     });
-    test('ignores numbers when search for string', () => {
-      runTestFile(api, `$b[0] = '33' & b[1] = 77 & $b[2] = '44' & b[3] = 66 & $b[4] = '22' & $res = MAX('$b')`);
+    test('ignores numbers when search for string', async () => {
+      await runTestFile(
+        api,
+        `$b[0] = '33' & b[1] = 77 & $b[2] = '44' & b[3] = 66 & $b[4] = '22' & $res = MAX('$b')`,
+      );
       expect(api.readVariable('$res')).toBe('44');
     });
-    test('ignores strings when search for number', () => {
-      runTestFile(api, `$b[0] = '999' & b[1] = 66 & $b[2] = '99' & b[3] = 50 & res = MAX('#b')`);
+    test('ignores strings when search for number', async () => {
+      await runTestFile(
+        api,
+        `$b[0] = '999' & b[1] = 66 & $b[2] = '99' & b[3] = 50 & res = MAX('#b')`,
+      );
       expect(api.readVariable('res')).toBe(66);
     });
     test('mixed array without type prefix shows error', async () => {
@@ -132,48 +144,60 @@ $cloc = $CURLOC`,
   });
 
   describe('MIN', () => {
-    test('returning min number', () => {
-      runTestFile(api, `res = MIN(2,1,5,2)`);
+    test('returning min number', async () => {
+      await runTestFile(api, `res = MIN(2,1,5,2)`);
       expect(api.readVariable('res')).toBe(1);
     });
-    test('returning min number from variables', () => {
-      runTestFile(api, `a = 1 & b = 5 & c = 3 & res = MIN(a,b,c)`);
+    test('returning min number from variables', async () => {
+      await runTestFile(api, `a = 1 & b = 5 & c = 3 & res = MIN(a,b,c)`);
       expect(api.readVariable('res')).toBe(1);
     });
-    test('returning min from array when called with 1 param', () => {
-      runTestFile(api, `a[0] = 3 & a[1] = 5 & a[2] = 2 & res = MIN('a')`);
+    test('returning min from array when called with 1 param', async () => {
+      await runTestFile(api, `a[0] = 3 & a[1] = 5 & a[2] = 2 & res = MIN('a')`);
       expect(api.readVariable('res')).toBe(2);
     });
-    test('return lexicographically smaller string', () => {
-      runTestFile(api, `$res = MIN('aa','zz','ab')`);
+    test('return lexicographically smaller string', async () => {
+      await runTestFile(api, `$res = MIN('aa','zz','ab')`);
       expect(api.readVariable('$res')).toBe('aa');
     });
-    test('return lexicographically smaller string from array', () => {
-      runTestFile(api, `$b[0] = 'aa' & $b[1] = 'zz' & $b[2] = 'ab' & $res = MIN('$b')`);
+    test('return lexicographically smaller string from array', async () => {
+      await runTestFile(api, `$b[0] = 'aa' & $b[1] = 'zz' & $b[2] = 'ab' & $res = MIN('$b')`);
       expect(api.readVariable('$res')).toBe('aa');
     });
-    test('returning 0 from array with holes', () => {
-      runTestFile(api, `a[0] = 1 & a[3] = 5 & a[5] = 2 & res = MIN('a')`);
+    test('returning 0 from array with holes', async () => {
+      await runTestFile(api, `a[0] = 1 & a[3] = 5 & a[5] = 2 & res = MIN('a')`);
       expect(api.readVariable('res')).toBe(0);
     });
-    test('return empty string from array with holes', () => {
-      runTestFile(api, `$b[0] = 'aa' & $b[3] = 'zz' & $b[5] = 'ab' & $res = MIN('$b')`);
+    test('return empty string from array with holes', async () => {
+      await runTestFile(api, `$b[0] = 'aa' & $b[3] = 'zz' & $b[5] = 'ab' & $res = MIN('$b')`);
       expect(api.readVariable('$res')).toBe('');
     });
-    test('return lexicographically smaller string from mixed array', () => {
-      runTestFile(api, `$b[0] = 'tt' & b[1] = 77 & $b[2] = 'gg' & b[3] = 66 & $b[4] = 'qq' & $res = MIN('$b')`);
+    test('return lexicographically smaller string from mixed array', async () => {
+      await runTestFile(
+        api,
+        `$b[0] = 'tt' & b[1] = 77 & $b[2] = 'gg' & b[3] = 66 & $b[4] = 'qq' & $res = MIN('$b')`,
+      );
       expect(api.readVariable('$res')).toBe('gg');
     });
-    test('return min from mixed array', () => {
-      runTestFile(api, `$b[0] = 'a' & b[1] = 86 & $b[2] = 'kk' & b[3] = 77 & $b[4] = '' & res = MIN('#b')`);
+    test('return min from mixed array', async () => {
+      await runTestFile(
+        api,
+        `$b[0] = 'a' & b[1] = 86 & $b[2] = 'kk' & b[3] = 77 & $b[4] = '' & res = MIN('#b')`,
+      );
       expect(api.readVariable('res')).toBe(77);
     });
-    test('ignores numbers when search for string', () => {
-      runTestFile(api, `$b[0] = '33' & b[1] = 11 & $b[2] = '44' & b[3] = 14 & $b[4] = '22' & $res = MIN('$b')`);
+    test('ignores numbers when search for string', async () => {
+      await runTestFile(
+        api,
+        `$b[0] = '33' & b[1] = 11 & $b[2] = '44' & b[3] = 14 & $b[4] = '22' & $res = MIN('$b')`,
+      );
       expect(api.readVariable('$res')).toBe('22');
     });
-    test('ignores strings when search for number', () => {
-      runTestFile(api, `$b[0] = '9' & b[1] = 66 & $b[2] = '40' & b[3] = 50 & res = MIN('#b')`);
+    test('ignores strings when search for number', async () => {
+      await runTestFile(
+        api,
+        `$b[0] = '9' & b[1] = 66 & $b[2] = '40' & b[3] = 50 & res = MIN('#b')`,
+      );
       expect(api.readVariable('res')).toBe(50);
     });
     test('mixed array without type prefix shows error', async () => {
@@ -191,40 +215,40 @@ $cloc = $CURLOC`,
     });
   });
 
-  test('RND', () => {
-    runTestFile(api, 'res = RND');
+  test('RND', async () => {
+    await runTestFile(api, 'res = RND');
     const result = api.readVariable('#res');
 
     expect(result > 0).toBeTruthy();
     expect(result <= 1000).toBeTruthy();
   });
 
-  test('RAND', () => {
-    runTestFile(api, 'res = RAND(1, 4)');
+  test('RAND', async () => {
+    await runTestFile(api, 'res = RAND(1, 4)');
     const result = api.readVariable('#res');
 
     expect(result >= 1).toBeTruthy();
     expect(result <= 4).toBeTruthy();
   });
 
-  test('RAND reversed', () => {
-    runTestFile(api, 'res = RAND(4, 1)');
+  test('RAND reversed', async () => {
+    await runTestFile(api, 'res = RAND(4, 1)');
     const result = api.readVariable('#res');
 
     expect(result >= 1).toBeTruthy();
     expect(result <= 4).toBeTruthy();
   });
 
-  test('RAND without second param', () => {
-    runTestFile(api, 'res = RAND 2');
+  test('RAND without second param', async () => {
+    await runTestFile(api, 'res = RAND 2');
     const result = api.readVariable('#res');
 
     expect(result >= 1).toBeTruthy();
     expect(result <= 2).toBeTruthy();
   });
 
-  test('RAND with mean stays within range', () => {
-    runTestFile(api, 'res = RAND(1, 10, 5)');
+  test('RAND with mean stays within range', async () => {
+    await runTestFile(api, 'res = RAND(1, 10, 5)');
     const result = api.readVariable('#res');
 
     expect(result >= 1).toBeTruthy();

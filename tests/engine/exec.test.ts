@@ -16,21 +16,21 @@ describe('exec', () => {
     api?._run_checks();
   });
 
-  it('should trigger callback', () => {
+  it('should trigger callback', async () => {
     const onSystemCmd = vi.fn();
     api.on('system_cmd', onSystemCmd);
 
-    runTestFile(api, `exec('test')`);
+    await runTestFile(api, `exec('test')`);
 
 
     expect(onSystemCmd).toHaveBeenCalledWith('test');
   });
 
-  it('should update ui on call', () => {
+  it('should update ui on call', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
 
-    runTestFile(api, `*p 'before' & exec('test') & *p '-after'`);
+    await runTestFile(api, `*p 'before' & exec('test') & *p '-after'`);
 
     expect(onMain).toHaveBeenCalledTimes(2);
     expect(onMain).toHaveBeenCalledWith('before', false);

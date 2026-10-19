@@ -16,8 +16,8 @@ describe('loop', () => {
     api?._run_checks();
   });
 
-  test('loop should not start if condition not met', () => {
-    runTestFile(
+  test('loop should not start if condition not met', async () => {
+    await runTestFile(
       api,
       `
 i = 1
@@ -29,8 +29,8 @@ loop while i > 1: x += 1
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('loop should stop if condition is changed inside loop', () => {
-    runTestFile(
+  test('loop should stop if condition is changed inside loop', async () => {
+    await runTestFile(
       api,
       `
 i = 1
@@ -42,8 +42,8 @@ loop while i < 5: x += 1 & i = 10
     expect(api.readVariable('x')).toBe(2);
   });
 
-  test('step should be called on every loop run', () => {
-    runTestFile(
+  test('step should be called on every loop run', async () => {
+    await runTestFile(
       api,
       `
 loop i = 1 while i < 10 step i += 2: x+=1
@@ -53,8 +53,8 @@ loop i = 1 while i < 10 step i += 2: x+=1
     expect(api.readVariable('x')).toBe(5);
   });
 
-  test('local vars should be for loop only', () => {
-    runTestFile(
+  test('local vars should be for loop only', async () => {
+    await runTestFile(
       api,
       `
 i = 5
@@ -68,8 +68,8 @@ z = i
     expect(api.readVariable('z')).toBe(5);
   });
 
-  test('processing arrays with loop', () => {
-    runTestFile(
+  test('processing arrays with loop', async () => {
+    await runTestFile(
       api,
       `
 mass[] = 23
@@ -84,8 +84,8 @@ end
     expect(api.readVariable('summ')).toBe(68);
   });
 
-  test('EXIT stops whole location not just loop', () => {
-    runTestFile(
+  test('EXIT stops whole location not just loop', async () => {
+    await runTestFile(
       api,
       `
         x = 0 & y = 1
@@ -101,8 +101,8 @@ end
     expect(api.readVariable('y')).toBe(1);
   });
 
-  test('can JUMP outside loop', () => {
-    runTestFile(
+  test('can JUMP outside loop', async () => {
+    await runTestFile(
       api,
       `
         x = 0 & y = 0
@@ -119,8 +119,8 @@ end
     expect(api.readVariable('y')).toBe(2);
   });
 
-  test('multi line loop supports comments', () => {
-    runTestFile(
+  test('multi line loop supports comments', async () => {
+    await runTestFile(
       api,
       `
 s = 0
