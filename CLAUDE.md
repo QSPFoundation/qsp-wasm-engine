@@ -52,6 +52,7 @@ The project generates multiple build artifacts:
 - `dist/wasm-engine.modern.js` - ES modules build
 - `dist/wasm-engine-debug.cjs` - Debug CommonJS build
 - `dist/wasm-engine-debug.modern.js` - Debug ES modules build
+- `dist/wasm-engine.d.ts`/`.d.cts`, `dist/wasm-engine-debug.d.ts`/`.d.cts` - Bundled typings (rollup-plugin-dts) for the ES modules / CommonJS builds, wired through the `types` conditions of `exports`
 - `dist/qsp-engine.wasm` - Production WASM binary
 - `dist/qsp-engine-debug.wasm` - Debug WASM binary
 
