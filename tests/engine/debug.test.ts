@@ -11,13 +11,13 @@ describe('debug', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
 
-  it('should report every line in loc when debug is on', () => {
+  it('should report every line in loc when debug is on', async () => {
     const data: DebugRecord[] = [];
     api.on('debug', (record, resume) => {
       data.push(record);
@@ -26,7 +26,7 @@ describe('debug', () => {
 
     api.enableDebugMode();
 
-    runTestFile(
+    await runTestFile(
       api,
       `'first line'
       a = 10

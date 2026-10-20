@@ -11,7 +11,7 @@ describe('strings', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -24,106 +24,106 @@ describe('strings', () => {
       [`'ac' > 'ab'`, 1],
       [`'b'  > 'ab'`, 1],
       [`'ab' > 'a'`, 1],
-    ])('%s -> %i', (input, result) => {
-      runTestFile(api, `res = ${input}`);
+    ])('%s -> %i', async (input, result) => {
+      await runTestFile(api, `res = ${input}`);
 
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
-  test('subexpression', () => {
-    runTestFile(api, `i = 1 & $res = 'i=<<i>>'`);
+  test('subexpression', async () => {
+    await runTestFile(api, `i = 1 & $res = 'i=<<i>>'`);
 
     expect(api.readVariable('$res')).toBe('i=1');
   });
 
-  test('nested subexpressions', () => {
-    runTestFile(api, `i = 1 & $a['_1'] = 'here' & $res = 's=<<$a["_<<i>>"]>>'`);
+  test('nested subexpressions', async () => {
+    await runTestFile(api, `i = 1 & $a['_1'] = 'here' & $res = 's=<<$a["_<<i>>"]>>'`);
 
     expect(api.readVariable('$res')).toBe('s=here');
   });
 
-  test('LEN', () => {
-    runTestFile(api, 'res = LEN("тест")');
+  test('LEN', async () => {
+    await runTestFile(api, 'res = LEN("тест")');
 
     expect(api.readVariable('res')).toBe(4);
   });
 
   describe('$MID', () => {
-    test('cutting middle part of a string', () => {
-      runTestFile(api, `$res = $MID('abcd', 2, 2)`);
+    test('cutting middle part of a string', async () => {
+      await runTestFile(api, `$res = $MID('abcd', 2, 2)`);
       expect(api.readVariable('$res')).toBe('bc');
     });
 
-    test('cutting string to end', () => {
-      runTestFile(api, `$res = $MID('abcd', 3)`);
+    test('cutting string to end', async () => {
+      await runTestFile(api, `$res = $MID('abcd', 3)`);
       expect(api.readVariable('$res')).toBe('cd');
     });
 
-    test('cutting string from start', () => {
-      runTestFile(api, `$res = $MID('abcd', 1, 2)`);
+    test('cutting string from start', async () => {
+      await runTestFile(api, `$res = $MID('abcd', 1, 2)`);
       expect(api.readVariable('$res')).toBe('ab');
     });
 
-    test('returns empty string if index bigger string start', () => {
-      runTestFile(api, `$res = $MID('abcd', 5, 2)`);
+    test('returns empty string if index bigger string start', async () => {
+      await runTestFile(api, `$res = $MID('abcd', 5, 2)`);
       expect(api.readVariable('$res')).toBe('');
     });
   });
 
-  test('UCASE', () => {
-    runTestFile(api, `$res = $UCASE('TexT#')`);
+  test('UCASE', async () => {
+    await runTestFile(api, `$res = $UCASE('TexT#')`);
 
     expect(api.readVariable('$res')).toBe('TEXT#');
   });
 
-  test('UCASE cyrillic', () => {
-    runTestFile(api, `$res = $UCASE('Привет, Алиса!')`);
+  test('UCASE cyrillic', async () => {
+    await runTestFile(api, `$res = $UCASE('Привет, Алиса!')`);
 
     expect(api.readVariable('$res')).toBe('ПРИВЕТ, АЛИСА!');
   });
 
-  test('LCASE', () => {
-    runTestFile(api, `$res = $LCASE('TexT#')`);
+  test('LCASE', async () => {
+    await runTestFile(api, `$res = $LCASE('TexT#')`);
 
     expect(api.readVariable('$res')).toBe('text#');
   });
 
-  test('LCASE cyrillic', () => {
-    runTestFile(api, `$res = $lcase('Привет, Алиса!')`);
+  test('LCASE cyrillic', async () => {
+    await runTestFile(api, `$res = $lcase('Привет, Алиса!')`);
 
     expect(api.readVariable('$res')).toBe('привет, алиса!');
   });
 
-  test('TRIM', () => {
-    runTestFile(api, `$res = $TRIM(' TRIM TEST ')`);
+  test('TRIM', async () => {
+    await runTestFile(api, `$res = $TRIM(' TRIM TEST ')`);
 
     expect(api.readVariable('$res')).toBe('TRIM TEST');
   });
 
   describe('$REPLACE', () => {
-    test('replaces string', () => {
-      runTestFile(api, `$res = $REPLACE('test', 'e', 's')`);
+    test('replaces string', async () => {
+      await runTestFile(api, `$res = $REPLACE('test', 'e', 's')`);
       expect(api.readVariable('$res')).toBe('tsst');
     });
 
-    test('replaces all occurrences', () => {
-      runTestFile(api, `$res = $REPLACE('test', 't', '34')`);
+    test('replaces all occurrences', async () => {
+      await runTestFile(api, `$res = $REPLACE('test', 't', '34')`);
       expect(api.readVariable('$res')).toBe('34es34');
     });
 
-    test('returns initial string if replacement not found', () => {
-      runTestFile(api, `$res = $REPLACE('test', '1', '2')`);
+    test('returns initial string if replacement not found', async () => {
+      await runTestFile(api, `$res = $REPLACE('test', '1', '2')`);
       expect(api.readVariable('$res')).toBe('test');
     });
 
-    test('removes occurrences if last parm not provided', () => {
-      runTestFile(api, `$res = $REPLACE('test', 't')`);
+    test('removes occurrences if last parm not provided', async () => {
+      await runTestFile(api, `$res = $REPLACE('test', 't')`);
       expect(api.readVariable('$res')).toBe('es');
     });
 
-    test('works with cyrillic', () => {
-      runTestFile(api, `$res = $REPLACE('Привет, Алиса!', 'Алиса', 'Катя')`);
+    test('works with cyrillic', async () => {
+      await runTestFile(api, `$res = $REPLACE('Привет, Алиса!', 'Алиса', 'Катя')`);
       expect(api.readVariable('$res')).toBe('Привет, Катя!');
     });
   });
@@ -134,8 +134,8 @@ describe('strings', () => {
       [`INSTR('ABCDefgh','Be',1)`, 0],
       [`INSTR('abcdef','abc')`, 1],
       [`INSTR('abcdef','abd')`, 0],
-    ])('%s -> %i', (input, result) => {
-      runTestFile(api, `res = ${input}`);
+    ])('%s -> %i', async (input, result) => {
+      await runTestFile(api, `res = ${input}`);
 
       expect(api.readVariable('res')).toBe(result);
     });
@@ -148,33 +148,33 @@ describe('strings', () => {
       [` -888`, 1],
       [`777a6`, 0],
       [``, 0],
-    ])('ISNUM("%s") -> %i', (input, result) => {
-      runTestFile(api, `res = ISNUM("${input}")`);
+    ])('ISNUM("%s") -> %i', async (input, result) => {
+      await runTestFile(api, `res = ISNUM("${input}")`);
 
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
-  test('VAL with number in string', () => {
-    runTestFile(api, `res = VAL('123')`);
+  test('VAL with number in string', async () => {
+    await runTestFile(api, `res = VAL('123')`);
 
     expect(api.readVariable('res')).toBe(123);
   });
 
-  test('VAL with mixed string', () => {
-    runTestFile(api, `res = VAL('123a')`);
+  test('VAL with mixed string', async () => {
+    await runTestFile(api, `res = VAL('123a')`);
 
     expect(api.readVariable('res')).toBe(0);
   });
 
-  test('VAL with empty string', () => {
-    runTestFile(api, `res = VAL('')`);
+  test('VAL with empty string', async () => {
+    await runTestFile(api, `res = VAL('')`);
 
     expect(api.readVariable('res')).toBe(0);
   });
 
-  test('STR', () => {
-    runTestFile(api, `$res = STR(123)`);
+  test('STR', async () => {
+    await runTestFile(api, `$res = STR(123)`);
 
     expect(api.readVariable('$res')).toBe('123');
   });
@@ -189,8 +189,8 @@ describe('strings', () => {
       [`STRFIND('идти к дому', 'к\\s(\\S+)')`, 'к дому'],
       [`STRFIND('идти к дому', 'к\\s(\\S+)', 1)`, 'дому'],
       [`STRFIND('идти к своему дому', 'к\\s(\\S+)', 1)`, 'своему'],
-    ])('%s -> %s', (input, result) => {
-      runTestFile(api, `$res = ${input}`);
+    ])('%s -> %s', async (input, result) => {
+      await runTestFile(api, `$res = ${input}`);
 
       expect(api.readVariable('$res')).toBe(result);
     });
@@ -200,8 +200,8 @@ describe('strings', () => {
     test.each([
       [`STRCOMP(' идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$')`, 0],
       [`STRCOMP('идти к пещере', '^(\\S+)\\s(\\S+)\\s(\\S+)$')`, 1],
-    ])('%s -> %i', (input, result) => {
-      runTestFile(api, `res = ${input}`);
+    ])('%s -> %i', async (input, result) => {
+      await runTestFile(api, `res = ${input}`);
 
       expect(api.readVariable('res')).toBe(result);
     });
@@ -218,16 +218,16 @@ describe('strings', () => {
       [`STRPOS('идти к дому', 'к\\s(\\S+)')`, 6],
       [`STRPOS('идти к дому', 'к\\s(\\S+)', 1)`, 8],
       [`STRPOS('идти к своему дому', 'к\\s(\\S+)', 1)`, 8],
-    ])('%s -> %i', (input, result) => {
-      runTestFile(api, `res = ${input}`);
+    ])('%s -> %i', async (input, result) => {
+      await runTestFile(api, `res = ${input}`);
 
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
   describe('SCANSTR', () => {
-    test('extracting tokens from string', () => {
-      runTestFile(api, `scanstr '$s', 'ffff|bbbb|ccccc', '[^|]+'`);
+    test('extracting tokens from string', async () => {
+      await runTestFile(api, `scanstr '$s', 'ffff|bbbb|ccccc', '[^|]+'`);
 
       expect(api.readVariableByIndex('$s', 0)).toBe('ffff');
       expect(api.readVariableByIndex('$s', 1)).toBe('bbbb');

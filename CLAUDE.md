@@ -21,11 +21,10 @@ This is `@qsp/wasm-engine`, a WebAssembly wrapper for the QSP (Quest Soft Player
 - `pnpm run lint` - Run ESLint
 - `pnpm run check-types` - Run TypeScript type checking without emitting files
 
-### WASM Compilation
-- `pnpm run compile` - Compile C code to WASM using Docker with Emscripten SDK
-- Requires Docker to be running
-- Uses `./compile-wasm.sh` script inside Emscripten container
-- **Alternative**: If Docker is not available, run `./compile-wasm.sh` directly (requires Emscripten SDK installed locally)
+### Engine Update
+- `pnpm run update-engine [path/to/qsp/sources]` - Build the QSP wasm module in the Emscripten Docker image and replace `src/qsplib/public/`; without a path the engine is cloned from GitHub at the engine commit pinned in `compile-wasm.sh` (`QSP_REF` overrides it with another branch/tag/commit)
+- Requires Docker to be running; without Docker run `./compile-wasm.sh` directly (requires the Emscripten SDK installed locally)
+- The package is built in the QSP engine repository (`build_release_wasm.sh`, binding sources in `qsp/bindings/wasm/`)
 
 ### Publishing
 - `pnpm run release` - Release new version using `np` package
@@ -38,19 +37,14 @@ This is `@qsp/wasm-engine`, a WebAssembly wrapper for the QSP (Quest Soft Player
 - **`src/lib/qsp-api.ts`** - Main API implementation (`QspAPIImpl` class)
 - **`src/lib/qsp-engine.ts`** - Production WASM engine loader
 - **`src/lib/qsp-engine-debug.ts`** - Debug WASM engine loader
-- **`src/lib/pointers.ts`** - Low-level WASM memory management utilities
 
 ### Contracts (TypeScript Interfaces)
 - **`src/contracts/api.ts`** - Main API interface definitions
 - **`src/contracts/events.ts`** - Event system types
 - **`src/contracts/common.ts`** - Common types and enums
-- **`src/contracts/wasm-module.ts`** - WASM module interface definitions
 
 ### WASM Integration
-- **`src/qsplib/`** - Contains C source code and build configuration
-- **`src/qsplib/src/qsp_wasm.c`** - C wrapper code for WASM interface
-- **`src/qsplib/CMakeLists.txt`** - CMake build configuration for WASM compilation
-- **`src/qsplib/public/`** - Generated WASM files and TypeScript definitions
+- **`src/qsplib/public/`** - The `wasm` install component of the QSP engine: generated WASM modules, their typings and the JS half of the binding (`qsp-wasm-module.ts`, `qsp-wasm-memory.ts`), maintained in the QSP engine repository
 
 ### Build Output
 The project generates multiple build artifacts:
@@ -70,7 +64,7 @@ The project generates multiple build artifacts:
 ## Development Workflow
 
 1. **Making changes to TypeScript code**: Edit files in `src/`, run `pnpm run build` to generate new dist files
-2. **Making changes to C code**: Edit files in `src/qsplib/src/`, run `pnpm run compile` to regenerate WASM, then `pnpm run build`
+2. **Updating the engine**: run `pnpm run update-engine` (or `pnpm run update-engine <path>` for a local engine checkout), run the tests, then `pnpm run build`
 3. **Testing changes**: Run `pnpm test` or `pnpm run test:watch` for continuous testing
 4. **Code quality**: Always run `pnpm run lint` and `pnpm run check-types` before committing
 
@@ -79,8 +73,13 @@ The project generates multiple build artifacts:
 ### Event-Driven API
 The engine uses an event system where the WASM module emits events (like `main_changed`, `actions_changed`, `error`) that the TypeScript wrapper handles and forwards to user code.
 
+Blocking events (`msg`, `input`, `menu`, `wait`, `version`, `is_play`, `play_file`, `close_file`, `open_game`, `load_save`, `save_game`, `debug`) pass a `resolve` callback. Without a listener the engine isn't suspended and gets the default answer (nothing, an empty string, `false`, menu index -1), like the default binding without a callback. Calling it synchronously continues the engine in place; calling it later suspends the engine (Asyncify) until then. Only the outermost pending event can suspend: a `resolve` deferred from a nested call (a listener calling the API, an API call made while another one is suspended) is ignored with a console error. The API calls that execute game code return promises that resolve when the engine finishes them (so after any pending event); their errors are reported through the `error` event. `api.dispose()` terminates the engine and frees the memory held by the API.
+
+### Variable Cache
+`readVariable*(name, ..., useCache)` reads a value from the engine once and keeps it until the engine runs code: the cache is cleared when a call that executes code starts and ends (`exec`) and whenever an event is emitted (`emit`), the only moments the engine state can change. The watchers read with the cache, so watchers of the same variable share one read per update. `clearCache()` drops the values by hand. The cache lives in the wrapper (`qsp-api.ts`), not in the binding.
+
 ### Memory Management
-The `pointers.ts` module provides utilities for safe interaction with WASM memory, including automatic cleanup of allocated strings and buffers.
+The JS side allocates and frees the memory the engine writes to: lists (actions, objects, location data) go to one reusable `ListBuffer` that grows when a list doesn't fit (the export returns the count, the call is repeated with a bigger buffer), the save goes to a buffer that is grown the same way, strings, variants & error data go to slots/buffers allocated per call. `calculateStringExpression` writes to a buffer of 32K characters (64 KB) and cuts a longer result: it can't be retried, because the expression has side effects. The engine allocates nothing the JS side has to free. The answers of the host (`input`, `version`) are written to a 511-character buffer allocated by the engine (longer answers are cut), the engine frees it. The helpers are in `src/qsplib/public/qsp-wasm-memory.ts`. `api.dispose()` frees everything the API holds.
 
 ### Dual Build System
 The project maintains both production and debug builds of the WASM module, with the debug version providing enhanced error reporting and debugging capabilities.

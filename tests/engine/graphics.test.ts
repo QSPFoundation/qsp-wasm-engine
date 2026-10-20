@@ -11,23 +11,23 @@ describe('graphics', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('VIEW with path', () => {
+  test('VIEW with path', async () => {
     const onView = vi.fn();
     api.on('view', onView);
-    runTestFile(api, `VIEW '1.png'`);
+    await runTestFile(api, `VIEW '1.png'`);
 
     expect(onView).toHaveBeenCalledWith('1.png');
   });
 
-  test('VIEW without path', () => {
+  test('VIEW without path', async () => {
     const onView = vi.fn();
     api.on('view', onView);
-    runTestFile(api, `VIEW`);
+    await runTestFile(api, `VIEW`);
 
     expect(onView).toHaveBeenCalledWith('');
   });
@@ -51,13 +51,13 @@ describe('graphics', () => {
     expect(objsChanged).toHaveBeenCalled();
   });
 
-  test('RGB', () => {
-    runTestFile(api, `x = RGB(16, 32, 64)`);
+  test('RGB', async () => {
+    await runTestFile(api, `x = RGB(16, 32, 64)`);
     expect(api.readVariable('x')).toBe(-12574704);
   });
 
-  test('RGB with alpha', () => {
-    runTestFile(api, `x = RGB(16, 32, 64, 128)`);
+  test('RGB with alpha', async () => {
+    await runTestFile(api, `x = RGB(16, 32, 64, 128)`);
     expect(api.readVariable('x')).toBe(-2143281136);
   });
 });

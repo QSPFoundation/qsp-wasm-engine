@@ -11,15 +11,15 @@ describe('system locations', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('$ONGLOAD', () => {
+  test('$ONGLOAD', async () => {
     const onCloseFile = vi.fn();
     api.on('close_file', onCloseFile);
-    runTestFile(
+    await runTestFile(
       api,
       `
 x = 2
@@ -29,16 +29,34 @@ $ONGLOAD = 'gload'
 x = 1
 `,
     );
-    const save = api.saveGame();
+    const save = await api.saveGame();
     if (!save) throw new Error('failed to save');
-    api.loadSave(save);
+    const loaded = api.loadSave(save);
     onCloseFile.mock.calls[0][1]();
-    
+    await loaded;
+
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('$ONGSAVE', () => {
-    runTestFile(
+  test('saves and loads a state bigger than the initial buffer', async () => {
+    api.on('close_file', (_file, resolve) => resolve());
+    await runTestFile(api, `x = 7`);
+    await api.execCode(
+      `loop i = 0 while i < 4000 step i += 1: $a[i] = $str(i) + ' some text to make the save big'`,
+    );
+    const save = await api.saveGame();
+    if (!save) throw new Error('failed to save');
+    expect(save.byteLength).toBeGreaterThan(64 * 1024);
+    await api.execCode(`x = 0 & killvar '$a'`);
+    await api.loadSave(save);
+
+    expect(api.readVariable('x')).toBe(7);
+    expect(api.readVariableSize('$a')).toBe(4000);
+    expect(api.readVariableByIndex('$a', 3999)).toBe('3999 some text to make the save big');
+  });
+
+  test('$ONGSAVE', async () => {
+    await runTestFile(
       api,
       `
 x = 2
@@ -48,13 +66,13 @@ $ONGSAVE = 'gsave'
 x = 1
 `,
     );
-    const save = api.saveGame();
+    const save = await api.saveGame();
     if (!save) throw new Error('failed to save');
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('$ONOBJADD', () => {
-    runTestFile(
+  test('$ONOBJADD', async () => {
+    await runTestFile(
       api,
       `
 $ONOBJADD = 'objadd'
@@ -69,8 +87,8 @@ $image = $args[1]
     expect(api.readVariable('$image')).toBe('1.png');
   });
 
-  test('$ONOBJDEL', () => {
-    runTestFile(
+  test('$ONOBJDEL', async () => {
+    await runTestFile(
       api,
       `
 $ONOBJDEL = 'objdel'
@@ -84,8 +102,8 @@ $name = $args[0]
     expect(api.readVariable('$name')).toBe('test');
   });
 
-  test('$ONOBJSEL', () => {
-    runTestFile(
+  test('$ONOBJSEL', async () => {
+    await runTestFile(
       api,
       `
 $ONOBJSEL = 'objsel'
@@ -100,10 +118,10 @@ $name = $selobj
     expect(api.readVariable('$name')).toBe('test1');
   });
 
-  test('$ONNEWLOC', () => {
+  test('$ONNEWLOC', async () => {
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
-    runTestFile(
+    await runTestFile(
       api,
       `
 $ONNEWLOC = 'newloc' 
@@ -122,8 +140,8 @@ pl 'other'
     expect(api.readVariable('$cur')).toBe('other');
   });
 
-  test('$ONNEWLOC should receive args on actual location', () => {
-    runTestFile(
+  test('$ONNEWLOC should receive args on actual location', async () => {
+    await runTestFile(
       api,
       `
 $ONNEWLOC = 'newloc' 
@@ -141,8 +159,8 @@ args_1 = args[1]
     expect(api.readVariable('args_1')).toBe(1);
   });
 
-  test('$ONACTSEL', () => {
-    runTestFile(
+  test('$ONACTSEL', async () => {
+    await runTestFile(
       api,
       `
 $ONACTSEL = 'actsel'
@@ -167,8 +185,8 @@ $sel = $SELACT
     expect(api.readVariable('$sel')).toBe('');
   });
 
-  test('$USERCOM', () => {
-    runTestFile(
+  test('$USERCOM', async () => {
+    await runTestFile(
       api,
       `
     x = 1

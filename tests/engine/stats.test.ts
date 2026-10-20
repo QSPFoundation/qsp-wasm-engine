@@ -15,34 +15,34 @@ describe('stats panel', () => {
     api.on('stats_changed', statsChanged);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
   test('p should print text without line break', async () => {
-    runTestFile(api, `p 'works'`);
+    await runTestFile(api, `p 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
     expect(statsChanged).toHaveBeenCalledWith('works');
   });
 
   test('pl should print text with line break', async () => {
-    runTestFile(api, `pl 'works'`);
+    await runTestFile(api, `pl 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
     expect(statsChanged).toHaveBeenCalledWith('works\r\n');
   });
 
   test('nl should print text with line break in front', async () => {
-    runTestFile(api, `nl 'works'`);
+    await runTestFile(api, `nl 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
     expect(statsChanged).toHaveBeenCalledWith('\r\nworks');
   });
 
   test('CLEAR should clear stats description', async () => {
-    runTestFile(api, `p 'works'`);
+    await runTestFile(api, `p 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
     expect(statsChanged).toHaveBeenCalledWith('works');
@@ -54,7 +54,7 @@ describe('stats panel', () => {
   });
 
   test('CLR should clear stats description', async () => {
-    runTestFile(api, `p 'works'`);
+    await runTestFile(api, `p 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
     expect(statsChanged).toHaveBeenCalledWith('works');
@@ -66,7 +66,7 @@ describe('stats panel', () => {
   });
 
   test('CLS should clear stats description', async () => {
-    runTestFile(api, `p 'works'`);
+    await runTestFile(api, `p 'works'`);
 
     expect(statsChanged).toHaveBeenCalledTimes(1);
     expect(statsChanged).toHaveBeenCalledWith('works');
@@ -78,24 +78,24 @@ describe('stats panel', () => {
   });
 
   test('$STATTXT should return text from stats panel', async () => {
-    runTestFile(api, `p 'works' & $text = $STATTXT`);
+    await runTestFile(api, `p 'works' & $text = $STATTXT`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
   test('$STATTXT() should return text from stats panel', async () => {
-    runTestFile(api, `p 'works' & $text = $STATTXT()`);
+    await runTestFile(api, `p 'works' & $text = $STATTXT()`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('SHOWSTAT should change panel visibility', () => {
+  test('SHOWSTAT should change panel visibility', async () => {
     const panelVisibilityChanged = vi.fn();
     api.on('panel_visibility', panelVisibilityChanged);
-    runTestFile(api, `SHOWSTAT 0`);
-    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, 0);
+    await runTestFile(api, `SHOWSTAT 0`);
+    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, false);
 
     api.execCode(`SHOWSTAT 1`);
-    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, 1);
+    expect(panelVisibilityChanged).toHaveBeenCalledWith(QspPanel.VARS, true);
   });
 });

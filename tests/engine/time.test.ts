@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, startTestFile } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('time', () => {
@@ -11,29 +11,31 @@ describe('time', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('WAIT should trigger wait event', () => {
+  test('WAIT should trigger wait event', async () => {
     const onWait = vi.fn();
     api.on('wait', onWait);
-    runTestFile(api, `WAIT 1000`);
+    const { done } = await startTestFile(api, `WAIT 1000`);
 
     expect(onWait).toHaveBeenCalledWith(1000, expect.any(Function));
     onWait.mock.calls[0][1]();
+    await done;
   });
 
-  test('WAIT should pause execution', () => {
+  test('WAIT should pause execution', async () => {
     const onWait = vi.fn();
     api.on('wait', onWait);
     const onStatsChanged = vi.fn();
     api.on('stats_changed', onStatsChanged);
-    runTestFile(api, `pl 'before wait' & WAIT 1000 & p 'after wait'`);
+    const { done } = await startTestFile(api, `pl 'before wait' & WAIT 1000 & p 'after wait'`);
     expect(onStatsChanged).toHaveBeenCalledWith('before wait\r\n');
     expect(onWait).toHaveBeenCalledWith(1000, expect.any(Function));
     onWait.mock.calls[0][1]();
+    await done;
     expect(onStatsChanged).toHaveBeenCalledWith('before wait\r\nafter wait');
   });
 
@@ -42,7 +44,7 @@ describe('time', () => {
 
     api = await prepareApi();
     api.on('error', error);
-    runTestFile(api, `res = MSECSCOUNT`);
+    await runTestFile(api, `res = MSECSCOUNT`);
 
     expect(api.readVariable('res')).toBe(0);
 
@@ -55,18 +57,18 @@ describe('time', () => {
     vi.useRealTimers();
   });
 
-  test('SETTIMER should change counter frequency', () => {
+  test('SETTIMER should change counter frequency', async () => {
     const onTimer = vi.fn();
     api.on('timer', onTimer);
-    runTestFile(api, `SETTIMER 100`);
+    await runTestFile(api, `SETTIMER 100`);
 
     expect(onTimer).toHaveBeenCalledWith(100);
   });
 
-  test('counter location should be called', () => {
+  test('counter location should be called', async () => {
     const onStatsChanged = vi.fn();
     api.on('stats_changed', onStatsChanged);
-    runTestFile(
+    await runTestFile(
       api,
       `
 $counter = 'counter'
@@ -82,10 +84,10 @@ p 'works'
     expect(onStatsChanged).toHaveBeenCalledWith('worksworks');
   });
 
-  test('several counters should be supported', () => {
+  test('several counters should be supported', async () => {
     const onStatsChanged = vi.fn();
     api.on('stats_changed', onStatsChanged);
-    runTestFile(
+    await runTestFile(
       api,
       `
 $counter = 'counter'

@@ -15,7 +15,7 @@ describe('operations', () => {
   });
 
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
@@ -29,8 +29,8 @@ describe('operations', () => {
       [-2, 0, 0],
       [0, 0, 0],
       [1, 3, 3],
-    ])('%i + %i = %i', (a, b, result) => {
-      runTestFile(api, `res = ${a} * ${b}`);
+    ])('%i + %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ${a} * ${b}`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -41,8 +41,8 @@ describe('operations', () => {
       [-2, -4],
       [0, 0],
       [1, 2],
-    ])('res *= %i & != %i', (a, result) => {
-      runTestFile(api, `res = 2 & res *= ${a}`);
+    ])('res *= %i & != %i', async (a, result) => {
+      await runTestFile(api, `res = 2 & res *= ${a}`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -56,24 +56,24 @@ describe('operations', () => {
       [-2, 0, -2],
       [0, 0, 0],
       [1, 3, 4],
-    ])('%i + %i = %i', (a, b, result) => {
-      runTestFile(api, `res = ${a} + ${b}`);
+    ])('%i + %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ${a} + ${b}`);
       expect(api.readVariable('res')).toBe(result);
     });
 
-    test('+ acts as concatenations for strings', () => {
-      runTestFile(api, `$res = 'a' + 'b'`);
+    test('+ acts as concatenations for strings', async () => {
+      await runTestFile(api, `$res = 'a' + 'b'`);
       expect(api.readVariable('$res')).toBe('ab');
     });
 
-    test('+ acts as concatenations for strings with numbers', () => {
-      runTestFile(api, `$res = '1' + '2'`);
+    test('+ acts as concatenations for strings with numbers', async () => {
+      await runTestFile(api, `$res = '1' + '2'`);
       expect(api.readVariable('$res')).toBe('12');
     });
 
     describe('different operand types', () => {
-      test('if string is convertable to number - number is returned', () => {
-        runTestFile(
+      test('if string is convertable to number - number is returned', async () => {
+        await runTestFile(
           api,
           `
           res = 1 + '2'
@@ -85,9 +85,9 @@ describe('operations', () => {
         expect(api.readVariable('res2')).toBe(3);
         expect(api.readVariable('$res2')).toBe('');
       });
-      test('if string is not convertable to number - string is returned', () => {
-        runTestFile(api, `$res = 1 + '2a'`);
-        expect(api.readVariable('res')).toBe(0);
+      test('if string is not convertable to number - string is returned', async () => {
+        await runTestFile(api, `$res = 1 + '2a'`);
+        expect(api.readVariable('#res')).toBe(0);
         expect(api.readVariable('$res')).toBe('12a');
       });
     });
@@ -99,13 +99,13 @@ describe('operations', () => {
       [-2, 0],
       [0, 2],
       [1, 3],
-    ])('res += %i & != %i', (a, result) => {
-      runTestFile(api, `res = 2 & res += ${a}`);
+    ])('res += %i & != %i', async (a, result) => {
+      await runTestFile(api, `res = 2 & res += ${a}`);
       expect(api.readVariable('res')).toBe(result);
     });
 
-    test('it acts as concatenation for strings', () => {
-      runTestFile(
+    test('it acts as concatenation for strings', async () => {
+      await runTestFile(
         api,
         `$res = 'a' 
         $res += 'b'`,
@@ -123,13 +123,13 @@ describe('operations', () => {
       [-2, 0, -2],
       [0, 0, 0],
       [1, 3, -2],
-    ])('%i - %i = %i', (a, b, result) => {
-      runTestFile(api, `res = ${a} - ${b}`);
+    ])('%i - %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ${a} - ${b}`);
       expect(api.readVariable('res')).toBe(result);
     });
 
-    test('if string can be converted to number - it gets subtracted', () => {
-      runTestFile(
+    test('if string can be converted to number - it gets subtracted', async () => {
+      await runTestFile(
         api,
         `
         res = '2' - '1'
@@ -142,8 +142,8 @@ describe('operations', () => {
       expect(api.readVariable('res3')).toBe(1);
     });
 
-    test('if string cannot be converted to number - error is shown', () => {
-      runTestFile(api, `res = '2a' - '1'`);
+    test('if string cannot be converted to number - error is shown', async () => {
+      await runTestFile(api, `res = '2a' - '1'`);
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
@@ -163,8 +163,8 @@ describe('operations', () => {
       [-2, 4],
       [0, 2],
       [1, 1],
-    ])('res -= %i & != %i', (a, result) => {
-      runTestFile(api, `res = 2 & res -= ${a}`);
+    ])('res -= %i & != %i', async (a, result) => {
+      await runTestFile(api, `res = 2 & res -= ${a}`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -174,24 +174,24 @@ describe('operations', () => {
       [2, -2],
       [-2, 2],
       [0, 0],
-    ])('-%i = %i', (a, result) => {
-      runTestFile(api, `res = -${a}`);
+    ])('-%i = %i', async (a, result) => {
+      await runTestFile(api, `res = -${a}`);
       expect(api.readVariable('res')).toBe(result);
     });
 
-    test('it should negate group result', () => {
-      runTestFile(api, `res = -(3 + 6) & res2 = -(-3)`);
+    test('it should negate group result', async () => {
+      await runTestFile(api, `res = -(3 + 6) & res2 = -(-3)`);
       expect(api.readVariable('res')).toBe(-9);
       expect(api.readVariable('res2')).toBe(3);
     });
 
-    test('it coverts and negates string', () => {
-      runTestFile(api, `res = -'2'`);
+    test('it coverts and negates string', async () => {
+      await runTestFile(api, `res = -'2'`);
       expect(api.readVariable('res')).toBe(-2);
     });
 
-    test('error should be shown if string cannot be converted to number', () => {
-      runTestFile(api, `res = -'2a'`);
+    test('error should be shown if string cannot be converted to number', async () => {
+      await runTestFile(api, `res = -'2a'`);
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
@@ -205,6 +205,65 @@ describe('operations', () => {
     });
   });
 
+  describe('+ (unary plus)', () => {
+    test.each([
+      [2, 2],
+      [-2, -2],
+      [0, 0],
+    ])('+%i = %i', async (a, result) => {
+      await runTestFile(api, `res = +${a}`);
+      expect(api.readVariable('res')).toBe(result);
+    });
+
+    test('it converts string to number', async () => {
+      await runTestFile(api, `res = +'3'`);
+      expect(api.readVariable('res')).toBe(3);
+    });
+
+    test('it combines with other operators', async () => {
+      await runTestFile(api, `res = -+2 & res2 = 1 + +2`);
+      expect(api.readVariable('res')).toBe(-2);
+      expect(api.readVariable('res2')).toBe(3);
+    });
+
+    test('error should be shown if string cannot be converted to number', async () => {
+      await runTestFile(api, `res = +'2a'`);
+      expect(error).toHaveBeenCalledWith({
+        actionIndex: -1,
+        description: 'Type mismatch!',
+        errorCode: 12,
+        line: 1,
+        lineSrc: "RES = +'2a'",
+        localLine: 1,
+        location: 'test',
+      });
+      error.mockReset();
+    });
+  });
+
+  describe('? (undefined value)', () => {
+    test('it equals empty values of every type', async () => {
+      await runTestFile(api, `num = (? = 0) & str = (? = '') & tuple = (? = []) & other = (? = 1)`);
+      expect(api.readVariable('num')).toBe(1);
+      expect(api.readVariable('str')).toBe(1);
+      expect(api.readVariable('tuple')).toBe(1);
+      expect(api.readVariable('other')).toBe(0);
+    });
+
+    test('it acts as empty value in operations', async () => {
+      await runTestFile(api, `num = ? + 5 & $str = ? + 'a' & %tuple = ? + [1]`);
+      expect(api.readVariable('num')).toBe(5);
+      expect(api.readVariable('$str')).toBe('a');
+      expect(api.readVariable('%tuple')).toEqual([1]);
+    });
+
+    test('assigning it clears the value', async () => {
+      await runTestFile(api, `a = 5 & a = ? & $type = arrtype('a')`);
+      expect(api.readVariable('a')).toBeUndefined();
+      expect(api.readVariable('$type')).toBe('');
+    });
+  });
+
   describe('/ (division)', () => {
     test.each([
       [2, 2, 1],
@@ -213,18 +272,18 @@ describe('operations', () => {
       [-4, -2, 2],
       [17, 3, 5],
       [37, 100, 0],
-    ])('%i / %i = %i', (a, b, result) => {
-      runTestFile(api, `res = ${a} / ${b}`);
+    ])('%i / %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ${a} / ${b}`);
       expect(api.readVariable('res')).toBe(result);
     });
 
-    test('strings are converted to numbers', () => {
-      runTestFile(api, `res = '2' / '1'`);
+    test('strings are converted to numbers', async () => {
+      await runTestFile(api, `res = '2' / '1'`);
       expect(api.readVariable('res')).toBe(2);
     });
 
-    test('if string cannot be converted to number - error is shown', () => {
-      runTestFile(api, `res = '2a' / '1'`);
+    test('if string cannot be converted to number - error is shown', async () => {
+      await runTestFile(api, `res = '2a' / '1'`);
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Type mismatch!',
@@ -237,8 +296,8 @@ describe('operations', () => {
       error.mockReset();
     });
 
-    test('error on zero division', () => {
-      runTestFile(api, `res = 2 / 0`);
+    test('error on zero division', async () => {
+      await runTestFile(api, `res = 2 / 0`);
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Division by zero!',
@@ -257,8 +316,8 @@ describe('operations', () => {
       [2, 2],
       [4, 1],
       [37, 0],
-    ])('res /= %i & != %i', (a, result) => {
-      runTestFile(api, `res = 4 & res /= ${a}`);
+    ])('res /= %i & != %i', async (a, result) => {
+      await runTestFile(api, `res = 4 & res /= ${a}`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -268,8 +327,8 @@ describe('operations', () => {
       [2, 4, 1],
       [5, 5, 0],
       [7, 3, 0],
-    ])('%i < %i = %i (numbers)', (a, b, result) => {
-      runTestFile(api, `res = ${a} < ${b}`);
+    ])('%i < %i = %i (numbers)', async (a, b, result) => {
+      await runTestFile(api, `res = ${a} < ${b}`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -282,8 +341,8 @@ describe('operations', () => {
       ['A', 'Z', 1],
       ['z', 'A', 0],
       ['a', 'A', 0],
-    ])('%s < %s = %i (strings)', (a, b, result) => {
-      runTestFile(api, `res = "${a}" < "${b}"`);
+    ])('%s < %s = %i (strings)', async (a, b, result) => {
+      await runTestFile(api, `res = "${a}" < "${b}"`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -293,8 +352,8 @@ describe('operations', () => {
       [2, 4, 1],
       [5, 5, 1],
       [7, 3, 0],
-    ])('%i <= %i = %i (numbers)', (a, b, result) => {
-      runTestFile(api, `res = ${a} <= ${b}`);
+    ])('%i <= %i = %i (numbers)', async (a, b, result) => {
+      await runTestFile(api, `res = ${a} <= ${b}`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -306,8 +365,8 @@ describe('operations', () => {
       ['z', 'A', 0],
       ['a', 'A', 0],
       ['A', 'A', 1],
-    ])('%s <= %s = %i (strings)', (a, b, result) => {
-      runTestFile(api, `res = "${a}" <= "${b}"`);
+    ])('%s <= %s = %i (strings)', async (a, b, result) => {
+      await runTestFile(api, `res = "${a}" <= "${b}"`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -317,8 +376,8 @@ describe('operations', () => {
       [2, 4, 1],
       [5, 5, 0],
       [7, 3, 1],
-    ])('%i <> %i = %i (numbers)', (a, b, result) => {
-      runTestFile(api, `res = ${a} <> ${b}`);
+    ])('%i <> %i = %i (numbers)', async (a, b, result) => {
+      await runTestFile(api, `res = ${a} <> ${b}`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -327,8 +386,8 @@ describe('operations', () => {
       ['a', 'a', 0],
       ['z', 'a', 1],
       ['a', 'A', 1],
-    ])('%s <> %s = %i (strings)', (a, b, result) => {
-      runTestFile(api, `res = "${a}" <> "${b}"`);
+    ])('%s <> %s = %i (strings)', async (a, b, result) => {
+      await runTestFile(api, `res = "${a}" <> "${b}"`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -337,8 +396,8 @@ describe('operations', () => {
       [2, 2, 1],
       [4, 2, 0],
       [-17, -17, 1],
-    ])('%i = %i = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a} = ${b})`);
+    ])('%i = %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a} = ${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -347,8 +406,8 @@ describe('operations', () => {
       ['a', 'b', 0],
       ['b', 'a', 0],
       ['a', 'A', 0],
-    ])('%s = %s = %i', (a, b, result) => {
-      runTestFile(api, `res = ("${a}" = "${b}")`);
+    ])('%s = %s = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ("${a}" = "${b}")`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -358,8 +417,8 @@ describe('operations', () => {
       [2, 2, 1],
       [4, 2, 0],
       [-17, -17, 1],
-    ])('%i =< %i = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a} =< ${b})`);
+    ])('%i =< %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a} =< ${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -368,8 +427,8 @@ describe('operations', () => {
       ['a', 'b', 1],
       ['b', 'a', 0],
       ['a', 'A', 0],
-    ])('%s =< %s = %i', (a, b, result) => {
-      runTestFile(api, `res = ("${a}" =< "${b}")`);
+    ])('%s =< %s = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ("${a}" =< "${b}")`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -379,8 +438,8 @@ describe('operations', () => {
       [2, 2, 1],
       [4, 2, 1],
       [-17, -17, 1],
-    ])('%i => %i = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a} => ${b})`);
+    ])('%i => %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a} => ${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -389,8 +448,8 @@ describe('operations', () => {
       ['a', 'b', 0],
       ['b', 'a', 1],
       ['a', 'A', 1],
-    ])('%s => %s = %i', (a, b, result) => {
-      runTestFile(api, `res = ("${a}" => "${b}")`);
+    ])('%s => %s = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ("${a}" => "${b}")`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -400,8 +459,8 @@ describe('operations', () => {
       [2, 2, 0],
       [4, 2, 1],
       [-17, -17, 0],
-    ])('%i > %i = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a} > ${b})`);
+    ])('%i > %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a} > ${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -410,8 +469,8 @@ describe('operations', () => {
       ['a', 'b', 0],
       ['b', 'a', 1],
       ['a', 'A', 1],
-    ])('%s > %s = %i', (a, b, result) => {
-      runTestFile(api, `res = ("${a}" > "${b}")`);
+    ])('%s > %s = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ("${a}" > "${b}")`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -421,8 +480,8 @@ describe('operations', () => {
       [2, 2, 1],
       [4, 2, 1],
       [-17, -17, 1],
-    ])('%i >= %i = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a} >= ${b})`);
+    ])('%i >= %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a} >= ${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -431,8 +490,8 @@ describe('operations', () => {
       ['a', 'b', 0],
       ['b', 'a', 1],
       ['a', 'A', 1],
-    ])('%s >= %s = %i', (a, b, result) => {
-      runTestFile(api, `res = ("${a}" >= "${b}")`);
+    ])('%s >= %s = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ("${a}" >= "${b}")`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -442,8 +501,8 @@ describe('operations', () => {
       [2, 2, 0],
       [4, 2, 1],
       [-17, -17, 0],
-    ])('%i != %i = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a} ! ${b})`);
+    ])('%i != %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a} ! ${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
 
@@ -452,21 +511,21 @@ describe('operations', () => {
       ['a', 'b', 1],
       ['b', 'a', 1],
       ['a', 'A', 1],
-    ])('%s != %s = %i', (a, b, result) => {
-      runTestFile(api, `res = ("${a}" ! "${b}")`);
+    ])('%s != %s = %i', async (a, b, result) => {
+      await runTestFile(api, `res = ("${a}" ! "${b}")`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
   describe('& (concatenation)', () => {
-    test('string contenations', () => {
-      runTestFile(api, `$res = ('a' & 'b')`);
+    test('string contenations', async () => {
+      await runTestFile(api, `$res = ('a' & 'b')`);
       expect(api.readVariable('$res')).toBe('ab');
     });
 
-    test('number are convered to string and concatenated', () => {
-      runTestFile(api, `res = (1 & 2)`);
-      expect(api.readVariable('res')).toBe(12);
+    test('number are convered to string and concatenated', async () => {
+      await runTestFile(api, `$res = (1 & 2)`);
+      expect(api.readVariable('$res')).toBe('12');
     });
   });
 
@@ -474,8 +533,8 @@ describe('operations', () => {
     test.each([
       ['3 = 2', 1],
       ['2 = 2', 0],
-    ])('NO (%s) = %i', (a, result) => {
-      runTestFile(api, `res = NO (${a})`);
+    ])('NO (%s) = %i', async (a, result) => {
+      await runTestFile(api, `res = NO (${a})`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -486,8 +545,8 @@ describe('operations', () => {
       ['3 <> 2', '2 = 2', 1],
       ['2 <> 2', '3 <> 2', 0],
       ['2 <> 2', '3 = 2', 0],
-    ])('%s AND %s = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a}) AND (${b})`);
+    ])('%s AND %s = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a}) AND (${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
@@ -498,31 +557,35 @@ describe('operations', () => {
       ['3 <> 2', '2 = 2', 1],
       ['2 <> 2', '3 <> 2', 1],
       ['2 <> 2', '3 = 2', 0],
-    ])('%s OR %s = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a}) OR (${b})`);
+    ])('%s OR %s = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a}) OR (${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
   describe('LOC (location test)', () => {
-    test('should return 1 if location exists', () => {
-      runTestFile(api, `res = LOC('test')`);
+    test('should return 1 if location exists', async () => {
+      await runTestFile(api, `res = LOC('test')`);
       expect(api.readVariable('res')).toBe(1);
     });
-    test('should return 0 if location does exists', () => {
-      runTestFile(api, `res = LOC('unknown')`);
+    test('should return 0 if location does exists', async () => {
+      await runTestFile(api, `res = LOC('unknown')`);
       expect(api.readVariable('res')).toBe(0);
     });
   });
 
   describe('OBJ (object test)', () => {
-    test('should return 1 if object exists', () => {
-      runTestFile(api, `addobj 'test' & res = OBJ('test')`);
+    test('should return 1 if object exists', async () => {
+      await runTestFile(api, `addobj 'test' & res = OBJ('test')`);
       expect(api.readVariable('res')).toBe(1);
     });
-    test('should return 0 if object does exists', () => {
-      runTestFile(api, `res = OBJ('unknown')`);
+    test('should return 0 if object does exists', async () => {
+      await runTestFile(api, `res = OBJ('unknown')`);
       expect(api.readVariable('res')).toBe(0);
+    });
+    test('should return 1 if there are several objects with the same name', async () => {
+      await runTestFile(api, `addobj 'test' & addobj 'test' & res = OBJ('test')`);
+      expect(api.readVariable('res')).toBe(1);
     });
   });
 
@@ -533,28 +596,28 @@ describe('operations', () => {
       [-7, 5, -2],
       [7, -5, 2],
       [-7, -5, -2],
-    ])('%i %% %i = %i', (a, b, result) => {
-      runTestFile(api, `res = (${a} MOD ${b})`);
+    ])('%i %% %i = %i', async (a, b, result) => {
+      await runTestFile(api, `res = (${a} MOD ${b})`);
       expect(api.readVariable('res')).toBe(result);
     });
   });
 
   describe('priorities', () => {
-    test('same level priority', () => {
-      runTestFile(api, `res = 15*5/2
+    test('same level priority', async () => {
+      await runTestFile(api, `res = 15*5/2
         res2 = 15/2*5`);
       expect(api.readVariable('res')).toBe(37);
       expect(api.readVariable('res2')).toBe(35);
     });
 
-    test('multi level priorities', () => {
-      runTestFile(api, 'x = 5 & y = 6 & res = x*y + y*-x/2');
+    test('multi level priorities', async () => {
+      await runTestFile(api, 'x = 5 & y = 6 & res = x*y + y*-x/2');
   
       expect(api.readVariable('res')).toBe(15);
     });
 
-    test('OBJ priority', () => {
-      runTestFile(api, `res = OBJ '1' = OBJ '2'`);
+    test('OBJ priority', async () => {
+      await runTestFile(api, `res = OBJ '1' = OBJ '2'`);
       expect(api.readVariable('res')).toBe(1);
 
       api.execCode(`addobj '1' & res = OBJ '1' = OBJ '2'`);
@@ -564,8 +627,8 @@ describe('operations', () => {
       expect(api.readVariable('res')).toBe(1);
     });
   
-    test('LOC priority', () => {
-      runTestFile(
+    test('LOC priority', async () => {
+      await runTestFile(
         api,
         `
   first = LOC 'other' = LOC 'another'

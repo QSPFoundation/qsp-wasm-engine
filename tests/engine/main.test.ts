@@ -14,52 +14,52 @@ describe('Main panel', () => {
     api.on('main_changed', mainChanged);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('*p should print text without line break', () => {
-    runTestFile(api, `*p 'works'`);
+  test('*p should print text without line break', async () => {
+    await runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works', false);
   });
 
-  test('*pl should print text with line break', () => {
-    runTestFile(api, `*pl 'works'`);
+  test('*pl should print text with line break', async () => {
+    await runTestFile(api, `*pl 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works\r\n', false);
   });
 
-  test('*nl should print text with line break in front', () => {
-    runTestFile(api, `*nl 'works'`);
+  test('*nl should print text with line break in front', async () => {
+    await runTestFile(api, `*nl 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('\r\nworks', false);
   });
 
-  test('MAINTXT should return text from main panel', () => {
-    runTestFile(api, `*p 'works' & $text = MAINTXT`);
+  test('MAINTXT should return text from main panel', async () => {
+    await runTestFile(api, `*p 'works' & $text = MAINTXT`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('$MAINTXT should return text from main panel', () => {
-    runTestFile(api, `*p 'works' & $text = $MAINTXT`);
+  test('$MAINTXT should return text from main panel', async () => {
+    await runTestFile(api, `*p 'works' & $text = $MAINTXT`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('$MAINTXT() should return text from main panel', () => {
-    runTestFile(api, `*p 'works' & $text = $MAINTXT()`);
+  test('$MAINTXT() should return text from main panel', async () => {
+    await runTestFile(api, `*p 'works' & $text = $MAINTXT()`);
 
     expect(api.readVariable('$text')).toBe('works');
   });
 
-  test('*CLEAR should clear main description', () => {
-    runTestFile(api, `*p 'works'`);
+  test('*CLEAR should clear main description', async () => {
+    await runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works', false);
@@ -70,8 +70,8 @@ describe('Main panel', () => {
     expect(mainChanged).toHaveBeenCalledWith('', false);
   });
 
-  test('*CLR should clear main description', () => {
-    runTestFile(api, `*p 'works'`);
+  test('*CLR should clear main description', async () => {
+    await runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works', false);
@@ -82,8 +82,8 @@ describe('Main panel', () => {
     expect(mainChanged).toHaveBeenCalledWith('', false);
   });
 
-  test('CLS should clear main description', () => {
-    runTestFile(api, `*p 'works'`);
+  test('CLS should clear main description', async () => {
+    await runTestFile(api, `*p 'works'`);
 
     expect(mainChanged).toHaveBeenCalledTimes(1);
     expect(mainChanged).toHaveBeenCalledWith('works', false);
@@ -94,8 +94,8 @@ describe('Main panel', () => {
     expect(mainChanged).toHaveBeenCalledWith('', false);
   });
 
-  test('implicit output to main', () => {
-    runTestFile(
+  test('implicit output to main', async () => {
+    await runTestFile(
       api,
       `
         'test1'
@@ -108,7 +108,7 @@ describe('Main panel', () => {
   })
 
   test('implicit output is not working with functions that does not return', async () => {
-    runTestFile(
+    await runTestFile(
       api,
       `
 'test'
@@ -123,8 +123,8 @@ func('foo')
     expect(mainChanged).toHaveBeenCalledWith('test\r\ntest\r\n', false);
   });
 
-  test('complex example from wiki', () => {
-    runTestFile(
+  test('complex example from wiki', async () => {
+    await runTestFile(
       api,
       `*P '1'
       $txt = $MAINTXT

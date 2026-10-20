@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, runTestFile, startTestFile } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('tuples', () => {
@@ -11,89 +11,89 @@ describe('tuples', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
   describe('defining tuple', () => {
-    test('default tuple value', () => {
-      runTestFile(api, ``);
+    test('default tuple value', async () => {
+      await runTestFile(api, ``);
 
       expect(api.readVariable('%a')).toEqual([]);
     });
 
-    test('defining tuple with parenthesis', () => {
-      runTestFile(api, `%a = ("a", "b", "c")`);
+    test('defining tuple with parenthesis', async () => {
+      await runTestFile(api, `%a = ("a", "b", "c")`);
       expect(api.readVariable('%a')).toEqual(['a', 'b', 'c']);
     });
 
-    test('nested tuple with parenthesis', () => {
-      runTestFile(api, `%a = ("a", ("b", "c"))`);
+    test('nested tuple with parenthesis', async () => {
+      await runTestFile(api, `%a = ("a", ("b", "c"))`);
       expect(api.readVariable('%a')).toEqual(['a', ['b', 'c']]);
     });
 
-    test('defining tuple with brackets', () => {
-      runTestFile(api, `%a = ["a", "b", "c"]`);
+    test('defining tuple with brackets', async () => {
+      await runTestFile(api, `%a = ["a", "b", "c"]`);
       expect(api.readVariable('%a')).toEqual(['a', 'b', 'c']);
     });
 
-    test('nested tuple with brackets', () => {
-      runTestFile(api, `%a = ["1", ["2", "3"]]`);
+    test('nested tuple with brackets', async () => {
+      await runTestFile(api, `%a = ["1", ["2", "3"]]`);
       expect(api.readVariable('%a')).toEqual(['1', ['2', '3']]);
     });
 
-    test('defining tuple with comma', () => {
-      runTestFile(api, `%a = "a", "b", "c"`);
+    test('defining tuple with comma', async () => {
+      await runTestFile(api, `%a = "a", "b", "c"`);
       expect(api.readVariable('%a')).toEqual(['a', 'b', 'c']);
     });
 
-    test('mixing brackets and parenthesis', () => {
-      runTestFile(api, `%a = ["a", ("b", "c")]`);
+    test('mixing brackets and parenthesis', async () => {
+      await runTestFile(api, `%a = ["a", ("b", "c")]`);
       expect(api.readVariable('%a')).toEqual(['a', ['b', 'c']]);
     });
 
-    test('strings and numbers', () => {
-      runTestFile(api, `%a = '1', 2, 3`);
+    test('strings and numbers', async () => {
+      await runTestFile(api, `%a = '1', 2, 3`);
       expect(api.readVariable('%a')).toEqual(['1', 2, 3]);
     });
 
-    test('single item tuple with parenthesis', () => {
-      runTestFile(api, `%a = (1)`);
+    test('single item tuple with parenthesis', async () => {
+      await runTestFile(api, `%a = (1)`);
       expect(api.readVariable('%a')).toEqual([1]);
     });
 
-    test('single item tuple with brackets', () => {
-      runTestFile(api, `%a = [1]`);
+    test('single item tuple with brackets', async () => {
+      await runTestFile(api, `%a = [1]`);
       expect(api.readVariable('%a')).toEqual([1]);
     });
 
-    test('empty tuple with parenthesis', () => {
-      runTestFile(api, `a = 2 & %a = ()`);
+    test('empty tuple with parenthesis', async () => {
+      await runTestFile(api, `a = 2 & %a = ()`);
       expect(api.readVariable('%a')).toEqual([]);
-      expect(api.readVariable('a')).toEqual(0);
+      expect(api.readVariable('a')).toEqual([]);
     });
 
-    test('empty tuple with brackets', () => {
-      runTestFile(api, `a = 2 & %a = []`);
+    test('empty tuple with brackets', async () => {
+      await runTestFile(api, `a = 2 & %a = []`);
       expect(api.readVariable('%a')).toEqual([]);
-      expect(api.readVariable('a')).toEqual(0);
+      expect(api.readVariable('a')).toEqual([]);
     });
 
-    test('nested tuple with single item', () => {
-      runTestFile(api, `%a = ("a", ["b"]) & %b = ("a", ("b"))`);
+    test('nested tuple with single item', async () => {
+      await runTestFile(api, `%a = ("a", ["b"]) & %b = ("a", ("b"))`);
       expect(api.readVariable('%a')).toEqual(['a', ['b']]);
       expect(api.readVariable('%b')).toEqual(['a', 'b']);
     });
 
-    test('nested single item in parenthesis will not create a tuple', () => {
-      runTestFile(api, `%a = ("a", ("a"))`);
+    test('nested single item in parenthesis will not create a tuple', async () => {
+      await runTestFile(api, `%a = ("a", ("a"))`);
 
       expect(api.readVariable('%a')).toEqual(['a', 'a']);
     });
 
-    test('array of tuples', () => {
-      runTestFile(
+    test('array of tuples', async () => {
+      await runTestFile(
         api,
         `
         %a[] = ["a", "b", "c"]
@@ -107,8 +107,8 @@ describe('tuples', () => {
   });
 
   describe('unpacking tuples', () => {
-    test('unpacking to variables', () => {
-      runTestFile(
+    test('unpacking to variables', async () => {
+      await runTestFile(
         api,
         `
       %a = (1, 2, 3)
@@ -120,8 +120,8 @@ describe('tuples', () => {
       expect(api.readVariable('d')).toEqual(3);
     });
 
-    test('unpacking mixed values', () => {
-      runTestFile(
+    test('unpacking mixed values', async () => {
+      await runTestFile(
         api,
         `
       %a = ('a', 2, [3, 'b'])
@@ -133,8 +133,8 @@ describe('tuples', () => {
       expect(api.readVariable('%d')).toEqual([3, 'b']);
     });
 
-    test('using tuple to grab rest of values', () => {
-      runTestFile(
+    test('using tuple to grab rest of values', async () => {
+      await runTestFile(
         api,
         `
       %a = ["a", 2, "b", 3]
@@ -145,8 +145,8 @@ describe('tuples', () => {
       expect(api.readVariable('%c')).toEqual([2, 'b', 3]);
     });
 
-    test('rest tuple should be empty if there were no values left', () => {
-      runTestFile(
+    test('rest tuple should be empty if there were no values left', async () => {
+      await runTestFile(
         api,
         `%a = ["a", "c"]
         $b, $c, d, $f, %rest = %a`,
@@ -154,13 +154,13 @@ describe('tuples', () => {
 
       expect(api.readVariable('$b')).toEqual('a');
       expect(api.readVariable('$c')).toEqual('c');
-      expect(api.readVariable('d')).toEqual(0);
+      expect(api.readVariable('d')).toBeUndefined();
       expect(api.readVariable('$f')).toEqual('');
       expect(api.readVariable('%rest')).toEqual([]);
     });
 
-    test('swapping value without tmp variable', () => {
-      runTestFile(
+    test('swapping value without tmp variable', async () => {
+      await runTestFile(
         api,
         `a = 1 & b = 2
         a,b = b,a`,
@@ -172,8 +172,8 @@ describe('tuples', () => {
   });
 
   describe('array indexing', () => {
-    test('using tuple as array index', () => {
-      runTestFile(
+    test('using tuple as array index', async () => {
+      await runTestFile(
         api,
         `
       b["1", "2"] = 3
@@ -184,8 +184,8 @@ describe('tuples', () => {
       expect(api.readVariable('a')).toEqual(3);
     });
 
-    test('using nested tuple as array index', () => {
-      runTestFile(
+    test('using nested tuple as array index', async () => {
+      await runTestFile(
         api,
         `
       b[1, ("2", 3)] = 3
@@ -196,8 +196,8 @@ describe('tuples', () => {
       expect(api.readVariable('a')).toEqual(3);
     });
 
-    test('using mixed value tuple for indexing', () => {
-      runTestFile(
+    test('using mixed value tuple for indexing', async () => {
+      await runTestFile(
         api,
         `
       b['a', 2] = 3
@@ -210,18 +210,18 @@ describe('tuples', () => {
   });
 
   describe('operations', () => {
-    test('value & tuple', () => {
-      runTestFile(api, `%a = (1 & [2, 3])`);
+    test('value & tuple', async () => {
+      await runTestFile(api, `%a = (1 & [2, 3])`);
       expect(api.readVariable('%a')).toEqual([1, 2, 3]);
     });
 
-    test('tuple & value', () => {
-      runTestFile(api, `%a = ([2, 3] & 1)`);
+    test('tuple & value', async () => {
+      await runTestFile(api, `%a = ([2, 3] & 1)`);
       expect(api.readVariable('%a')).toEqual([2, 3, 1]);
     });
 
-    test('tuple & tuple', () => {
-      runTestFile(api, `%a = ([2, 3] & [1, 4])`);
+    test('tuple & tuple', async () => {
+      await runTestFile(api, `%a = ([2, 3] & [1, 4])`);
       expect(api.readVariable('%a')).toEqual([2, 3, 1, 4]);
     });
 
@@ -243,8 +243,8 @@ describe('tuples', () => {
           [6, 8, 10],
         ],
       ],
-    ])('%s = %s', (a, _, result) => {
-      runTestFile(api, `%res = ${a}`);
+    ])('%s = %s', async (a, _, result) => {
+      await runTestFile(api, `%res = ${a}`);
 
       expect(api.readVariable('%res')).toEqual(result);
     });
@@ -264,8 +264,8 @@ describe('tuples', () => {
         ],
       ],
       ['["aa", "bb"]', '+=', '"bb"', ['aabb', 'bbbb']],
-    ])('%s %s %s = %s', (a, op, b, result) => {
-      runTestFile(
+    ])('%s %s %s = %s', async (a, op, b, result) => {
+      await runTestFile(
         api,
         `
         %res = ${a}
@@ -283,8 +283,8 @@ describe('tuples', () => {
       ['[2,3]', 0],
       ["['55']", 55],
       ["['55a']", 0],
-    ])('%s = %s', (a, result) => {
-      runTestFile(api, `res = val(${a})`);
+    ])('%s = %s', async (a, result) => {
+      await runTestFile(api, `res = val(${a})`);
       expect(api.readVariable('res')).toEqual(result);
     });
   });
@@ -296,8 +296,8 @@ describe('tuples', () => {
       ['[2,3]', 0],
       ["['55']", 1],
       ["['55a']", 0],
-    ])('%s = %s', (a, result) => {
-      runTestFile(api, `res = isnum(${a})`);
+    ])('%s = %s', async (a, result) => {
+      await runTestFile(api, `res = isnum(${a})`);
       expect(api.readVariable('res')).toEqual(result);
     });
   });
@@ -310,8 +310,8 @@ describe('tuples', () => {
       ['[2,3]', '[2,3]'],
       ["['55']", "['55']"],
       ["['55a']", "['55a']"],
-    ])('%s = %s', (a, result) => {
-      runTestFile(
+    ])('%s = %s', async (a, result) => {
+      await runTestFile(
         api,
         `%a = ${a}
       $res = STR(%a)`,
@@ -321,8 +321,8 @@ describe('tuples', () => {
   });
 
   describe('KILLVAR', () => {
-    test('deleting by tuple key', () => {
-      runTestFile(
+    test('deleting by tuple key', async () => {
+      await runTestFile(
         api,
         `
         b[1,2] = 3
@@ -331,13 +331,13 @@ describe('tuples', () => {
         `,
       );
 
-      expect(api.readVariable('res')).toEqual(0);
+      expect(api.readVariable('res')).toBeUndefined();
     });
   });
 
   describe('LEN', () => {
-    test('it should return tuple size', () => {
-      runTestFile(
+    test('it should return tuple size', async () => {
+      await runTestFile(
         api,
         `
         %a = [1, 2, 3]
@@ -353,8 +353,8 @@ describe('tuples', () => {
   });
 
   describe('using in functions', () => {
-    test('passing tuple as parameter', () => {
-      runTestFile(
+    test('passing tuple as parameter', async () => {
+      await runTestFile(
         api,
         `
 gs 'other', ["a", "b"]
@@ -366,8 +366,8 @@ gs 'other', ["a", "b"]
       expect(api.readVariable('%res')).toEqual(['a', 'b']);
     });
 
-    test('returning tuple from function', () => {
-      runTestFile(
+    test('returning tuple from function', async () => {
+      await runTestFile(
         api,
         `
 %res = func('other')
@@ -379,8 +379,8 @@ gs 'other', ["a", "b"]
       expect(api.readVariable('%res')).toEqual(['1', '2']);
     });
 
-    test('unpacking returning tuple from function', () => {
-      runTestFile(
+    test('unpacking returning tuple from function', async () => {
+      await runTestFile(
         api,
         `
 $a, $b = func('other')
@@ -393,19 +393,19 @@ $a, $b = func('other')
       expect(api.readVariable('$b')).toEqual('2');
     });
 
-    test('returning tuple from dyneval', () => {
-      runTestFile(api, `%res = dyneval('%result = ["1", "2"]')`);
+    test('returning tuple from dyneval', async () => {
+      await runTestFile(api, `%res = dyneval('%result = ["1", "2"]')`);
 
       expect(api.readVariable('%res')).toEqual(['1', '2']);
     });
   });
 
   describe('MENU', () => {
-    test('defining menu with tuples', () => {
+    test('defining menu with tuples', async () => {
       const onMenu = vi.fn();
       api.on('menu', onMenu);
 
-      runTestFile(
+      const { done } = await startTestFile(
         api,
         `
         %a[]=('item 6', 'handler')
@@ -433,11 +433,12 @@ $a, $b = func('other')
         expect.any(Function),
       );
       onMenu.mock.calls[0][1](-1);
+      await done;
     });
   });
 
-  test('it errors out on more than 20 elements', () => {
-    runTestFile(
+  test('it errors out on more than 20 elements', async () => {
+    await runTestFile(
       api,
       `
       %a = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"]
@@ -457,8 +458,8 @@ $a, $b = func('other')
     error.mockReset();
   });
 
-  test('can grow over 20 elements with concatenation', () => {
-    runTestFile(
+  test('can grow over 20 elements with concatenation', async () => {
+    await runTestFile(
       api,
       `
       %a = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]

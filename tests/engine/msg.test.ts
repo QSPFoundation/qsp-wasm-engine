@@ -1,5 +1,5 @@
 import { Mock, beforeEach, describe, vi, test, expect, afterEach } from 'vitest';
-import { prepareApi, runTestFile } from '../../src/test-helpers';
+import { prepareApi, startTestFile } from '../../src/test-helpers';
 import { QspAPI } from '../../src/contracts/api';
 
 describe('MSG', () => {
@@ -14,25 +14,27 @@ describe('MSG', () => {
     api.on('msg', msg);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api?._run_checks();
   });
 
-  test('MSG should trigger event in api', () => {
-    runTestFile(api, `msg 'works'`);
+  test('MSG should trigger event in api', async () => {
+    const { done } = await startTestFile(api, `msg 'works'`);
 
     expect(msg).toHaveBeenCalledWith('works', expect.any(Function));
     msg.mock.calls[0][1]();
+    await done;
   });
 
-  test('msg should stop execution flow', () => {
+  test('msg should stop execution flow', async () => {
     const mainChanged = vi.fn();
     api.on('main_changed', mainChanged);
-    runTestFile(api, `*p '1' & msg 'works' & *p '2'`);
+    const { done } = await startTestFile(api, `*p '1' & msg 'works' & *p '2'`);
     expect(mainChanged).toHaveBeenCalledWith('1', false);
     expect(msg).toHaveBeenCalledWith('works', expect.any(Function));
     msg.mock.calls[0][1]();
+    await done;
     expect(mainChanged).toHaveBeenCalledWith('12', false);
   });
 });

@@ -12,6 +12,7 @@ export default {
     {
       dir: 'dist',
       entryFileNames: '[name].cjs',
+      chunkFileNames: '[name]-[hash].cjs', // .js would be loaded as ESM ("type": "module")
       format: 'cjs',
       sourcemap: true,
     },

@@ -18,21 +18,26 @@ export async function prepareApi() {
   return api;
 }
 
-export function runTestFile(api: QspAPI, src: string) {
-  const binary = writeQsp(readQsps(prepareTest(src)));
-  api.openGame(binary, true);
-  api.execLoc('test');
+// Runs the test location to its end
+export async function runTestFile(api: QspAPI, src: string): Promise<void> {
+  await api.openGame(writeQsp(readQsps(prepareTest(src))), true);
+  await api.execLoc('test');
 }
 
-export function loadTestLocations(api: QspAPI, locations: QspLocation[]) {
-  const binary = writeQsp((locations));
-  api.openGame(binary, true);
+// Starts the test location: resolves once it waits for an answer (or ends), done settles at its end
+export async function startTestFile(api: QspAPI, src: string): Promise<{ done: Promise<void> }> {
+  await api.openGame(writeQsp(readQsps(prepareTest(src))), true);
+  return { done: api.execLoc('test') };
 }
 
-export function runTestFileWithGoto(api: QspAPI, src: string) {
-  const binary = writeQsp(readQsps(prepareTest(src)));
-  api.openGame(binary, true);
-  api.execCode('gt "test"');
+export function loadTestLocations(api: QspAPI, locations: QspLocation[]): Promise<void> {
+  const binary = writeQsp(locations);
+  return api.openGame(binary, true);
+}
+
+export async function runTestFileWithGoto(api: QspAPI, src: string): Promise<void> {
+  await api.openGame(writeQsp(readQsps(prepareTest(src))), true);
+  await api.execCode('gt "test"');
 }
 
 export function prepareTest(textData: string): string {

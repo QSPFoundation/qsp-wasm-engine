@@ -15,19 +15,19 @@ describe('locations', () => {
     api.on('error', error);
   });
   afterEach(() => {
-    api?._cleanup();
+    api?.dispose();
     expect(error).not.toHaveBeenCalled();
     api._run_checks();
   });
 
-  test('GOTO should change locations', () => {
+  test('GOTO should change locations', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFileWithGoto(
+    await runTestFileWithGoto(
       api,
       `
 *p 'main'
@@ -69,14 +69,14 @@ $gt_location = $curloc
     expect(api.readVariable('$gt_location')).toBe('target');
   });
 
-  test('GT should change locations', () => {
+  test('GT should change locations', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFileWithGoto(
+    await runTestFileWithGoto(
       api,
       `
 *p 'main'
@@ -118,14 +118,14 @@ $gt_location = $curloc
     expect(api.readVariable('$gt_location')).toBe('target');
   });
 
-  test('XGOTO', () => {
+  test('XGOTO', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFileWithGoto(
+    await runTestFileWithGoto(
       api,
       `
 *p 'main'
@@ -166,14 +166,14 @@ $xgt_location = $curloc
     expect(api.readVariable('$xgt_location')).toBe('target');
   });
 
-  test('XGT', () => {
+  test('XGT', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFileWithGoto(
+    await runTestFileWithGoto(
       api,
       `
 *p 'main'
@@ -215,7 +215,7 @@ $xgt_location = $curloc
     expect(api.readVariable('$xgt_location')).toBe('target');
   });
 
-  test('GOSUB should execute location without changing it', () => {
+  test('GOSUB should execute location without changing it', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
@@ -223,7 +223,7 @@ $xgt_location = $curloc
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
 
-    runTestFileWithGoto(
+    await runTestFileWithGoto(
       api,
       `
 *p 'main'
@@ -271,14 +271,14 @@ $second = $args[1]
     expect(api.readVariable('$gs_location')).toBe('test');
   });
 
-  test('GS should execute location without changing it', () => {
+  test('GS should execute location without changing it', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFileWithGoto(
+    await runTestFileWithGoto(
       api,
       `
 *p 'main'
@@ -326,14 +326,14 @@ $second = $args[1]
     expect(api.readVariable('$gs_location')).toBe('test');
   });
 
-  test('FUNC', () => {
+  test('FUNC', async () => {
     const onMain = vi.fn();
     api.on('main_changed', onMain);
     const onStats = vi.fn();
     api.on('stats_changed', onStats);
     const onActs = vi.fn();
     api.on('actions_changed', onActs);
-    runTestFile(
+    await runTestFile(
       api,
       `
 *p 'main'
@@ -376,8 +376,8 @@ $second = $args[1]
     expect(api.readVariable('$second')).toBe('test');
   });
 
-  test('FUNC with RESULT', () => {
-    runTestFile(
+  test('FUNC with RESULT', async () => {
+    await runTestFile(
       api,
       `
 x = func('process')
@@ -389,8 +389,8 @@ result = 5
     expect(api.readVariable('x')).toBe(5);
   });
 
-  test('FUNC with $RESULT', () => {
-    runTestFile(
+  test('FUNC with $RESULT', async () => {
+    await runTestFile(
       api,
       `
 $x = func('process')
@@ -402,8 +402,8 @@ $result = 'test'
     expect(api.readVariable('$x')).toBe('test');
   });
 
-  test('EXIT should stop code execution', () => {
-    runTestFile(
+  test('EXIT should stop code execution', async () => {
+    await runTestFile(
       api,
       `
 x = 1
@@ -415,8 +415,8 @@ x = 2
     expect(api.readVariable('x')).toBe(1);
   });
 
-  test('GOTO arguments should be avaliable in actions', () => {
-    runTestFile(
+  test('GOTO arguments should be avaliable in actions', async () => {
+    await runTestFile(
       api,
       `
 gt 'target', 'test', 12
@@ -434,8 +434,8 @@ end
     expect(api.readVariable('args_1')).toBe(12);
   });
 
-  test('XGOTO arguments in actions', () => {
-    runTestFile(
+  test('XGOTO arguments in actions', async () => {
+    await runTestFile(
       api,
       `
 xgt 'target', 'test', 12
@@ -455,8 +455,8 @@ end
     expect(api.readVariable('args_1')).toBe(12);
   });
 
-  test('user func shorthand', () => {
-    runTestFile(
+  test('user func shorthand', async () => {
+    await runTestFile(
       api,
       `
 @target(1, 'test')
@@ -471,8 +471,27 @@ $second = $args[1]
     expect(api.readVariable('$second')).toBe('test');
   });
 
-  test('user func shorthand RESULT', () => {
-    runTestFile(
+  test('user func shorthand with space after @', async () => {
+    await runTestFile(
+      api,
+      `
+@ target(1, 'test')
+x = @ target(2, 'other')
+---
+# target
+first = args[0]
+$second = $args[1]
+result = args[0] * 10
+    `,
+    );
+
+    expect(api.readVariable('first')).toBe(2);
+    expect(api.readVariable('$second')).toBe('other');
+    expect(api.readVariable('x')).toBe(20);
+  });
+
+  test('user func shorthand RESULT', async () => {
+    await runTestFile(
       api,
       `
 x = @process
@@ -484,8 +503,8 @@ result = 5
     expect(api.readVariable('x')).toBe(5);
   });
 
-  test('restoring args and result', () => {
-    runTestFile(
+  test('restoring args and result', async () => {
+    await runTestFile(
       api,
       `
 gs 'first', 'fir', 1
