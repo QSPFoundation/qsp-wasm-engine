@@ -7,13 +7,38 @@
   "main": "./dist/wasm-engine.cjs",
   "module": "./dist/wasm-engine.modern.js",
   "exports": {
-    ".": "./dist/wasm-engine.modern.js",
-    "./wasm-engine-debug": "./dist/wasm-engine-debug.cjs",
-    "./wasm-engine-debug.es": "./dist/wasm-engine-debug.modern.js",
+    ".": {
+      "import": {
+        "types": "./dist/wasm-engine.d.ts",
+        "default": "./dist/wasm-engine.modern.js"
+      },
+      "require": {
+        "types": "./dist/wasm-engine.d.cts",
+        "default": "./dist/wasm-engine.cjs"
+      }
+    },
+    "./wasm-engine-debug": {
+      "types": "./dist/wasm-engine-debug.d.cts",
+      "default": "./dist/wasm-engine-debug.cjs"
+    },
+    "./wasm-engine-debug.es": {
+      "types": "./dist/wasm-engine-debug.d.ts",
+      "default": "./dist/wasm-engine-debug.modern.js"
+    },
     "./qsp-engine.wasm": "./dist/qsp-engine.wasm",
     "./qsp-engine-debug.wasm": "./dist/qsp-engine-debug.wasm"
   },
-  "types": "./dist/index.d.ts",
+  "types": "./dist/wasm-engine.d.ts",
+  "typesVersions": {
+    "*": {
+      "wasm-engine-debug": [
+        "./dist/wasm-engine-debug.d.cts"
+      ],
+      "wasm-engine-debug.es": [
+        "./dist/wasm-engine-debug.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
@@ -59,6 +84,7 @@
     "rimraf": "^6.1.3",
     "rollup": "^4.64.10",
     "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-dts": "^6.5.1",
     "tslib": "^2.8.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.0",
