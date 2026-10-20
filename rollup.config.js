@@ -27,6 +27,7 @@ export default {
   plugins: [
     nodeResolve(),
     typescript({
+      rootDir: 'src',
       exclude: ['**/*.test.ts', '**/test-helpers.ts'],
     }),
     terser(),
