@@ -33,6 +33,7 @@ const api = await initQspEngine(wasm.buffer);
 depending on your environment.
 As first argument you need to pass URL of wasm module in browser (you might need to configure your bundler to handle wasm module as URL) or path to wasm module in node.
 `initQspEngine` returns a promise that resolves with API wrapper abstracting away all low level interactions with wasm.
+The optional second argument `{ seed?: number }` seeds the random numbers of the engine (`Date.now()` by default; only the low 32 bits are used): the same seed gives the same numbers, and restarts continue the sequence.
 
 ## API
 
@@ -51,6 +52,8 @@ api.saveGame(): Promise<ArrayBuffer | null>;
 api.loadSave(data: ArrayBuffer): Promise<void>;
 // restarts game currently loaded in engine
 api.restartGame(): Promise<void>;
+// sets the clock in milliseconds (Date.now by default) for MSECSCOUNT
+api.setClock(now: () => number): void;
 // selects action by index
 api.selectAction(index: number): Promise<void>;
 // executes code of currently selected action
@@ -67,9 +70,11 @@ api.execCounter(): Promise<void>;
 api.execLoc(name: string): Promise<void>;
 // terminate the engine and free the memory held by the API (the instance can't be used afterwards)
 api.dispose(): void;
-// reads content of some variable (0th index)
+// reads content of some variable (0th index); variable names are case-insensitive
 // a name without a type prefix returns the stored value as is (string | number | QspTuple | undefined),
 // $name / #name / %name return it as a string / number / tuple (the empty value if the stored type differs)
+// a tuple may carry field names (a record): tuple.names[i] is the name of item i (stored uppercase)
+// or undefined, the property is missing when no item has a name; keys may carry names the same way
 api.readVariable(name: string, useCache?: boolean): QspVariableValue;
 // reads content of some variable by index
 api.readVariableByIndex(name: string, index: number, useCache?: boolean): QspVariableValue;
@@ -106,12 +111,19 @@ api.watchVariableByKey(
 api.enableDebugMode(): void;
 // disable debug mode
 api.disableDebugMode(): void;
+// get where the engine executes code (e.g. the statement waiting in a dialog), loc is '' when idle
+api.getCurrentState(): { loc: string; actIndex: number; line: number };
+// get name of the current location ($CURLOC), '' if there is none
+api.getCurrentLocation(): string;
 // get list of locations
 api.getLocationsList(): string[];
-// get location code by name
-api.getLocationCode(name: string): string[];
-// get action code by index
-api.getActionCode(location: string, index: number): string[];
+// get location code by name: the code entries ({ line: number; code: string }) with the line each
+// starts on, numbered from 1 as errors number them (lines the engine joins are one entry)
+api.getLocationCode(name: string): QspLineInfo[];
+// get code of a base action of the location by index
+api.getLocationActionCode(location: string, index: number): QspLineInfo[];
+// get code of a current action (dynamic actions included) by index
+api.getActionCode(index: number): QspLineInfo[];
 // register event logger for debugging and monitoring
 api.registerEventLogger(logger: QspEventLogger): void;
 // get list of actions for a location

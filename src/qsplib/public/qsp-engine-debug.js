@@ -794,8 +794,6 @@ async function createWasm() {
   var __abort_js = () =>
       abort('native code called abort()');
 
-  var _emscripten_date_now = () => Date.now();
-
   var getHeapMax = () =>
       // Stay one Wasm page short of 4GB: while e.g. Chrome is able to allocate
       // full 4GB Wasm memories, the size will wrap back to 0 bytes in Wasm side
@@ -2193,8 +2191,10 @@ var _QSPGetLocationDesc = Module['_QSPGetLocationDesc'] = makeInvalidEarlyAccess
 var _QSPGetLocationActions = Module['_QSPGetLocationActions'] = makeInvalidEarlyAccess('_QSPGetLocationActions');
 var _QSPGetLocationActionCode = Module['_QSPGetLocationActionCode'] = makeInvalidEarlyAccess('_QSPGetLocationActionCode');
 var _QSPGetLocationCode = Module['_QSPGetLocationCode'] = makeInvalidEarlyAccess('_QSPGetLocationCode');
+var _QSPGetActionCode = Module['_QSPGetActionCode'] = makeInvalidEarlyAccess('_QSPGetActionCode');
 var _QSPGetVersion = Module['_QSPGetVersion'] = makeInvalidEarlyAccess('_QSPGetVersion');
 var _QSPGetCompiledDateTime = Module['_QSPGetCompiledDateTime'] = makeInvalidEarlyAccess('_QSPGetCompiledDateTime');
+var _QSPGetCurLocation = Module['_QSPGetCurLocation'] = makeInvalidEarlyAccess('_QSPGetCurLocation');
 var _QSPGetMainDesc = Module['_QSPGetMainDesc'] = makeInvalidEarlyAccess('_QSPGetMainDesc');
 var _QSPGetVarsDesc = Module['_QSPGetVarsDesc'] = makeInvalidEarlyAccess('_QSPGetVarsDesc');
 var _QSPGetActions = Module['_QSPGetActions'] = makeInvalidEarlyAccess('_QSPGetActions');
@@ -2209,6 +2209,8 @@ var _QSPShowWindow = Module['_QSPShowWindow'] = makeInvalidEarlyAccess('_QSPShow
 var _QSPGetVarValuesCount = Module['_QSPGetVarValuesCount'] = makeInvalidEarlyAccess('_QSPGetVarValuesCount');
 var _QSPGetVarIndexByKey = Module['_QSPGetVarIndexByKey'] = makeInvalidEarlyAccess('_QSPGetVarIndexByKey');
 var _QSPGetVarValue = Module['_QSPGetVarValue'] = makeInvalidEarlyAccess('_QSPGetVarValue');
+var _QSPGetNameIndex = Module['_QSPGetNameIndex'] = makeInvalidEarlyAccess('_QSPGetNameIndex');
+var _QSPGetName = Module['_QSPGetName'] = makeInvalidEarlyAccess('_QSPGetName');
 var _QSPExecString = Module['_QSPExecString'] = makeInvalidEarlyAccess('_QSPExecString');
 var _QSPCalculateStrExpression = Module['_QSPCalculateStrExpression'] = makeInvalidEarlyAccess('_QSPCalculateStrExpression');
 var _QSPCalculateNumExpression = Module['_QSPCalculateNumExpression'] = makeInvalidEarlyAccess('_QSPCalculateNumExpression');
@@ -2262,8 +2264,10 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['QSPGetLocationActions'] != 'undefined', 'missing Wasm export: QSPGetLocationActions');
   assert(typeof wasmExports['QSPGetLocationActionCode'] != 'undefined', 'missing Wasm export: QSPGetLocationActionCode');
   assert(typeof wasmExports['QSPGetLocationCode'] != 'undefined', 'missing Wasm export: QSPGetLocationCode');
+  assert(typeof wasmExports['QSPGetActionCode'] != 'undefined', 'missing Wasm export: QSPGetActionCode');
   assert(typeof wasmExports['QSPGetVersion'] != 'undefined', 'missing Wasm export: QSPGetVersion');
   assert(typeof wasmExports['QSPGetCompiledDateTime'] != 'undefined', 'missing Wasm export: QSPGetCompiledDateTime');
+  assert(typeof wasmExports['QSPGetCurLocation'] != 'undefined', 'missing Wasm export: QSPGetCurLocation');
   assert(typeof wasmExports['QSPGetMainDesc'] != 'undefined', 'missing Wasm export: QSPGetMainDesc');
   assert(typeof wasmExports['QSPGetVarsDesc'] != 'undefined', 'missing Wasm export: QSPGetVarsDesc');
   assert(typeof wasmExports['QSPGetActions'] != 'undefined', 'missing Wasm export: QSPGetActions');
@@ -2278,6 +2282,8 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['QSPGetVarValuesCount'] != 'undefined', 'missing Wasm export: QSPGetVarValuesCount');
   assert(typeof wasmExports['QSPGetVarIndexByKey'] != 'undefined', 'missing Wasm export: QSPGetVarIndexByKey');
   assert(typeof wasmExports['QSPGetVarValue'] != 'undefined', 'missing Wasm export: QSPGetVarValue');
+  assert(typeof wasmExports['QSPGetNameIndex'] != 'undefined', 'missing Wasm export: QSPGetNameIndex');
+  assert(typeof wasmExports['QSPGetName'] != 'undefined', 'missing Wasm export: QSPGetName');
   assert(typeof wasmExports['QSPExecString'] != 'undefined', 'missing Wasm export: QSPExecString');
   assert(typeof wasmExports['QSPCalculateStrExpression'] != 'undefined', 'missing Wasm export: QSPCalculateStrExpression');
   assert(typeof wasmExports['QSPCalculateNumExpression'] != 'undefined', 'missing Wasm export: QSPCalculateNumExpression');
@@ -2328,8 +2334,10 @@ function assignWasmExports(wasmExports) {
   _QSPGetLocationActions = Module['_QSPGetLocationActions'] = createExportWrapper('QSPGetLocationActions', wasmExports['QSPGetLocationActions'], 3);
   _QSPGetLocationActionCode = Module['_QSPGetLocationActionCode'] = createExportWrapper('QSPGetLocationActionCode', wasmExports['QSPGetLocationActionCode'], 4);
   _QSPGetLocationCode = Module['_QSPGetLocationCode'] = createExportWrapper('QSPGetLocationCode', wasmExports['QSPGetLocationCode'], 3);
+  _QSPGetActionCode = Module['_QSPGetActionCode'] = createExportWrapper('QSPGetActionCode', wasmExports['QSPGetActionCode'], 3);
   _QSPGetVersion = Module['_QSPGetVersion'] = createExportWrapper('QSPGetVersion', wasmExports['QSPGetVersion'], 1);
   _QSPGetCompiledDateTime = Module['_QSPGetCompiledDateTime'] = createExportWrapper('QSPGetCompiledDateTime', wasmExports['QSPGetCompiledDateTime'], 1);
+  _QSPGetCurLocation = Module['_QSPGetCurLocation'] = createExportWrapper('QSPGetCurLocation', wasmExports['QSPGetCurLocation'], 1);
   _QSPGetMainDesc = Module['_QSPGetMainDesc'] = createExportWrapper('QSPGetMainDesc', wasmExports['QSPGetMainDesc'], 1);
   _QSPGetVarsDesc = Module['_QSPGetVarsDesc'] = createExportWrapper('QSPGetVarsDesc', wasmExports['QSPGetVarsDesc'], 1);
   _QSPGetActions = Module['_QSPGetActions'] = createExportWrapper('QSPGetActions', wasmExports['QSPGetActions'], 2);
@@ -2344,6 +2352,8 @@ function assignWasmExports(wasmExports) {
   _QSPGetVarValuesCount = Module['_QSPGetVarValuesCount'] = createExportWrapper('QSPGetVarValuesCount', wasmExports['QSPGetVarValuesCount'], 2);
   _QSPGetVarIndexByKey = Module['_QSPGetVarIndexByKey'] = createExportWrapper('QSPGetVarIndexByKey', wasmExports['QSPGetVarIndexByKey'], 3);
   _QSPGetVarValue = Module['_QSPGetVarValue'] = createExportWrapper('QSPGetVarValue', wasmExports['QSPGetVarValue'], 4);
+  _QSPGetNameIndex = Module['_QSPGetNameIndex'] = createExportWrapper('QSPGetNameIndex', wasmExports['QSPGetNameIndex'], 2);
+  _QSPGetName = Module['_QSPGetName'] = createExportWrapper('QSPGetName', wasmExports['QSPGetName'], 2);
   _QSPExecString = Module['_QSPExecString'] = createExportWrapper('QSPExecString', wasmExports['QSPExecString'], 2);
   _QSPCalculateStrExpression = Module['_QSPCalculateStrExpression'] = createExportWrapper('QSPCalculateStrExpression', wasmExports['QSPCalculateStrExpression'], 4);
   _QSPCalculateNumExpression = Module['_QSPCalculateNumExpression'] = createExportWrapper('QSPCalculateNumExpression', wasmExports['QSPCalculateNumExpression'], 3);
@@ -2356,7 +2366,7 @@ function assignWasmExports(wasmExports) {
   _QSPSaveGameAsData = Module['_QSPSaveGameAsData'] = createExportWrapper('QSPSaveGameAsData', wasmExports['QSPSaveGameAsData'], 3);
   _QSPOpenSavedGameFromData = Module['_QSPOpenSavedGameFromData'] = createExportWrapper('QSPOpenSavedGameFromData', wasmExports['QSPOpenSavedGameFromData'], 3);
   _QSPRestartGame = Module['_QSPRestartGame'] = createExportWrapper('QSPRestartGame', wasmExports['QSPRestartGame'], 1);
-  _QSPInit = Module['_QSPInit'] = createExportWrapper('QSPInit', wasmExports['QSPInit'], 0);
+  _QSPInit = Module['_QSPInit'] = createExportWrapper('QSPInit', wasmExports['QSPInit'], 1);
   _QSPTerminate = Module['_QSPTerminate'] = createExportWrapper('QSPTerminate', wasmExports['QSPTerminate'], 0);
   _QSPRunChecks = Module['_QSPRunChecks'] = createExportWrapper('QSPRunChecks', wasmExports['QSPRunChecks'], 0);
   _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
@@ -2391,8 +2401,6 @@ var wasmImports = {
   __handle_stack_overflow: ___handle_stack_overflow,
   /** @export */
   _abort_js: __abort_js,
-  /** @export */
-  emscripten_date_now: _emscripten_date_now,
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
   /** @export */

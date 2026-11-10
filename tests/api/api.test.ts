@@ -109,7 +109,7 @@ describe('api', () => {
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Unknown action!',
-        errorCode: 29,
+        errorCode: 31,
         line: 0,
         lineSrc: '',
         localLine: 0,
@@ -123,7 +123,7 @@ describe('api', () => {
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Unknown action!',
-        errorCode: 29,
+        errorCode: 31,
         line: 0,
         lineSrc: '',
         localLine: 0,
@@ -138,7 +138,7 @@ describe('api', () => {
     });
 
     it('should return tuples as strings', async () => {
-      expect(await api.calculateStringExpression(`[1, 'a']`)).toBe("[1,'a']");
+      expect(await api.calculateStringExpression(`[1, 'a']`)).toBe("[1, 'a']");
     });
 
     it('should handle empty string expression', async () => {

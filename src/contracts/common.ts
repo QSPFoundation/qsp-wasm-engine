@@ -1,4 +1,9 @@
-export type { QspErrorData, QspListItem, QspObjectItem } from '../qsplib/public/qsp-wasm-module';
+export type {
+  QspErrorData,
+  QspLineInfo,
+  QspListItem,
+  QspObjectItem,
+} from '../qsplib/public/qsp-wasm-module';
 
 export enum QspPanel {
   MAIN = 1,

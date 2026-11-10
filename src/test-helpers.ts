@@ -11,10 +11,10 @@ const wasmPath = process.env.DEBUG
   : './src/qsplib/public/qsp-engine.wasm';
 const wasm = fs.readFileSync(path.resolve(wasmPath));
 
-export async function prepareApi() {
+export async function prepareApi(seed?: number) {
   const api = process.env.DEBUG
-    ? await initDebugQspEngine(wasm.buffer)
-    : await initQspEngine(wasm.buffer);
+    ? await initDebugQspEngine(wasm.buffer, { seed })
+    : await initQspEngine(wasm.buffer, { seed });
   return api;
 }
 

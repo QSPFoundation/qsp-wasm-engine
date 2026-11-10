@@ -5,7 +5,7 @@
 # Without a path the sources are cloned from GitHub (QSP_REF selects a branch, tag or commit)
 set -e
 
-QSP_REF="${QSP_REF:-24f1d488908be572fe098fdb6db87bab648d2e6b}" # engine commit used by this version
+QSP_REF="${QSP_REF:-fcb59bb6420783692643babe945716a29cfde8e1}" # engine commit used by this version
 BUILD_DIR="$(pwd)/src/qsplib/build"
 TARGET="$(pwd)/src/qsplib/public"
 
