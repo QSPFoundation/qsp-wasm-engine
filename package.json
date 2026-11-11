@@ -48,8 +48,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:debug": "DEBUG=1 vitest run",
-    "prepublish": "pnpm run build",
-    "release": "np",
+    "prepublishOnly": "pnpm run build",
     "lint": "eslint .",
     "check-types": "tsc --noEmit",
     "update-engine": "sh ./update-engine.sh"
@@ -66,7 +65,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/QSPFoundation/qsp-wasm-engine.git"
+    "url": "git+https://github.com/QSPFoundation/qsp-wasm-engine.git"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -79,7 +78,6 @@
     "@types/responselike": "^1.0.3",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
-    "np": "^12.1.1",
     "prettier": "3.9.10",
     "rimraf": "^6.1.3",
     "rollup": "^4.64.10",
@@ -92,9 +90,6 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "np": {
-    "yarn": false
   },
   "packageManager": "pnpm@10.17.0"
 }

@@ -1,0 +1,52 @@
+name: Publish
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing (OIDC) + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+
+      - name: Use Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24.x'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      # npm stage needs npm >= 11.15.0
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Check tag matches package.json version
+        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
+
+      # no dependency cache for release builds
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Check types
+        run: pnpm run check-types
+
+      - name: Test
+        run: pnpm run test:debug
+
+      - name: Build
+        run: pnpm run build
+
+      # pnpm has no staged publishing, so npm does the upload; the trusted publisher is stage-only: a maintainer approves the version with 2FA on npmjs.com
+      - name: Stage publish
+        run: npm stage publish

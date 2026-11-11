@@ -27,7 +27,8 @@ This is `@qsp/wasm-engine`, a WebAssembly wrapper for the QSP (Quest Soft Player
 - The package is built in the QSP engine repository (`build_release_wasm.sh`, binding sources in `qsp/bindings/wasm/`)
 
 ### Publishing
-- `pnpm run release` - Release new version using `np` package
+- Release: `pnpm version <major|minor|patch> && git push --follow-tags`
+- Pushing a `v*` tag triggers `.github/workflows/publish.yml`: lint, check types, test, build, `npm stage publish` via npm trusted publishing (OIDC, no token). The trusted publisher is stage-only — plain `npm publish` is rejected with E403. The version goes live only after a maintainer approves it with 2FA on npmjs.com; create the GitHub release (`gh release create vX.Y.Z --generate-notes`) after approval. Never publish locally.
 
 ## Architecture
 
