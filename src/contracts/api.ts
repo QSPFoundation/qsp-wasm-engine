@@ -1,5 +1,5 @@
 import { QspEvents, QspEventLogger } from './events';
-import { QspListItem } from './common';
+import { QspLineInfo, QspListItem } from './common';
 
 import type { QspTuple, QspVariableKey, QspVariableValue } from '../qsplib/public/qsp-wasm-module';
 export type { QspTuple, QspVariableKey, QspVariableValue } from '../qsplib/public/qsp-wasm-module';
@@ -21,6 +21,8 @@ export interface QspAPI {
   on<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
   off<E extends keyof QspEvents>(event: E, callback: QspEvents[E]): void;
   registerEventLogger(logger: QspEventLogger): void;
+  // Milliseconds for MSECSCOUNT (Date.now by default)
+  setClock(now: () => number): void;
   version(): string;
   // The calls that execute game code resolve when the engine finishes them
   openGame(data: ArrayBuffer, isNewGame: boolean): Promise<void>;
@@ -66,11 +68,19 @@ export interface QspAPI {
 
   enableDebugMode(): void;
   disableDebugMode(): void;
+  // Where the engine executes code (e.g. the statement waiting in a dialog), loc is '' when idle
+  getCurrentState(): { loc: string; actIndex: number; line: number };
 
   getLocationsList(): string[];
   getLocationActions(name: string): QspListItem[];
-  getLocationCode(name: string): string[];
-  getActionCode(name: string, index: number): string[];
+  // Code entries with the line each starts on, as errors number it
+  getLocationCode(name: string): QspLineInfo[];
+  getLocationActionCode(name: string, index: number): QspLineInfo[];
+  // A current action, a dynamic one included
+  getActionCode(index: number): QspLineInfo[];
+
+  // The current location ($CURLOC), '' if there is none
+  getCurrentLocation(): string;
 
   // Expression evaluation
   calculateStringExpression(expression: string): Promise<string>;

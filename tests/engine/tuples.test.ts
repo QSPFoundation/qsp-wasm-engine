@@ -307,7 +307,7 @@ describe('tuples', () => {
       ['[]', '[]'],
       ['()', '[]'],
       ['[44]', '[44]'],
-      ['[2,3]', '[2,3]'],
+      ['[2,3]', '[2, 3]'],
       ["['55']", "['55']"],
       ["['55a']", "['55a']"],
     ])('%s = %s', async (a, result) => {
@@ -427,7 +427,7 @@ $a, $b = func('other')
           },
           {
             image: '',
-            name: "['tuple','test']",
+            name: "['tuple', 'test']",
           },
         ],
         expect.any(Function),
@@ -448,7 +448,7 @@ $a, $b = func('other')
     expect(error).toHaveBeenCalledWith({
       actionIndex: -1,
       description: "Incorrect arguments count!",
-      errorCode: 30,
+      errorCode: 32,
       line: 2,
       lineSrc:
         '%A = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"]',

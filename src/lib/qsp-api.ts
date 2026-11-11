@@ -5,7 +5,7 @@ import {
   QspVariableType,
   QspVariableValue,
 } from '../contracts/api';
-import { QspPanel, QspListItem } from '../contracts/common';
+import { QspPanel, QspLineInfo, QspListItem } from '../contracts/common';
 import { QspEventKeys, QspEventListeners, QspEvents, QspEventLogger } from '../contracts/events';
 import {
   CharsPtr,
@@ -54,9 +54,10 @@ export class QspAPIImpl implements QspAPI {
   private variableValues = new Map<string, QspVariableValue>();
   private eventLogger: QspEventLogger | null = null;
 
-  private time: number = Date.now();
+  private now: () => number = () => Date.now(); // ms, Date is looked up per call (fake timers)
+  private time: number = this.now();
 
-  // Upper-cased names passed to the engine
+  // Names passed to the engine, written once (the engine ignores their case)
   private staticStrings: Map<string, CharsPtr> = new Map();
 
   // Output slots of the calls that only read the state (nothing can re-enter while a slot is used),
@@ -68,7 +69,10 @@ export class QspAPIImpl implements QspAPI {
   private stringSlot: StringPtr;
   private intSlot: IntPtr;
 
-  constructor(private module: QspWasmModule) {
+  constructor(
+    private module: QspWasmModule,
+    seed?: number,
+  ) {
     this.slots = this.module._malloc(POINTER_SIZE * 9);
     this.lists = allocListBuffer(this.module);
     this.valueSlot = this.slots as number as VariantPtr;
@@ -76,7 +80,7 @@ export class QspAPIImpl implements QspAPI {
     this.stringSlot = (this.slots + POINTER_SIZE * 6) as number as StringPtr;
     this.intSlot = (this.slots + POINTER_SIZE * 8) as number as IntPtr;
     this.module.qspHost = this.createHost();
-    this.module._QSPInit();
+    this.module._QSPInit(seed ?? Date.now());
   }
 
   on<E extends keyof QspEvents>(event: E, listener: QspEvents[E]): void {
@@ -181,8 +185,13 @@ export class QspAPIImpl implements QspAPI {
     });
   }
 
+  setClock(now: () => number): void {
+    this.now = now;
+    this.time = now();
+  }
+
   async restartGame(): Promise<void> {
-    this.time = Date.now();
+    this.time = this.now();
     await this.run('QSPRestartGame', [1]);
   }
 
@@ -206,7 +215,7 @@ export class QspAPIImpl implements QspAPI {
   getStaticStringPointer(name: string): CharsPtr {
     let namePtr = this.staticStrings.get(name);
     if (!namePtr) {
-      namePtr = writeString(this.module, name.toUpperCase());
+      namePtr = writeString(this.module, name);
       this.staticStrings.set(name, namePtr);
     }
     return namePtr;
@@ -301,6 +310,18 @@ export class QspAPIImpl implements QspAPI {
     this.module._QSPEnableDebugMode(0);
   }
 
+  getCurrentState(): { loc: string; actIndex: number; line: number } {
+    // the key slot holds the two ints of the state here
+    const actIndexPtr = this.keySlot as number as IntPtr;
+    const linePtr = (actIndexPtr + POINTER_SIZE) as number as IntPtr;
+    this.module._QSPGetCurStateData(this.stringSlot, actIndexPtr, linePtr);
+    return {
+      loc: readString(this.module, this.stringSlot),
+      actIndex: readInt(this.module, actIndexPtr),
+      line: readInt(this.module, linePtr),
+    };
+  }
+
   getLocationsList(): string[] {
     return withStringListRead(this.module, this.lists, (items, bufSize) =>
       this.module._QSPGetLocationNames(items as number as StringPtr, bufSize),
@@ -314,18 +335,29 @@ export class QspAPIImpl implements QspAPI {
     );
   }
 
-  getLocationCode(name: string): string[] {
+  getLocationCode(name: string): QspLineInfo[] {
     const namePtr = this.getStaticStringPointer(name);
     return withLinesRead(this.module, this.lists, (lines, bufSize) =>
       this.module._QSPGetLocationCode(namePtr, lines, bufSize),
     );
   }
 
-  getActionCode(location: string, index: number): string[] {
+  getLocationActionCode(location: string, index: number): QspLineInfo[] {
     const namePtr = this.getStaticStringPointer(location);
     return withLinesRead(this.module, this.lists, (lines, bufSize) =>
       this.module._QSPGetLocationActionCode(namePtr, index, lines, bufSize),
     );
+  }
+
+  getActionCode(index: number): QspLineInfo[] {
+    return withLinesRead(this.module, this.lists, (lines, bufSize) =>
+      this.module._QSPGetActionCode(index, lines, bufSize),
+    );
+  }
+
+  getCurrentLocation(): string {
+    this.module._QSPGetCurLocation(this.stringSlot);
+    return readString(this.module, this.stringSlot);
   }
 
   // The result is cut to MAX_STRING_RESULT_LENGTH characters
@@ -409,8 +441,9 @@ export class QspAPIImpl implements QspAPI {
       },
       onInitGame: (isNewGame) => waitForAll(this.notify('init_game', isNewGame)),
       onGetMSCount: () => {
-        const elapsed = Date.now() - this.time;
-        this.time = Date.now();
+        const now = this.now();
+        const elapsed = now - this.time;
+        this.time = now;
         return elapsed;
       },
       onOpenGame: (path, isNewGame) =>
@@ -459,13 +492,7 @@ export class QspAPIImpl implements QspAPI {
 
   private onDebug(code: string): Promise<void> | undefined {
     if (!this.listeners.has('debug')) return undefined;
-    // the key slot holds the two ints of the state here
-    const actIndexPtr = this.keySlot as number as IntPtr;
-    const linePtr = (actIndexPtr + POINTER_SIZE) as number as IntPtr;
-    this.module._QSPGetCurStateData(this.stringSlot, actIndexPtr, linePtr);
-    const loc = readString(this.module, this.stringSlot);
-    const line = readInt(this.module, linePtr);
-    const actIndex = readInt(this.module, actIndexPtr);
+    const { loc, line, actIndex } = this.getCurrentState();
     return new Promise((resolve) => this.emit('debug', { code, loc, line, actIndex }, resolve));
   }
 

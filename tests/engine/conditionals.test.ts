@@ -887,7 +887,7 @@ end
       expect(error).toHaveBeenCalledWith({
         actionIndex: -1,
         description: 'Unknown action!',
-        errorCode: 29,
+        errorCode: 31,
         line: 2,
         lineSrc: 'IF ABCD=3: K1=34 ELSE K1=25 END',
         localLine: 2,
